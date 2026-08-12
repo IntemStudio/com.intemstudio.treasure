@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/inventory/resources/item_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "night_dagger"
+display_name = "Night Dagger"
+item_type = "Dagger"
+category = 0
+rarity = 2
+icon = ExtResource("2")
+attack = 9
+attack_bonus = 6
+scales_with = "dexterity"
+weight = 4.2
+equip_slot = "off_hand"
+affixes = [{"positive": true, "text": "+10% Critical Chance"}]

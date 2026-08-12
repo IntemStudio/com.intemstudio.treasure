@@ -1,0 +1,8 @@
+[gd_resource type="Theme" load_steps=2 format=3]
+
+[ext_resource type="FontFile" uid="uid://4ua35djn4ff2" path="res://assets/fonts/KR/NotoSansKR-Regular.ttf" id="1_font"]
+
+[resource]
+default_font = ExtResource("1_font")
+Label/colors/font_color = Color(0.92, 0.9, 0.86, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 0.5)

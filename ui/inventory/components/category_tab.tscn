@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://category_tab"]
+
+[ext_resource type="Script" path="res://ui/inventory/components/category_tab.gd" id="1"]
+
+[node name="CategoryTab" type="Button"]
+flat = true
+text = "WPN"
+script = ExtResource("1")

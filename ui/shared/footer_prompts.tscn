@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://footer_prompts"]
+
+[ext_resource type="Script" path="res://ui/shared/footer_prompts.gd" id="1"]
+
+[node name="FooterPrompts" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+theme_override_constants/separation = 28
+alignment = 0
+script = ExtResource("1")

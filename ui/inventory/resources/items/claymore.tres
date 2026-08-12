@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/inventory/resources/item_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "claymore"
+display_name = "Claymore"
+item_type = "Two Handed Great Sword"
+category = 0
+rarity = 0
+icon = ExtResource("2")
+tier = 1
+attack = 13
+attack_bonus = 8
+defense = 20
+defense_bonus = 10
+scales_with = "strength"
+skills = [{"button": "X", "name": "Juggle Strike"}, {"button": "Y", "name": ""}, {"button": "B", "name": ""}, {"button": "A", "name": ""}]
+cost = 23
+gain = 9
+affixes = [{"positive": true, "text": "14% Stamina Refill Chance"}, {"positive": false, "text": "Stamina decreased by 24%"}]
+flavor_text = "A heavy blade forged for warriors who favor raw power."
+required_stat = "strength"
+required_value = 10
+durability = 100
+durability_max = 100
+weight = 29.6
+equip_slot = "main_hand"

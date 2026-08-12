@@ -1,0 +1,121 @@
+[gd_scene load_steps=3 format=3 uid="uid://dev_overlay"]
+
+[ext_resource type="Script" path="res://ui/dev/dev_overlay.gd" id="1"]
+[ext_resource type="Theme" path="res://ui/shared/themes/ui_theme.tres" id="2"]
+
+[node name="DevOverlay" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 360)
+layout_mode = 2
+theme = ExtResource("2")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Developer"
+
+[node name="TabRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SaveTabButton" type="Button" parent="Center/Panel/Margin/VBox/TabRow"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+text = "Save"
+
+[node name="CharacterTabButton" type="Button" parent="Center/Panel/Margin/VBox/TabRow"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+text = "Character"
+
+[node name="SavePanel" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="PathLabel" type="Label" parent="Center/Panel/Margin/VBox/SavePanel"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "user://saves/"
+
+[node name="OpenFolderButton" type="Button" parent="Center/Panel/Margin/VBox/SavePanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open Save Folder"
+
+[node name="CharacterPanel" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LevelInfoLabel" type="Label" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Level 1"
+
+[node name="LevelButtons" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LevelDownButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Level Down"
+
+[node name="LevelUpButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Level Up"
+
+[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+
+[node name="CloseHintLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "` / Esc: Close"

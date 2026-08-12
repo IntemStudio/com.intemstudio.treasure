@@ -1,0 +1,164 @@
+keys,en,ko
+Inventory,Inventory,인벤토리
+Map,Map,맵
+Stats,Stats,스탯
+Settings,Settings,설정
+LEVEL-UP,LEVEL-UP,레벨 상승
+INSIGHT,INSIGHT,정보
+BACK,BACK,뒤로
+SORT: %s,SORT: %s,분류: %s
+EQUIP / UNEQUIP,EQUIP / UNEQUIP,장착/해제
+DISCARD,DISCARD,버리기
+CLOSE,CLOSE,닫기
+WPN,WPN,무기
+ARM,ARM,방어구
+CON,CON,소모품
+MAT,MAT,재료
+TOL,TOL,도구
+TIME,TIME,시간
+NAME,NAME,이름
+WEIGHT,WEIGHT,무게
+RARITY,RARITY,희귀도
+Attribute Points,Attribute Points,속성 포인트
+GENERAL,GENERAL,일반
+DEFENSE,DEFENSE,방어력
+Max Weight: %.1f,Max Weight: %.1f,최대 장비 무게: %.1f
+Current: %.1f,Current: %.1f,현재 무게: %.1f
+Weapon,Weapon,무기
+Base,Base,기본
+Attr Bonus,Attr Bonus,추가 속성 점수
+Other,Other,기타
+Total,Total,전체
+Health,Health,체력
+Stamina,Stamina,지구력
+Strength,Strength,근력
+Dexterity,Dexterity,민첩성
+Intelligence,Intelligence,지력
+Faith,Faith,신앙
+Focus,Focus,집중력
+Equip Load,Equip Load,최대 장비 무게
+Life Points,Life Points,생명력 포인트
+Stamina Points,Stamina Points,지구력 포인트
+Focus Points,Focus Points,집중력 포인트
+Stamina Regen,Stamina Regen,지구력 재생
+Focus Gain,Focus Gain,집중력 획득
+Armor,Armor,물리 저항
+Poise,Poise,자세
+Heat,Heat,화염 저항
+Cold,Cold,냉기 저항
+Electric,Electric,전기 저항
+Plague,Plague,역병 저항
+Empty,Empty,비어있음
+Select an item,Select an item,아이템을 선택하세요
+Scales with: %s,Scales with: %s,관련 능력치: %s
+Cost %d,Cost %d,비용 %d
+Gain %d,Gain %d,획득 %d
+Weight %.1f,Weight %.1f,무게 %.1f
+Light,Light,가벼움
+Normal,Normal,보통
+Heavy,Heavy,무거움
+%s (%d%%),%s (%d%%),%s (%d%%)
+Level %d,Level %d,레벨 %d
+%dH %dM,%dH %dM,%d시간 %d분
+ATK,ATK,공격
+DEF,DEF,방어
+Language,Language,언어
+Font,Font,폰트
+Sans,Sans,고딕
+Serif,Serif,명조
+English,English,English
+한국어,한국어,한국어
+Save Slots,Save Slots,세이브 슬롯
+Select Profile,Select Profile,프로필 선택
+Back,Back,뒤로
+New Game,New Game,새 게임
+Delete the selected profile?,Delete the selected profile?,선택한 프로필을 지웁니까?
+Continue?,Continue?,계속합니까?
+Cannot load this profile,Cannot load this profile,이 프로필을 불러올 수 없습니다
+Corrupt,Corrupt,손상됨
+Incompatible,Incompatible,호환되지 않음
+New,New,새 게임
+Save,Save,저장
+Load,Load,불러오기
+Delete,Delete,삭제
+Slot %d: Empty,Slot %d: Empty,슬롯 %d: 비어 있음
+Slot %d: %s — Level %d,Slot %d: %s — Level %d,슬롯 %d: %s — 레벨 %d
+Slot %d: Corrupt,Slot %d: Corrupt,슬롯 %d: 손상됨
+Slot %d: Incompatible,Slot %d: Incompatible,슬롯 %d: 호환되지 않음
+New game saved to slot %d,New game saved to slot %d,슬롯 %d에 새 게임 저장됨
+Failed to create new game,Failed to create new game,새 게임 생성 실패
+Saved to slot %d,Saved to slot %d,슬롯 %d에 저장됨
+Save failed,Save failed,저장 실패
+Loaded slot %d,Loaded slot %d,슬롯 %d 불러옴
+Load failed,Load failed,불러오기 실패
+Deleted slot %d,Deleted slot %d,슬롯 %d 삭제됨
+Delete failed,Delete failed,삭제 실패
+Developer,Developer,개발자
+Save Data,Save Data,세이브 데이터
+Character,Character,캐릭터
+Open Save Folder,Open Save Folder,세이브 폴더 열기
+Opened save folder,Opened save folder,세이브 폴더를 열었습니다
+Failed to open save folder,Failed to open save folder,세이브 폴더를 열지 못했습니다
+Force Level Up,Force Level Up,강제 레벨업
+Force Level Down,Force Level Down,강제 레벨다운
+Level %d  (%d / %d XP),Level %d  (%d / %d XP),레벨 %d  (%d / %d XP)
+No character,No character,캐릭터 없음
+Already max level,Already max level,이미 최대 레벨입니다
+Already min level,Already min level,이미 최소 레벨입니다
+Forced level up → %d,Forced level up → %d,강제 레벨업 → %d
+Forced level down → %d,Forced level down → %d,강제 레벨다운 → %d
+MAX,MAX,MAX
+EXP,EXP,경험치
+MP,MP,마나
+HP,HP,체력
+Experience,Experience,경험치
+` / Esc: Close,` / Esc: Close,` / Esc: 닫기
+LOCATION_TEST,Test Grounds,시험장
+LOCATION_UNKNOWN,Unknown,알 수 없음
+Dried Fish,Dried Fish,건어물
+Gameplay,Gameplay,게임 플레이
+Controls,Controls,조작
+Display,Display,디스플레이
+Audio,Audio,오디오
+Exit,Exit,나가기
+User Interface,User Interface,사용자 인터페이스
+Coming soon,Coming soon,준비 중
+Resolution,Resolution,해상도
+Display Mode,Display Mode,디스플레이 모드
+Windowed,Windowed,창 모드
+Fullscreen,Fullscreen,전체 화면
+Borderless,Borderless,테두리 없음
+VSync,VSync,VSync
+Frame Rate,Frame Rate,프레임률
+Unlimited,Unlimited,제한 없음
+Master,Master,전체
+Music,Music,음악
+Sound Effects,Sound Effects,음향
+Background Audio,Background Audio,백그라운드 오디오
+On,On,켜기
+Off,Off,끄기
+Return to Main Menu,Return to Main Menu,메인 메뉴로 나가기
+Exit to Desktop,Exit to Desktop,바탕화면으로 나가기
+Are you sure?,Are you sure?,정말 종료하시겠습니까?
+Yes,Yes,예
+No,No,아니요
+SETTINGS_DESC_LANGUAGE,"Choose the language used for menus and UI text.","메뉴와 UI 텍스트에 사용할 언어를 선택합니다."
+SETTINGS_DESC_FONT,"Choose the UI font style (sans or serif).","UI 글꼴 스타일(고딕/명조)을 선택합니다."
+SETTINGS_DESC_RESOLUTION,"Set the game window resolution. Applies immediately in windowed mode.","게임 창 해상도를 설정합니다. 창 모드에서 즉시 적용됩니다."
+SETTINGS_DESC_DISPLAY_MODE,"Switch between windowed, fullscreen, and borderless display.","창 모드, 전체 화면, 테두리 없음 디스플레이를 전환합니다."
+SETTINGS_DESC_VSYNC,"Synchronize frame presentation with the display refresh rate to reduce tearing.","화면 주사율에 맞춰 프레임을 표시해 티어링을 줄입니다."
+SETTINGS_DESC_FRAME_RATE,"Limit the maximum frames per second, or leave unlimited.","초당 최대 프레임을 제한하거나 제한 없음으로 둡니다."
+SETTINGS_DESC_MASTER,"Overall volume for all game audio.","게임 전체 오디오 볼륨입니다."
+SETTINGS_DESC_MUSIC,"Volume for music tracks.","배경 음악 볼륨입니다."
+SETTINGS_DESC_SFX,"Volume for sound effects.","효과음 볼륨입니다."
+SETTINGS_DESC_BACKGROUND,"Keep playing audio when the game window loses focus.","게임 창이 포커스를 잃어도 오디오를 계속 재생합니다."
+SETTINGS_DESC_CONTROLS,"Control remapping will be available in a future update.","키 조작 재설정은 추후 업데이트에서 제공됩니다."
+SETTINGS_DESC_RETURN_TITLE,"Leave the current session and return to the title screen. Unsaved progress will be lost.","현재 세션을 종료하고 타이틀 화면으로 돌아갑니다. 저장하지 않은 진행은 사라집니다."
+SETTINGS_DESC_QUIT_DESKTOP,"Close the game and return to the desktop.","게임을 종료하고 바탕화면으로 나갑니다."
+SETTINGS_DESC_EXIT_CONFIRM,"Confirm to proceed, or cancel to stay in settings.","계속하려면 예를, 설정에 남으려면 아니요를 선택하세요."
+UI_TEST_HINT_1,Tab/I: Open Stats or Inventory,Tab/I: 스탯 또는 인벤토리 열기
+UI_TEST_HINT_2,`: Developer overlay (open save folder),`: 개발자 오버레이 (세이브 폴더 열기)
+UI_TEST_HINT_3,HUD: XP / Mana / HP · location · skills & quick slots,HUD: 경험치 / 마나 / 체력 · 위치 · 스킬 및 퀵슬롯
+UI_TEST_HINT_4,"Arrows/WASD: Move    Q/E: Switch tabs    1/3: Inventory categories","방향키/WASD: 이동    Q/E: 탭 전환    1/3: 인벤토리 카테고리"
+UI_TEST_HINT_5,"Click: Select    Double-click: Equip    Right-click: Discard","클릭: 선택    더블클릭: 장착    우클릭: 버리기"
+UI_TEST_HINT_6,Esc/B: Close popup,Esc/B: 팝업 닫기

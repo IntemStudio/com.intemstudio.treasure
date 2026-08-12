@@ -1,0 +1,194 @@
+[gd_scene load_steps=3 format=3 uid="uid://stats_content"]
+
+[ext_resource type="Script" path="res://ui/stats/stats_content.gd" id="1"]
+[ext_resource type="Theme" path="res://ui/stats/themes/stats_theme.tres" id="2"]
+
+[node name="StatsContent" type="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Body" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 28
+
+[node name="LeftPanel" type="VBoxContainer" parent="Body"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 16
+
+[node name="Portrait" type="TextureRect" parent="Body/LeftPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 110)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PointsRow" type="HBoxContainer" parent="Body/LeftPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="PointsPrevBtn" type="Button" parent="Body/LeftPanel/PointsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "<"
+
+[node name="PointsLabel" type="Label" parent="Body/LeftPanel/PointsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Attribute Points"
+
+[node name="PointsValueLabel" type="Label" parent="Body/LeftPanel/PointsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.66, 0.3, 1)
+text = "1"
+
+[node name="PointsNextBtn" type="Button" parent="Body/LeftPanel/PointsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ">"
+
+[node name="AttributeList" type="VBoxContainer" parent="Body/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="RightPanel" type="VBoxContainer" parent="Body"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 16
+
+[node name="Columns" type="HBoxContainer" parent="Body/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="GeneralCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 6
+
+[node name="GeneralTitle" type="Label" parent="Body/RightPanel/Columns/GeneralCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "GENERAL"
+
+[node name="DefenseCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 6
+
+[node name="DefenseTitle" type="Label" parent="Body/RightPanel/Columns/DefenseCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "DEFENSE"
+
+[node name="WeightCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 6
+
+[node name="WeightTitle" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "WEIGHT"
+
+[node name="MaxWeightLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Max Weight: 80.0"
+
+[node name="CurrentWeightLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Current: 42.4"
+
+[node name="WeightClassLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Normal (53%)"
+
+[node name="WeightBar" type="ProgressBar" parent="Body/RightPanel/Columns/WeightCol"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 80.0
+value = 42.4
+show_percentage = false
+
+[node name="WeaponTable" type="VBoxContainer" parent="Body/RightPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="Body/RightPanel/WeaponTable"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Weapon" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "Weapon"
+
+[node name="Base" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "Base"
+horizontal_alignment = 1
+
+[node name="AttrBonus" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "Attr Bonus"
+horizontal_alignment = 1
+
+[node name="Other" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "Other"
+horizontal_alignment = 1
+
+[node name="Total" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+text = "Total"
+horizontal_alignment = 1
+
+[node name="WeaponRows" type="VBoxContainer" parent="Body/RightPanel/WeaponTable"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4

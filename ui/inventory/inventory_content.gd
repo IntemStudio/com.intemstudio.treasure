@@ -1,0 +1,461 @@
+extends Control
+
+signal request_close
+signal item_equipped(item: ItemData, slot: String)
+signal item_discarded(item: ItemData)
+
+const SLOT_SCENE := preload("res://ui/inventory/components/inventory_slot.tscn")
+const CATEGORY_TAB_SCENE := preload("res://ui/inventory/components/category_tab.tscn")
+const EQUIPMENT_SLOT_SCENE := preload("res://ui/inventory/components/equipment_slot.tscn")
+const STAT_ROW_SCENE := preload("res://ui/stats/components/stat_row.tscn")
+
+const CATEGORY_DEFS: Array[Dictionary] = [
+	{"category": ItemData.ItemCategory.WEAPON, "label": "WPN"},
+	{"category": ItemData.ItemCategory.ARMOR, "label": "ARM"},
+	{"category": ItemData.ItemCategory.CONSUMABLE, "label": "CON"},
+	{"category": ItemData.ItemCategory.MATERIAL, "label": "MAT"},
+	{"category": ItemData.ItemCategory.TOOL, "label": "TOL"},
+]
+
+const SORT_MODES: Array[String] = ["time", "name", "weight", "rarity"]
+
+var inventory: InventoryData
+var character_stats: CharacterStats
+
+@onready var category_tabs: HBoxContainer = %CategoryTabs
+@onready var item_grid: GridContainer = %ItemGrid
+@onready var detail_panel: ItemDetailPanel = %ItemDetailPanel
+@onready var attribute_list: VBoxContainer = %AttributeList
+@onready var load_indicator: Label = %LoadIndicator
+@onready var character_preview: SubViewportContainer = %CharacterPreview
+@onready var equipment_layout: GridContainer = %EquipmentLayout
+
+var _ui_manager: UIManager
+var _footer: FooterPrompts
+var _slots: Array[InventorySlot] = []
+var _category_tab_nodes: Array[CategoryTab] = []
+var _equipment_slots: Dictionary = {}
+var _filtered_indices: Array[int] = []
+var _selected_filtered_index: int = 0
+var _selected_equip_slot: String = ""
+var _preview_root: Node3D
+var _footer_connected: bool = false
+
+
+func _ready() -> void:
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+	_build_category_tabs()
+	_build_grid()
+	_build_equipment_slots()
+	_build_attribute_list()
+	_setup_character_preview()
+	LocaleManager.locale_changed.connect(_on_locale_changed)
+
+
+func setup(ui_manager: UIManager, footer: FooterPrompts) -> void:
+	_ui_manager = ui_manager
+	_footer = footer
+	if _ui_manager and not _ui_manager.input_device_changed.is_connected(_on_input_device_changed):
+		_ui_manager.input_device_changed.connect(_on_input_device_changed)
+	if _footer and not _footer_connected:
+		_footer.prompt_activated.connect(_on_footer_prompt)
+		_footer_connected = true
+
+
+func activate(stats: CharacterStats, inventory_data: InventoryData) -> void:
+	character_stats = stats
+	inventory = inventory_data
+	visible = true
+	process_mode = Node.PROCESS_MODE_INHERIT
+	_refresh_all()
+
+
+func deactivate() -> void:
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+	_refresh_character_preview()
+
+
+func _is_using_gamepad() -> bool:
+	return _ui_manager.using_gamepad if _ui_manager else false
+
+
+func _on_input_device_changed(_using_gamepad: bool) -> void:
+	if visible:
+		_update_footer.call_deferred()
+
+
+func _on_locale_changed(_locale: String) -> void:
+	_refresh_category_tab_labels()
+	if inventory:
+		_refresh_all()
+	elif visible:
+		_update_footer()
+
+
+func _update_footer() -> void:
+	if not _footer:
+		return
+	var sort_key := inventory.sort_mode.to_upper() if inventory else "TIME"
+	var using_gamepad := _is_using_gamepad()
+	_footer.set_prompts([
+		{"action": "sort", "button": "L3" if using_gamepad else "S", "label": tr("SORT: %s") % tr(sort_key)},
+		{"action": "equip", "button": "A" if using_gamepad else "Enter", "label": tr("EQUIP / UNEQUIP")},
+		{"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")},
+		{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")},
+	])
+
+
+func _build_category_tabs() -> void:
+	for child in category_tabs.get_children():
+		child.queue_free()
+	_category_tab_nodes.clear()
+	for def in CATEGORY_DEFS:
+		var tab: CategoryTab = CATEGORY_TAB_SCENE.instantiate()
+		category_tabs.add_child(tab)
+		tab.setup(def["category"], tr(str(def["label"])))
+		tab.tab_selected.connect(_on_category_selected)
+		_category_tab_nodes.append(tab)
+
+
+func _build_grid() -> void:
+	for child in item_grid.get_children():
+		child.queue_free()
+	_slots.clear()
+	for i in range(InventoryData.GRID_SIZE):
+		var slot: InventorySlot = SLOT_SCENE.instantiate()
+		item_grid.add_child(slot)
+		slot.setup(i)
+		slot.slot_pressed.connect(_on_slot_pressed)
+		slot.slot_activated.connect(_on_slot_activated)
+		slot.slot_discard_requested.connect(_on_slot_discard_requested)
+		_slots.append(slot)
+
+
+func _build_equipment_slots() -> void:
+	for child in equipment_layout.get_children():
+		child.queue_free()
+	_equipment_slots.clear()
+	for slot_id in InventoryData.EQUIP_SLOTS:
+		var slot: EquipmentSlot = EQUIPMENT_SLOT_SCENE.instantiate()
+		equipment_layout.add_child(slot)
+		slot.setup(slot_id)
+		slot.slot_pressed.connect(_on_equipment_pressed)
+		slot.slot_activated.connect(_on_equipment_activated)
+		_equipment_slots[slot_id] = slot
+
+
+func _build_attribute_list() -> void:
+	for child in attribute_list.get_children():
+		child.queue_free()
+	for attr_id in CharacterStats.ATTRIBUTE_IDS:
+		if attr_id == "health" or attr_id == "equip_load":
+			continue
+		var row: StatRow = STAT_ROW_SCENE.instantiate()
+		attribute_list.add_child(row)
+		row.name = "Attr_%s" % attr_id
+
+
+func _setup_character_preview() -> void:
+	var viewport := character_preview.get_node("SubViewport") as SubViewport
+	_preview_root = Node3D.new()
+	_preview_root.name = "PreviewRoot"
+	viewport.add_child(_preview_root)
+
+	var camera := Camera3D.new()
+	camera.position = Vector3(0, 1.2, 2.5)
+	_preview_root.add_child(camera)
+	camera.look_at(Vector3(0, 1, 0))
+
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-45, 30, 0)
+	_preview_root.add_child(light)
+
+	var body := MeshInstance3D.new()
+	var capsule := CapsuleMesh.new()
+	capsule.height = 1.6
+	capsule.radius = 0.35
+	body.mesh = capsule
+	body.position = Vector3(0, 0.9, 0)
+	_preview_root.add_child(body)
+
+	var shield := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.6, 0.8, 0.08)
+	shield.mesh = box
+	shield.position = Vector3(-0.55, 1.0, 0.2)
+	_preview_root.add_child(shield)
+
+
+func _refresh_all() -> void:
+	if not inventory:
+		return
+	inventory.ensure_grid_size()
+	if character_stats:
+		_refresh_attributes()
+		_refresh_load_indicator()
+	_update_category_tabs()
+	_rebuild_filtered_indices()
+	_refresh_grid()
+	_refresh_equipment()
+	_refresh_character_preview()
+	_update_footer()
+
+
+func _refresh_attributes() -> void:
+	if not character_stats:
+		return
+	for attr_id in CharacterStats.ATTRIBUTE_IDS:
+		if attr_id == "health" or attr_id == "equip_load":
+			continue
+		if not attribute_list.has_node("Attr_%s" % attr_id):
+			continue
+		var row: StatRow = attribute_list.get_node("Attr_%s" % attr_id)
+		row.setup(
+			CharacterStats.get_attribute_label(attr_id),
+			character_stats.attributes.get(attr_id, 0)
+		)
+
+
+func _refresh_load_indicator() -> void:
+	if character_stats:
+		load_indicator.text = character_stats.get_weight_class_label()
+	elif inventory:
+		load_indicator.text = tr("Normal")
+
+
+func _update_category_tabs() -> void:
+	_refresh_category_tab_labels()
+	if not inventory:
+		return
+	for tab in _category_tab_nodes:
+		tab.set_active(tab.category == inventory.current_category)
+
+
+func _refresh_category_tab_labels() -> void:
+	for i in range(_category_tab_nodes.size()):
+		if i >= CATEGORY_DEFS.size():
+			break
+		_category_tab_nodes[i].text = tr(str(CATEGORY_DEFS[i]["label"]))
+
+
+func _rebuild_filtered_indices() -> void:
+	_filtered_indices.clear()
+	inventory.ensure_grid_size()
+	for i in range(inventory.slots.size()):
+		var item: ItemData = inventory.slots[i]
+		if item and item.category == inventory.current_category:
+			_filtered_indices.append(i)
+	_selected_filtered_index = clampi(
+		_selected_filtered_index,
+		0,
+		maxi(_filtered_indices.size() - 1, 0)
+	)
+
+
+func _refresh_grid() -> void:
+	inventory.ensure_grid_size()
+	for i in range(_slots.size()):
+		var slot := _slots[i]
+		if i < _filtered_indices.size():
+			var storage_index := _filtered_indices[i]
+			var item: ItemData = inventory.slots[storage_index]
+			slot.visible = true
+			slot.setup(storage_index)
+			slot.set_item(item)
+			slot.set_selected(i == _selected_filtered_index)
+		else:
+			slot.visible = i < maxi(_filtered_indices.size(), 1)
+			slot.setup(-1)
+			slot.set_item(null)
+			slot.set_selected(false)
+	if _selected_equip_slot == "":
+		detail_panel.set_item(_get_selected_item())
+
+
+func _get_selected_grid_index() -> int:
+	if _filtered_indices.is_empty():
+		return -1
+	return _filtered_indices[_selected_filtered_index]
+
+
+func _get_selected_item() -> ItemData:
+	var index := _get_selected_grid_index()
+	if index < 0:
+		return null
+	return inventory.slots[index]
+
+
+func _refresh_equipment() -> void:
+	for slot_id in _equipment_slots.keys():
+		var slot: EquipmentSlot = _equipment_slots[slot_id]
+		slot.set_item(inventory.equipped.get(slot_id))
+		slot.set_selected(slot_id == _selected_equip_slot)
+
+
+func _refresh_character_preview() -> void:
+	character_preview.visible = visible
+
+
+func _select_filtered_index(filtered_index: int) -> void:
+	if _filtered_indices.is_empty():
+		return
+	_selected_filtered_index = clampi(filtered_index, 0, _filtered_indices.size() - 1)
+	if _selected_equip_slot != "":
+		_selected_equip_slot = ""
+		_refresh_equipment()
+	_refresh_grid()
+
+
+func _on_category_selected(category: ItemData.ItemCategory) -> void:
+	inventory.current_category = category
+	_selected_filtered_index = 0
+	_refresh_all()
+
+
+func _on_slot_pressed(index: int) -> void:
+	_selected_equip_slot = ""
+	_refresh_equipment()
+	var filtered_pos := _filtered_indices.find(index)
+	if filtered_pos >= 0:
+		_select_filtered_index(filtered_pos)
+
+
+func _on_slot_activated(index: int) -> void:
+	_on_slot_pressed(index)
+	_try_equip()
+
+
+func _on_slot_discard_requested(index: int) -> void:
+	_on_slot_pressed(index)
+	_try_discard()
+
+
+func _on_equipment_pressed(slot_id: String) -> void:
+	_selected_equip_slot = slot_id
+	_refresh_equipment()
+	detail_panel.set_item(inventory.equipped.get(slot_id))
+
+
+func _on_equipment_activated(slot_id: String) -> void:
+	_unequip_slot(slot_id)
+
+
+func _on_footer_prompt(action: String) -> void:
+	if not visible:
+		return
+	match action:
+		"sort":
+			_cycle_sort()
+		"equip":
+			_try_equip()
+		"discard":
+			_try_discard()
+		"close":
+			request_close.emit()
+
+
+func _try_equip() -> void:
+	var item := _get_selected_item()
+	if not item:
+		return
+	for slot_id in inventory.equipped.keys():
+		if inventory.equipped[slot_id] == item:
+			_unequip_slot(slot_id)
+			return
+	var slot_id := inventory.get_slot_for_equip(item)
+	if slot_id == "":
+		return
+	var grid_index := _get_selected_grid_index()
+	var previous: ItemData = inventory.equipped.get(slot_id)
+	inventory.equipped[slot_id] = item
+	inventory.slots[grid_index] = previous
+	item_equipped.emit(item, slot_id)
+	_refresh_all()
+
+
+func _unequip_slot(slot_id: String) -> void:
+	var item: ItemData = inventory.equipped.get(slot_id)
+	if not item:
+		return
+	inventory.equipped[slot_id] = null
+	var empty_index := inventory.find_empty_slot()
+	if empty_index >= 0:
+		inventory.slots[empty_index] = item
+	item_equipped.emit(item, slot_id)
+	_selected_equip_slot = ""
+	_refresh_all()
+
+
+func _try_discard() -> void:
+	var grid_index := _get_selected_grid_index()
+	if grid_index < 0:
+		return
+	var item: ItemData = inventory.slots[grid_index]
+	if not item:
+		return
+	inventory.slots[grid_index] = null
+	item_discarded.emit(item)
+	_selected_filtered_index = clampi(_selected_filtered_index, 0, maxi(_filtered_indices.size() - 2, 0))
+	_rebuild_filtered_indices()
+	_refresh_all()
+
+
+func _cycle_sort() -> void:
+	var current := SORT_MODES.find(inventory.sort_mode)
+	var next := (current + 1) % SORT_MODES.size()
+	inventory.sort_mode = SORT_MODES[next]
+	inventory.sort_slots()
+	_refresh_all()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event.is_action_pressed("ui_cancel"):
+		request_close.emit()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_equip"):
+		_try_equip()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_discard"):
+		_try_discard()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_sort"):
+		_cycle_sort()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_category_prev"):
+		_cycle_category(-1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_category_next"):
+		_cycle_category(1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_left"):
+		if not _filtered_indices.is_empty():
+			_select_filtered_index(_selected_filtered_index - 1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_right"):
+		if not _filtered_indices.is_empty():
+			_select_filtered_index(_selected_filtered_index + 1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_up"):
+		if not _filtered_indices.is_empty():
+			_select_filtered_index(_selected_filtered_index - 5)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_down"):
+		if not _filtered_indices.is_empty():
+			_select_filtered_index(_selected_filtered_index + 5)
+		get_viewport().set_input_as_handled()
+
+
+func _cycle_category(direction: int) -> void:
+	var current_index := 0
+	for i in range(CATEGORY_DEFS.size()):
+		if CATEGORY_DEFS[i]["category"] == inventory.current_category:
+			current_index = i
+			break
+	var next_index := (current_index + direction) % CATEGORY_DEFS.size()
+	inventory.current_category = CATEGORY_DEFS[next_index]["category"]
+	_selected_filtered_index = 0
+	_refresh_all()

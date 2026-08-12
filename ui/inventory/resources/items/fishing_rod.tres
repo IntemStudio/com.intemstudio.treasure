@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/inventory/resources/item_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "fishing_rod"
+display_name = "Fishing Rod"
+item_type = "Tool"
+category = 4
+rarity = 0
+icon = ExtResource("2")
+weight = 3.5
+equip_slot = "tool_1"

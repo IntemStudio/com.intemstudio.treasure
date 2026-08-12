@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c5kjk0bvao3dn"
+
+[deps]
+
+files=["res://data/progression/xp_to_next.xp.translation"]
+
+source_file="res://data/progression/xp_to_next.csv"
+dest_files=["res://data/progression/xp_to_next.xp.translation"]
+
+[params]
+
+compress=true
+delimiter=0
