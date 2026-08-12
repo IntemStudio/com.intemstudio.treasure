@@ -16,7 +16,8 @@
 | 프로필 선택 | [`scenes/title/profile_select.tscn`](../../scenes/title/profile_select.tscn) + [`profile_select.gd`](../../scenes/title/profile_select.gd) |
 | 슬롯 카드 | [`scenes/title/components/profile_slot.tscn`](../../scenes/title/components/profile_slot.tscn) + [`profile_slot.gd`](../../scenes/title/components/profile_slot.gd) |
 | 설정 오버레이 | [`ui/settings/settings_content.tscn`](../../ui/settings/settings_content.tscn) + Footer ([`settings.md`](settings.md)) |
-| 게임 진입 (임시) | [`scenes/ui_test.tscn`](../../scenes/ui_test.tscn) |
+| 게임 진입 | [`scenes/dungeon/dungeon.tscn`](../../scenes/dungeon/dungeon.tscn) ([`map.md`](map.md)) |
+| UI 회귀 (수동) | [`scenes/ui_test.tscn`](../../scenes/ui_test.tscn) |
 | 부트 로드 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) (`current_slot >= 0`이면 슬롯 로드) |
 
 ---
@@ -67,8 +68,8 @@ scenes/title/
 ## 플로우·조작
 
 1. **Start** → 프로필 선택 (메뉴·브랜드 숨김)
-2. **빈 슬롯** → `SaveManager.new_game(slot)` → `ui_test.tscn`
-3. **유효 슬롯** → `SaveManager.load_game(slot)` → `ui_test.tscn`
+2. **빈 슬롯** → `SaveManager.new_game(slot)` → `dungeon.tscn`
+3. **유효 슬롯** → `SaveManager.load_game(slot)` → `dungeon.tscn`
 4. **삭제(`× Delete` / `× 삭제`)** → 슬롯 내 2단 확인 → `delete_slot`
 5. **Settings** → settings_content (게임 플레이/조작/디스플레이/오디오/나가기). 타이틀에서는 메인 메뉴로 나가기 숨김. 서브 탭은 `Q`/`E` ([`settings.md`](settings.md))
 6. **Quit** → `get_tree().quit()`
@@ -91,7 +92,7 @@ scenes/title/
 - corrupt / incompatible: 로드 거부, 삭제는 가능 (`Corrupt`/`Incompatible` · `손상됨`/`호환되지 않음`)  
 - **입력:** 타이틀 상하·Accept / 프로필 좌우·Accept·Cancel / 확인 중 예·아니요  
 
-`UIManager`: `SaveManager.current_slot >= 0`이면 해당 슬롯 로드, `-1`이면 더미(에디터에서 ui_test 직접 실행).
+`UIManager`: `SaveManager.current_slot >= 0`이면 해당 슬롯 로드, `-1`이면 더미(에디터에서 dungeon/ui_test 직접 실행).
 
 ---
 
@@ -99,4 +100,4 @@ scenes/title/
 
 - 슬롯 스크린샷·마스크/재화 아이콘 실데이터  
 - 타이틀 BGM, 종료 확인 팝업  
-- 별도 `game.tscn` (현재 ui_test가 메인 진입점)
+- 별도 `game.tscn` (현재 `dungeon.tscn`이 메인 진입점)

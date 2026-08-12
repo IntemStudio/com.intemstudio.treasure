@@ -14,11 +14,15 @@ var character_stats: CharacterStats
 var inventory_data: InventoryData
 var location_id: String = "LOCATION_TEST"
 var using_gamepad: bool = false
+var floor_map: FloorMap
+var room_host: RoomHost
 
 var _shell: CanvasLayer
 var _hud: GameHud
 var _dev_overlay: CanvasLayer
 var _active_tab: int = -1
+var _last_tab: int = Tab.STATS
+var _room_changed_connected: bool = false
 
 
 func _ready() -> void:
@@ -92,14 +96,55 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _active_tab >= 0:
 			close_all()
 		else:
-			open_tab(Tab.STATS)
+			open_tab(_last_tab)
 		get_viewport().set_input_as_handled()
 
 
+func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
+	unbind_dungeon()
+	floor_map = p_floor_map
+	room_host = p_room_host
+	if floor_map and not floor_map.room_changed.is_connected(_on_floor_room_changed):
+		floor_map.room_changed.connect(_on_floor_room_changed)
+		_room_changed_connected = true
+	if floor_map and floor_map.has_room(floor_map.get_current()):
+		_on_floor_room_changed(floor_map.get_current())
+
+
+func unbind_dungeon() -> void:
+	if floor_map and _room_changed_connected and floor_map.room_changed.is_connected(_on_floor_room_changed):
+		floor_map.room_changed.disconnect(_on_floor_room_changed)
+	_room_changed_connected = false
+	floor_map = null
+	room_host = null
+
+
+func _on_floor_room_changed(pos: Vector2i) -> void:
+	if floor_map == null:
+		return
+	var room := floor_map.get_room(pos)
+	if room == null:
+		set_location("LOCATION_DUNGEON")
+		return
+	match room.room_type:
+		RoomData.RoomType.START:
+			set_location("LOCATION_ROOM_START")
+		RoomData.RoomType.BOSS:
+			set_location("LOCATION_ROOM_BOSS")
+		_:
+			set_location("LOCATION_DUNGEON")
+
+
 func open_tab(tab: int) -> void:
-	if tab != Tab.INVENTORY and tab != Tab.STATS and tab != Tab.SETTINGS:
+	if (
+		tab != Tab.INVENTORY
+		and tab != Tab.MAP
+		and tab != Tab.STATS
+		and tab != Tab.SETTINGS
+	):
 		return
 	_active_tab = tab
+	_last_tab = tab
 	_shell.open_tab(tab, character_stats, inventory_data)
 	popup_visibility_changed.emit(true)
 
@@ -117,11 +162,14 @@ func _on_shell_closed() -> void:
 
 
 func _on_tab_changed(tab: int) -> void:
-	if tab == Tab.STATS or tab == Tab.INVENTORY or tab == Tab.SETTINGS:
+	if (
+		tab == Tab.STATS
+		or tab == Tab.INVENTORY
+		or tab == Tab.MAP
+		or tab == Tab.SETTINGS
+	):
 		_active_tab = tab
-	else:
-		# MAP (or unknown): shell already closes itself
-		pass
+		_last_tab = tab
 
 
 func apply_save_game(sg: SaveGame) -> void:
@@ -177,6 +225,7 @@ func start_new_game(slot: int) -> bool:
 
 func return_to_title() -> void:
 	close_all()
+	unbind_dungeon()
 	get_tree().paused = false
 	SaveManager.current_slot = -1
 	SaveManager.play_time_sec = 0.0

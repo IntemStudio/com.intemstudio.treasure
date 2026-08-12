@@ -6,6 +6,7 @@ signal tab_changed(tab: int)
 enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3 }
 
 const INVENTORY_CONTENT_PATH := "res://ui/inventory/inventory_content.tscn"
+const MAP_CONTENT_PATH := "res://ui/map/map_content.tscn"
 const STATS_CONTENT_PATH := "res://ui/stats/stats_content.tscn"
 const SETTINGS_CONTENT_PATH := "res://ui/settings/settings_content.tscn"
 
@@ -18,6 +19,7 @@ var _character_stats: CharacterStats
 var _inventory_data: InventoryData
 var _active_tab: int = -1
 var _inventory_content: Control
+var _map_content: Control
 var _stats_content: Control
 var _settings_content: Control
 var _contents: Dictionary = {}
@@ -48,10 +50,11 @@ func _mount_contents() -> void:
 	# load() at mount time avoids UIManager ↔ menu_shell ↔ settings preload cycles
 	# that can yield an empty PackedScene (node count 0).
 	_inventory_content = _instantiate_content(load(INVENTORY_CONTENT_PATH) as PackedScene)
+	_map_content = _instantiate_content(load(MAP_CONTENT_PATH) as PackedScene)
 	_stats_content = _instantiate_content(load(STATS_CONTENT_PATH) as PackedScene)
 	_settings_content = _instantiate_content(load(SETTINGS_CONTENT_PATH) as PackedScene)
 
-	for content in [_inventory_content, _stats_content, _settings_content]:
+	for content in [_inventory_content, _map_content, _stats_content, _settings_content]:
 		if content == null:
 			continue
 		body_host.add_child(content)
@@ -61,6 +64,7 @@ func _mount_contents() -> void:
 
 	_contents = {
 		Tab.INVENTORY: _inventory_content,
+		Tab.MAP: _map_content,
 		Tab.STATS: _stats_content,
 		Tab.SETTINGS: _settings_content,
 	}
@@ -88,19 +92,30 @@ func _fit_content(content: Control) -> void:
 func _wire_contents() -> void:
 	if _wired or _ui_manager == null:
 		return
-	if _inventory_content == null or _stats_content == null or _settings_content == null:
+	if (
+		_inventory_content == null
+		or _map_content == null
+		or _stats_content == null
+		or _settings_content == null
+	):
 		return
 	if footer == null:
 		push_error("MenuShell: Footer missing")
 		return
 	_inventory_content.setup(_ui_manager, footer)
+	_map_content.setup(_ui_manager, footer)
 	_stats_content.setup(_ui_manager, footer)
 	_settings_content.setup(_ui_manager, footer)
 	_wired = true
 
 
 func open_tab(tab: int, stats: CharacterStats, inventory: InventoryData) -> void:
-	if tab != Tab.INVENTORY and tab != Tab.STATS and tab != Tab.SETTINGS:
+	if (
+		tab != Tab.INVENTORY
+		and tab != Tab.MAP
+		and tab != Tab.STATS
+		and tab != Tab.SETTINGS
+	):
 		return
 	_character_stats = stats
 	_inventory_data = inventory
@@ -147,7 +162,12 @@ func _sync_chrome(tab: int) -> void:
 
 func _on_top_bar_tab_changed(tab: int) -> void:
 	tab_changed.emit(tab)
-	if tab == Tab.INVENTORY or tab == Tab.STATS or tab == Tab.SETTINGS:
+	if (
+		tab == Tab.INVENTORY
+		or tab == Tab.MAP
+		or tab == Tab.STATS
+		or tab == Tab.SETTINGS
+	):
 		_active_tab = tab
 		_show_content(tab)
 		_sync_chrome(tab)

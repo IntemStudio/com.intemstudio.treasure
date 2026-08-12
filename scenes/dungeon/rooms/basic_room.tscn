@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3 uid="uid://basic_room"]
+
+[ext_resource type="Script" path="res://scenes/dungeon/rooms/basic_room.gd" id="1"]
+
+[node name="BasicRoom" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Floor" type="ColorRect" parent="."]
+unique_name_in_owner = true
+offset_left = -480.0
+offset_top = -270.0
+offset_right = 480.0
+offset_bottom = 270.0
+color = Color(0.16, 0.18, 0.22, 1)
+
+[node name="SpawnMarker" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(0, 0)
+
+[node name="RoomLabel" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = -200.0
+offset_top = -240.0
+offset_right = 200.0
+offset_bottom = -200.0
+theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "Room"

@@ -71,6 +71,8 @@ English,English,English
 Save Slots,Save Slots,세이브 슬롯
 Select Profile,Select Profile,프로필 선택
 Back,Back,뒤로
+Start Game,Start Game,게임 시작
+Quit,Quit,게임 종료
 New Game,New Game,새 게임
 Delete the selected profile?,Delete the selected profile?,선택한 프로필을 지웁니까?
 Continue?,Continue?,계속합니까?
@@ -115,6 +117,13 @@ Experience,Experience,경험치
 ` / Esc: Close,` / Esc: Close,` / Esc: 닫기
 LOCATION_TEST,Test Grounds,시험장
 LOCATION_UNKNOWN,Unknown,알 수 없음
+LOCATION_DUNGEON,Dungeon,던전
+LOCATION_ROOM_START,Entrance,입구
+LOCATION_ROOM_BOSS,Boss Chamber,보스 방
+MAP_NO_DUNGEON,No dungeon loaded,던전이 없습니다
+ROOM_TYPE_START,Start,시작
+ROOM_TYPE_NORMAL,Room,방
+ROOM_TYPE_BOSS,Boss,보스
 Dried Fish,Dried Fish,건어물
 Gameplay,Gameplay,게임 플레이
 Controls,Controls,조작

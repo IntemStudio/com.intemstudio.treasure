@@ -4,7 +4,7 @@ signal back_pressed
 signal profile_chosen(slot: int, is_new: bool)
 
 const PROFILE_SLOT_SCENE := preload("res://scenes/title/components/profile_slot.tscn")
-const GAME_SCENE := "res://scenes/ui_test.tscn"
+const GAME_SCENE := "res://scenes/dungeon/dungeon.tscn"
 
 @onready var title_label: Label = %TitleLabel
 @onready var slot_row: HBoxContainer = %SlotRow

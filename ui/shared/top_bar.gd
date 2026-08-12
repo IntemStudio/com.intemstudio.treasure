@@ -4,8 +4,7 @@ extends HBoxContainer
 signal tab_changed(index: int)
 
 const TAB_NAMES: Array[String] = ["Inventory", "Map", "Stats", "Settings"]
-## Keyboard/gamepad cycle skips Map until that tab has content.
-const CYCLEABLE_TABS: Array[int] = [0, 2, 3]
+const CYCLEABLE_TABS: Array[int] = [0, 1, 2, 3]
 
 @onready var currency_display: CurrencyDisplay = %CurrencyDisplay
 @onready var nav_tabs: HBoxContainer = %NavTabs
