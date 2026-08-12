@@ -4,7 +4,8 @@
 [ext_resource type="Theme" path="res://ui/shared/themes/ui_theme.tres" id="2"]
 
 [node name="EquipmentSlot" type="PanelContainer"]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(72, 56)
+clip_contents = true
 theme = ExtResource("2")
 theme_type_variation = &"EquipmentSlot"
 script = ExtResource("1")
@@ -32,8 +33,11 @@ mouse_filter = 2
 
 [node name="EmptyLabel" type="Label" parent="Row"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.55, 0.53, 0.5, 1)
 theme_override_font_sizes/font_size = 10
 mouse_filter = 2
 text = "Empty"
 horizontal_alignment = 1
+text_overrun_behavior = 3
+clip_text = true
