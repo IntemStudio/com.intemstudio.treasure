@@ -54,7 +54,7 @@ InventoryContent (Control, inventory_theme)
 MenuShell (CanvasLayer)
 └── Overlay → Root (margin 40) → Main
     ├── TopBar
-    ├── BodyHost  ← InventoryContent / StatsContent / SettingsContent
+    ├── BodyHost  ← InventoryContent / MapContent / StatsContent / SettingsContent
     └── Footer
 ```
 
@@ -82,4 +82,4 @@ ui/inventory/components/
 - **푸터 액션:** `sort`, `equip`, `discard`, `close`  
 - **입력:** 카테고리 `1`/`3`·LT/RT, 그리드 이동, Equip / Discard / Sort, Esc → `request_close`
 
-셸 탭 전환은 Q/E·LB/RB (`ui_nav_*_tab`) → TopBar. MAP 클릭은 셸을 닫고, Q/E 순환에서는 MAP을 건너뜁니다.
+셸 탭 전환은 Q/E·LB/RB (`ui_nav_*_tab`) → TopBar. Map은 순환 탭에 포함됩니다 (`TopBar.CYCLEABLE_TABS`).

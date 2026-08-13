@@ -55,6 +55,8 @@
 
 파생 스탯(`general` / `defense` / `hp_max` / `xp_to_next`)은 테이블·공식으로 복원. 요구 XP: [`data/progression/xp_to_next.csv`](../../data/progression/xp_to_next.csv) (D2 곡선 × 0.1).
 
+전투 승패의 HP·XP는 `character`에 반영되며, 플레이어가 슬롯을 저장할 때만 JSON에 남는다. 층·시드·방 `cleared`는 런 레이어(후속)라 저장되지 않는다 ([`combat.md`](combat.md) · [`map.md`](map.md)).
+
 ---
 
 ## API·흐름
@@ -68,5 +70,6 @@ SaveSerializer ↔ ItemCatalog → user://saves/slot_N.json
 ```
 
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
+- `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
 - 개발 오버레이: 세이브 폴더 절대 경로 표시 + OS에서 열기

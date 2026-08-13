@@ -56,7 +56,7 @@ StatsContent (Control, stats_theme)
 MenuShell (CanvasLayer)
 └── Overlay → Root (margin 40) → Main
     ├── TopBar
-    ├── BodyHost  ← InventoryContent / StatsContent / SettingsContent
+    ├── BodyHost  ← InventoryContent / MapContent / StatsContent / SettingsContent
     └── Footer
 ```
 
@@ -81,6 +81,8 @@ ui/stats/components/
 - **WEIGHT:** max / current / class label / bar  
 - **무기 테이블:** `stats.weapons` → Base / Attr Bonus / Other / Total  
 - **푸터 액션:** `level_up`, `insight`, `close`  
+- **새 캐릭터:** 레벨 1, XP 0 (`CharacterStats.apply_new_game_start`, `xp_to_next` = CSV 레벨 1 = 50)  
+- **전투 XP:** 승리 시 `CharacterStats.add_xp` ([`combat.md`](combat.md)). HUD·스탯은 `UIManager.refresh_character_views`로 갱신  
 - **입력:** 상하 속성 선택, Enter 투자, Insight, Esc → `request_close`
 
-탭 전환은 Q/E·LB/RB → TopBar → `MenuShell`이 다른 콘텐츠를 `activate`합니다. MAP 클릭은 셸을 닫고, Q/E 순환에서는 MAP을 건너뜁니다.
+탭 전환은 Q/E·LB/RB → TopBar → `MenuShell`이 다른 콘텐츠를 `activate`합니다. Map은 순환 탭에 포함됩니다 (`TopBar.CYCLEABLE_TABS`).
