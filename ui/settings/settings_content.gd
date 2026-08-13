@@ -152,6 +152,7 @@ func setup(ui_manager: UIManager, footer: FooterPrompts) -> void:
 	if _footer and not _footer_connected:
 		_footer.prompt_activated.connect(_on_footer_prompt)
 		_footer_connected = true
+	_refresh_sub_tab_visibility()
 	_rebuild_exit_list()
 	_refresh_sub_tab_key_hints()
 
@@ -166,6 +167,7 @@ func activate(_stats: CharacterStats, _inventory: InventoryData) -> void:
 	_rebuild_exit_list()
 	_sync_rows_from_settings()
 	_refresh_texts()
+	_refresh_sub_tab_visibility()
 	_refresh_sub_tab_key_hints()
 	_show_sub_tab(_active_sub_tab)
 	_refresh_footer()
@@ -184,6 +186,22 @@ func _is_using_gamepad() -> bool:
 
 func _is_in_game() -> bool:
 	return _ui_manager != null
+
+
+func _visible_sub_tab_indices() -> Array[int]:
+	var tabs: Array[int] = []
+	for i in range(SUB_TAB_KEYS.size()):
+		if i == SubTab.EXIT and not _is_in_game():
+			continue
+		tabs.append(i)
+	return tabs
+
+
+func _refresh_sub_tab_visibility() -> void:
+	for i in range(_sub_tab_buttons.size()):
+		_sub_tab_buttons[i].visible = _is_in_game() or i != SubTab.EXIT
+	if not _is_in_game() and _active_sub_tab == SubTab.EXIT:
+		_active_sub_tab = SubTab.GAMEPLAY
 
 
 func _on_input_device_changed(_using_gamepad: bool) -> void:
@@ -394,6 +412,8 @@ func _refresh_texts() -> void:
 
 
 func _show_sub_tab(tab: int) -> void:
+	if tab == SubTab.EXIT and not _is_in_game():
+		tab = SubTab.GAMEPLAY
 	_active_sub_tab = clampi(tab, 0, SUB_TAB_KEYS.size() - 1)
 	_confirming_exit = false
 	_exit_action = ""
@@ -420,11 +440,19 @@ func _apply_sub_tab_styles() -> void:
 
 
 func _on_sub_tab_pressed(index: int) -> void:
+	if index == SubTab.EXIT and not _is_in_game():
+		return
 	_show_sub_tab(index)
 
 
 func _cycle_sub_tab(direction: int) -> void:
-	var next := (_active_sub_tab + direction + SUB_TAB_KEYS.size()) % SUB_TAB_KEYS.size()
+	var tabs := _visible_sub_tab_indices()
+	if tabs.is_empty():
+		return
+	var current := tabs.find(_active_sub_tab)
+	if current < 0:
+		current = 0
+	var next: int = tabs[(current + direction + tabs.size()) % tabs.size()]
 	_show_sub_tab(next)
 
 
@@ -651,7 +679,10 @@ func _execute_exit() -> void:
 			if _ui_manager:
 				_ui_manager.return_to_title()
 			else:
-				get_tree().change_scene_to_file(TITLE_SCENE)
+				var tree := get_tree()
+				if tree:
+					tree.paused = false
+					tree.change_scene_to_file.call_deferred(TITLE_SCENE)
 		"quit_desktop":
 			get_tree().quit()
 

@@ -1,7 +1,7 @@
 # 게임 설정
 
 환경 설정 UI와 `user://settings.cfg` 영속화 **v1 구조**.  
-설계·로드맵: [`docs/design/settings.md`](../design/settings.md)
+후속: [`docs/design/settings.md`](../design/settings.md)
 
 ---
 
@@ -78,7 +78,7 @@ SettingsContent
 
 - **토글:** 체크박스(□/✓) + 켜기/끄기 (`SettingsToggleRow`)
 - **사이클 / 슬라이더:** `SettingsCycleRow` / `SettingsSliderRow`
-- 타이틀(`ui_manager == null`): **메인 메뉴로 나가기** 숨김
+- 타이틀(`ui_manager == null`): **나가기 탭 숨김** (종료는 타이틀 Quit). Q/E 순환에서도 제외.
 - **서브 탭 순환** (`_is_in_game()` = `ui_manager != null`):
 
 | 진입 | 키캡 | InputMap |
@@ -102,9 +102,11 @@ v1은 MenuShell 본문·UIManager 셸·타이틀 설정을 **`load(path)` 시점
 ```
 Exit 확인(예)
   ├─ return_title → UIManager.return_to_title()
-  │     close_all → paused=false → current_slot=-1 → title.tscn
+  │     paused=false → current_slot=-1 → (deferred) title.tscn
   └─ quit_desktop → get_tree().quit()
 ```
+
+MenuShell은 `PROCESS_MODE_WHEN_PAUSED`. 나가기 확인 직후 씬을 바꾸면 타이틀이 일시정지 상태로 남을 수 있어, `return_to_title()`은 일시정지를 푼 뒤 `change_scene_to_file`을 deferred로 호출한다.
 
 ---
 

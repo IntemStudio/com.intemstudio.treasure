@@ -68,10 +68,10 @@ scenes/title/
 ## 플로우·조작
 
 1. **Start** → 프로필 선택 (메뉴·브랜드 숨김)
-2. **빈 슬롯** → `SaveManager.new_game(slot)` → `dungeon.tscn`
+2. **빈 슬롯** → `SaveManager.new_game(slot)` (레벨 1, XP 0) → `dungeon.tscn`
 3. **유효 슬롯** → `SaveManager.load_game(slot)` → `dungeon.tscn`
 4. **삭제(`× Delete` / `× 삭제`)** → 슬롯 내 2단 확인 → `delete_slot`
-5. **Settings** → settings_content (게임 플레이/조작/디스플레이/오디오/나가기). 타이틀에서는 메인 메뉴로 나가기 숨김. 서브 탭은 `Q`/`E` ([`settings.md`](settings.md))
+5. **Settings** → settings_content (게임 플레이/조작/디스플레이/오디오). 타이틀에서는 **나가기 탭 숨김**. 서브 탭은 `Q`/`E` ([`settings.md`](settings.md))
 6. **Quit** → `get_tree().quit()`
 
 | ProfileSlot 상태 | UI |
