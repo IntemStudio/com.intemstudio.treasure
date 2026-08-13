@@ -118,6 +118,12 @@ func _focus_current() -> void:
 	_slots[_focus_index].grab_slot_focus()
 
 
+func _mark_handled() -> void:
+	var vp := get_viewport()
+	if vp:
+		vp.set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active or not visible:
 		return
@@ -125,29 +131,30 @@ func _unhandled_input(event: InputEvent) -> void:
 	var confirming := _slots[_focus_index] if _focus_index >= 0 and _focus_index < _slots.size() else null
 	if confirming and confirming.is_confirming():
 		if confirming.handle_ui_input(event):
-			get_viewport().set_input_as_handled()
+			_mark_handled()
 		return
 
 	if event.is_action_pressed("ui_cancel"):
+		_mark_handled()
 		_on_back_pressed()
-		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("ui_left"):
 		_focus_index = (_focus_index - 1 + _slots.size()) % _slots.size()
 		_focus_current()
-		get_viewport().set_input_as_handled()
+		_mark_handled()
 	elif event.is_action_pressed("ui_right"):
 		_focus_index = (_focus_index + 1) % _slots.size()
 		_focus_current()
-		get_viewport().set_input_as_handled()
+		_mark_handled()
 	elif event.is_action_pressed("ui_down"):
 		back_button.grab_focus()
-		get_viewport().set_input_as_handled()
+		_mark_handled()
 	elif event.is_action_pressed("ui_up"):
 		_focus_current()
-		get_viewport().set_input_as_handled()
+		_mark_handled()
 	elif event.is_action_pressed("ui_accept"):
 		if confirming:
+			# Mark before activate — scene change frees this node / nulls viewport.
+			_mark_handled()
 			confirming.handle_ui_input(event)
-			get_viewport().set_input_as_handled()

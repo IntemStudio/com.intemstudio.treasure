@@ -69,18 +69,28 @@ func _setup_profile_select() -> void:
 
 
 func _style_menu_buttons() -> void:
-	var empty := StyleBoxEmpty.new()
+	# Text layout uses normal/hover/pressed styleboxes — not focus.
+	# Focus is only drawn as an overlay, so padding must live on StyleBoxEmpty.
+	var padded := StyleBoxEmpty.new()
+	padded.content_margin_left = 16
+	padded.content_margin_top = 4
+	padded.content_margin_bottom = 4
+	padded.content_margin_right = 4
 	for button in _menu_buttons:
 		button.flat = true
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.focus_mode = Control.FOCUS_ALL
 		for state_name in ["normal", "hover", "pressed", "disabled"]:
-			button.add_theme_stylebox_override(state_name, empty)
+			button.add_theme_stylebox_override(state_name, padded)
 		var focus_style := StyleBoxFlat.new()
 		focus_style.bg_color = Color(0, 0, 0, 0)
 		focus_style.border_color = UIColors.SELECT_BORDER
 		focus_style.border_width_left = 3
-		focus_style.content_margin_left = 12
+		# Match layout margins so focus overlay aligns with text padding
+		focus_style.content_margin_left = 16
+		focus_style.content_margin_top = 4
+		focus_style.content_margin_bottom = 4
+		focus_style.content_margin_right = 4
 		button.add_theme_stylebox_override("focus", focus_style)
 		button.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
 		button.add_theme_color_override("font_hover_color", UIColors.GOLD)

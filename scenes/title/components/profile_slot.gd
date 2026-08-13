@@ -11,6 +11,7 @@ var _status: String = "empty"
 var _meta: Dictionary = {}
 var _state: State = State.EMPTY
 var _confirm_choice: int = 1  # 0 = Yes, 1 = No (default No like reference)
+var _highlighted: bool = false
 
 @onready var body_button: Button = %BodyButton
 @onready var empty_label: Label = %EmptyLabel
@@ -29,6 +30,9 @@ var _confirm_choice: int = 1  # 0 = Yes, 1 = No (default No like reference)
 
 func _ready() -> void:
 	body_button.pressed.connect(_on_body_pressed)
+	body_button.focus_entered.connect(_on_body_focus_entered)
+	body_button.focus_exited.connect(_on_body_focus_exited)
+	body_button.mouse_entered.connect(_on_body_mouse_entered)
 	delete_button.pressed.connect(_on_delete_pressed)
 	yes_label.gui_input.connect(_on_confirm_label_input.bind(0))
 	no_label.gui_input.connect(_on_confirm_label_input.bind(1))
@@ -71,6 +75,9 @@ func cancel_confirm() -> void:
 		_state = State.OCCUPIED
 		_confirm_choice = 1
 		_refresh_visual()
+		_apply_panel_style()
+		if _highlighted:
+			body_button.grab_focus()
 
 
 func handle_ui_input(event: InputEvent) -> bool:
@@ -99,16 +106,7 @@ func _on_locale_changed(_locale: String) -> void:
 
 
 func _apply_style() -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.06, 0.07, 0.85)
-	style.border_color = UIColors.TEXT_MAIN
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(2)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 16
-	style.content_margin_bottom = 12
-	add_theme_stylebox_override("panel", style)
+	_apply_panel_style()
 
 	body_button.flat = true
 	body_button.focus_mode = Control.FOCUS_ALL
@@ -120,6 +118,43 @@ func _apply_style() -> void:
 	delete_button.focus_mode = Control.FOCUS_NONE
 	delete_button.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 	delete_button.add_theme_color_override("font_hover_color", UIColors.NEGATIVE)
+
+
+func _on_body_focus_entered() -> void:
+	_highlighted = true
+	_apply_panel_style()
+
+
+func _on_body_focus_exited() -> void:
+	if is_confirming():
+		return
+	_highlighted = false
+	_apply_panel_style()
+
+
+func _on_body_mouse_entered() -> void:
+	if is_confirming():
+		return
+	if not body_button.has_focus():
+		body_button.grab_focus()
+
+
+func _apply_panel_style() -> void:
+	var selected := _highlighted or is_confirming()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.06, 0.07, 0.85)
+	if selected:
+		style.border_color = UIColors.SELECT_BORDER
+		style.set_border_width_all(2)
+	else:
+		style.border_color = Color(0.35, 0.35, 0.38, 1)
+		style.set_border_width_all(1)
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 16
+	style.content_margin_bottom = 12
+	add_theme_stylebox_override("panel", style)
 
 
 func _on_body_pressed() -> void:
@@ -208,6 +243,7 @@ func _refresh_visual() -> void:
 			confirm_block.visible = true
 			confirm_question.text = tr("Continue?")
 			_refresh_confirm_choice()
+	_apply_panel_style()
 
 
 func _fill_occupied_labels() -> void:
