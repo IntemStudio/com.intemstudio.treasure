@@ -4,7 +4,7 @@
 이 문서는 **미구현** 로드맵만 다룬다.
 
 방 안 ATB·머리 위 HP/ATB·배속/후퇴·승패는 구현됨.  
-관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용).
+관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 마을 책장 ≠ 전투 카드).
 
 ---
 
@@ -14,7 +14,9 @@
 |------|------|------|
 | 구 v1 | 사이드뷰 오버레이 ATB | 폐기됨 |
 | **v2a / v2b** | 방 안 전장, CombatHud, GameHud 유지 | 구현됨 → 구조 문서 |
+| **v2.region** | 지역별 유닛·인카운터 (`dungeon_id`) | 구현됨 → 구조 문서 |
 | **v2c** | 선택 유닛 하단 스탯, 전투 줌, 다수 아군 슬롯 | 설계만 |
+| **v2.stats** | 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 | 구현됨 → 구조 문서 |
 
 ---
 
@@ -30,6 +32,19 @@
 | 소모품 | HUD 퀵 슬롯 실사용과 맞춤 ([`hud.md`](hud.md) v1.1) |
 
 `CombatSession` 공식·인카운터 리소스는 유지. 뷰·슬롯만 확장.
+
+---
+
+## v2.stats — 고급 스탯
+
+구현됨. 히어로 스냅샷은 `CombatStatsBuilder.build` ([`stats.md`](stats.md) v1.1). 세션은 회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired를 적용. 기술 게이지는 stats v1.3. 룬·공명 결과는 `ResonanceService`가 만들고 세션은 소비만 한다 ([`equipment.md`](equipment.md)).
+---
+
+## 전멸 목적지 (예정)
+
+현행 `lose` → `UIManager.return_to_title()`. 마을 허브 이후는 `return_to_village()` — 메타 유지, 런 삭제. 타이틀은 설정 나가기·프로필 선택만.
+
+후퇴는 v1 입구 잔류, v1.1에서 원정 포기→마을 ([`village.md`](village.md)).
 
 ---
 

@@ -3,7 +3,8 @@
 **v1 현황(구조):** [`docs/architecture/hud.md`](../architecture/hud.md)  
 이 문서는 **미구현** 로드맵만 다룬다.
 
-전투 중 HUD 유지·메뉴 시 숨김은 구현됨. 미니맵 후속: [`minimap.md`](minimap.md).
+전투 중 HUD 유지·메뉴 시 숨김은 구현됨. 미니맵 후속: [`minimap.md`](minimap.md).  
+마나·기술 칸 의미: [`stats.md`](stats.md). 후속 룬이 채우는 4칸: [`equipment.md`](equipment.md).
 
 ---
 
@@ -21,8 +22,9 @@
 ## v1.1 — 입력 (예정)
 
 - 퀵 아이템/음식 사용 액션 + 개수 감소
-- 기술 슬롯 키/패드 바인딩·쿨다운 표시
+- 기술 슬롯: 전투 중은 **자동 발동** 충전 표시 ([`stats.md`](stats.md) v1.3). 키/패드 바인딩은 탐험 소모품. 전투 중 룬 버튼은 비목표
 - 월드 존이 `UIManager.set_location` 호출 (지금은 방 타입만)
+- 마을 허브: `LOCATION_VILLAGE`, 미니맵 숨김 ([`village.md`](village.md))
 
 전투 중 소모품은 [`combat.md`](combat.md) v2c와 맞춤.
 
@@ -30,7 +32,7 @@
 
 ## v2 — 표기·편집 (예정)
 
-- 스탯 탭 Focus 라벨과 HUD 마나 표기 이름 정렬
+- 스탯 탭 Focus 라벨과 HUD 마나 표기 이름 정렬 ([`stats.md`](stats.md) v1.3, GENERAL: Mana / Mana Regen)
 - 인벤 UI에서 퀵 슬롯(아이템·음식) 장착/교체
 
 ---

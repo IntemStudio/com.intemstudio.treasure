@@ -4,7 +4,8 @@
 이 문서는 **미구현** 로드맵만 다룬다.
 
 런 세이브(층·시드·탐험 상태): [`save-load.md`](save-load.md) v2.  
-미니맵 후속: [`minimap.md`](minimap.md).
+미니맵 후속: [`minimap.md`](minimap.md).  
+허브에서 도전할 때만 생성: [`village.md`](village.md).
 
 ---
 
@@ -32,14 +33,16 @@
 
 ## v2 — 런 연동 (예정)
 
+생성 시점: 마을 도전 게시판에서 **확정한 뒤**만 [`village.md`](village.md). `dungeon._ready`의 즉시 `randi()` 생성은 허브 루프에서 제거한다 (에디터 직접 실행 폴백만 남김).
+
 [`save-load.md`](save-load.md) `slot_N_run.json` 후보와 정렬:
 
-- `dungeon_id`, `floor`, `seed`
+- `dungeon_id`, `floor`, `seed` (`length_id` / `room_count`는 게시판이 넣음)
 - `current: Vector2i`, 방별 `visited` / `cleared`
 
 로드 시 `generate` 재현 후 탐험 플래그만 덮어쓰거나, 방 목록을 직렬화할지 구현 직전에 확정한다.
 
-특수 방 타입(`room_type` 확장)은 미니맵 `type_letter()`와 같이 추가한다.
+특수 방 타입(`room_type` 확장)은 미니맵 `type_letter()`와 같이 추가한다. 룬 제단·보석 광맥은 [`equipment.md`](equipment.md) — 현재는 `START`/`NORMAL`/`BOSS`만. 카드 등록은 던전 방이 아니라 마을.
 
 ---
 
