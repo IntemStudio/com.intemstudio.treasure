@@ -279,3 +279,217 @@ Shelf,Shelf,책장
 Skill,Skill,기술
 Mana cost,Mana cost,마나 비용
 Type,Type,유형
+Leather Cap,Leather Cap,가죽 두건
+Watcher's Circlet,Watcher's Circlet,감시자 서클릿
+Bone Crown,Bone Crown,뼈 왕관
+Traveler's Coat,Traveler's Coat,여행자 코트
+Manor Mail,Manor Mail,영지 사슬
+Warplate,Warplate,전쟁판금
+Hide Greaves,Hide Greaves,가죽 각반
+Thorn Chausses,Thorn Chausses,가시 경갑
+Silent Treads,Silent Treads,고요한 발
+Iron Longsword,Iron Longsword,철 장검
+Ashwood Staff,Ashwood Staff,재목 지팡이
+Field Pike,Field Pike,전장 파이크
+Widow's Needle,Widow's Needle,과부의 바늘
+Splintered Buckler,Splintered Buckler,파편 버클러
+Ash Codex,Ash Codex,재의 성서
+Grave Lantern,Grave Lantern,묘지 랜턴
+Moss Ring,Moss Ring,이끼 반지
+Bloodseal Ring,Bloodseal Ring,혈문 인장
+Warcloud Band,Warcloud Band,전운 고리
+Sanctum Ring,Sanctum Ring,성소 반지
+Ossuary Band,Ossuary Band,묘혈 고리
+Cinder Loop,Cinder Loop,잿빛 가락지
+Herb Pouch,Herb Pouch,약초 주머니
+Grave Spade,Grave Spade,묘지 삽
+War Compass,War Compass,전장 나침반
+Pine Torch,Pine Torch,횃불
+Manor Keys,Manor Keys,영지 열쇠고리
+Survey Line,Survey Line,측량줄
+Head Armor,Head Armor,머리 방어구
+Chest Armor,Chest Armor,가슴 방어구
+Leg Armor,Leg Armor,다리 방어구
+One Handed Sword,One Handed Sword,한손 검
+Staff,Staff,지팡이
+Polearm,Polearm,장병기
+Ritual Dagger,Ritual Dagger,의식용 단검
+Shield,Shield,방패
+Tome,Tome,마법서
+Lantern,Lantern,랜턴
+Ring,Ring,반지
+Tool,Tool,도구
++6% Evasion,+6% Evasion,+6% 회피
++1.5 Retaliation,+1.5 Retaliation,+1.5 보복
++8 Magic HP,+8 Magic HP,+8 마법 체력
++10 Magic HP,+10 Magic HP,+10 마법 체력
++2.5 Retaliation,+2.5 Retaliation,+2.5 보복
++4 Defense,+4 Defense,+4 방어
+-6% Attack Speed,-6% Attack Speed,-6% 공격 속도
++1.2 Retaliation,+1.2 Retaliation,+1.2 보복
++8% Evasion,+8% Evasion,+8% 회피
++5% Attack Speed,+5% Attack Speed,+5% 공격 속도
++2 Damage to All,+2 Damage to All,+2 전체 피해
++8% Vampirism,+8% Vampirism,+8% 흡혈
++3 Magic Damage,+3 Magic Damage,+3 마법 피해
++4 Magic Damage,+4 Magic Damage,+4 마법 피해
++0.8 Regen/sec,+0.8 Regen/sec,+0.8 재생/초
++6 Magic HP,+6 Magic HP,+6 마법 체력
++6% Vampirism,+6% Vampirism,+6% 흡혈
++8% Critical Chance,+8% Critical Chance,+8% 치명타 확률
++0.6 Regen/sec,+0.6 Regen/sec,+0.6 재생/초
++12 Magic HP,+12 Magic HP,+12 마법 체력
++5 Magic Damage,+5 Magic Damage,+5 마법 피해
+-4% Evasion,-4% Evasion,-4% 회피
+Flurry Verse,Flurry Verse,질주 시
+Tide Verse,Tide Verse,밀물 시
+Hymn Verse,Hymn Verse,찬가 시
+Ward Verse,Ward Verse,수호 시
+Thorn Verse,Thorn Verse,가시 시
+Flurry,Flurry,질주
+Tide Crash,Tide Crash,밀물 강타
+Hymn,Hymn,찬가
+Ward Pulse,Ward Pulse,수호 파동
+Thorn Guard,Thorn Guard,가시 태세
+Frostglass,Frostglass,서리유리
+Grave Pearl,Grave Pearl,묘주
+Sanctum Tear,Sanctum Tear,성소의 눈물
+Root Amber,Root Amber,뿌리 호박
+Ash Veil,Ash Veil,잿빛 베일
+ of Frost, of Frost,의 서리
+ of the Grave, of the Grave,의 묘
+ of Sanctum, of Sanctum,의 성소
+ Rooted, Rooted, 뿌리
+ of Ash, of Ash,의 재
+Tide Crash of Frost,Tide Crash of Frost,밀물 강타의 서리
+Flurry of Storm,Flurry of Storm,질주의 폭풍
+Hymn of Sanctum,Hymn of Sanctum,찬가의 성소
+Ward Pulse of Sanctum,Ward Pulse of Sanctum,수호 파동의 성소
+Thorn Guard Rooted,Thorn Guard Rooted,가시 태세 뿌리
+Counter Verse,Counter Verse,반격 시
+Pierce Verse,Pierce Verse,관통 시
+Erupt Verse,Erupt Verse,분출 시
+Counter Stance,Counter Stance,반격 태세
+Piercing Strike,Piercing Strike,관통 일격
+Erupt Slash,Erupt Slash,분출 베기
+Bloodstone,Bloodstone,혈석
+Wind Shard,Wind Shard,바람 파편
+Ember Core,Ember Core,불씨 핵
+Chain Spark,Chain Spark,연쇄 불꽃
+ of Blood, of Blood,의 피
+ of Storm, of Storm,의 폭풍
+ of Flame, of Flame,의 불꽃
+ Chained, Chained, 연쇄
+Counter Stance of Blood,Counter Stance of Blood,반격 태세의 피
+Piercing Strike of Storm,Piercing Strike of Storm,관통 일격의 폭풍
+Erupt Slash of Flame,Erupt Slash of Flame,분출 베기의 불꽃
+Claymore,Claymore,클레이모어
+Blood-Rusted Sword,Blood-Rusted Sword,피녹슨 검
+Iron Helm,Iron Helm,철 투구
+Chain Chest,Chain Chest,사슬 갑옷
+Health Potion,Health Potion,체력 물약
+Dried Fish,Dried Fish,말린 생선
+Iron Ore,Iron Ore,철광석
+Fishing Rod,Fishing Rod,낚싯대
+Night Dagger,Night Dagger,밤의 단검
+Two Handed Great Sword,Two Handed Great Sword,양손 대검
+Dagger,Dagger,단검
+Consumable,Consumable,소모품
+Food,Food,음식
+Material,Material,재료
++5% Vampirism,+5% Vampirism,+5% 흡혈
++8% Attack Speed,+8% Attack Speed,+8% 공격 속도
++10% Critical Chance,+10% Critical Chance,+10% 치명타 확률
+Juggle Strike,Juggle Strike,저글 일격
+A heavy blade forged for warriors who favor raw power.,A heavy blade forged for warriors who favor raw power.,원시적인 힘을 선호하는 전사를 위해 벼려진 무거운 검.
+Choose a reward,Choose a reward,보상을 선택하세요
+Select one offer,Select one offer,후보 중 하나를 고르세요
+Take,Take,획득
+No rewards,No rewards,보상 없음
+Armor,Armor,방어구
+Suffix,Suffix,접미사
+LOOT_TYPE_WEAPON,Reward: Weapon,보상: 무기
+LOOT_TYPE_ARMOR,Reward: Armor,보상: 방어구
+LOOT_TYPE_RUNE,Reward: Rune,보상: 룬
+LOOT_TYPE_GEM,Reward: Gem,보상: 보석
+LOOT_TYPE_NONE,Reward,보상
+RUNE_BLURB,"Slot this Rune into a compatible weapon to gain the %s Rune Attack.","호환 무기에 이 룬을 장착하면 %s 룬 공격을 얻습니다."
+GEM_BLURB,Can be used to infuse weapons and armor.,무기와 방어구에 주입할 수 있습니다.
+GEM_BLURB_SUFFIX,"Can be used to infuse weapons and armor. Skills gain: %s","무기와 방어구에 주입할 수 있습니다. 기술 접미사: %s"
+Cost,Cost,비용
+Attack,Attack,공격
+Skill kind,Skill kind,기술 종류
+Applies To,Applies To,적용 대상
+Slot effects,Slot effects,슬롯 효과
+COMMON,Common,일반
+UNCOMMON,Uncommon,고급
+RARE,Rare,희귀
+EPIC,Epic,영웅
+LEGENDARY,Legendary,전설
+SKILL_KIND_STRIKE,Melee,근접
+SKILL_KIND_COMBO,Combo,연계
+SKILL_KIND_AOE,Area,범위
+SKILL_KIND_HEAL,Heal,치유
+SKILL_KIND_WARD,Ward,수호
+SKILL_KIND_THORNS,Thorns,가시
+GEM_TYPE_ELEMENT,Element,원소
+GEM_TYPE_CONDITION,Condition,상태
+GEM_TYPE_MEDIATOR,Mediator,매개
+GEM_TYPE_EXPLORE,Explore,탐험
+SLOT_WEAPONS,Weapons,무기
+SLOT_OFF_HANDS,Off-Hands,보조
+SLOT_HELMETS,Helmets,투구
+SLOT_BODY,Body,갑옷
+SLOT_PANTS,Pants,다리
+SLOT_RINGS,Rings,반지
+SLOT_TOOLS,Tools,도구
+TAG_WEAPON,Weapons,무기
+TAG_MELEE,Melee,근접
+TAG_SWORD,Sword,검
+TAG_STAFF,Staff,지팡이
+TAG_MAGIC,Magic,마법
+TAG_POLEARM,Polearm,장병기
+TAG_DAGGER,Dagger,단검
+RESO_BLOOD,Blood,피
+RESO_COUNTER,Counter,반격
+RESO_WIND,Wind,바람
+RESO_PIERCE,Pierce,관통
+RESO_FIRE,Fire,불
+RESO_ERUPT,Erupt,분출
+RESO_CHAIN,Chain,연쇄
+RESO_FROST,Frost,서리
+RESO_TIDE,Tide,파도
+RESO_PLAGUE,Plague,역병
+RESO_GRAVE,Grave,무덤
+RESO_HOLY,Holy,신성
+RESO_WARD,Ward,수호
+RESO_HYMN,Hymn,성가
+RESO_EARTH,Earth,대지
+RESO_THORN,Thorn,가시
+RESO_ASH,Ash,재
+RESO_FLURRY,Flurry,질주
+RESO_FLAME,Flame,불꽃
+GEM_FX_LIFESTEAL_ON_SKILL,Lifesteal on skill,기술 시 흡혈
+GEM_FX_PIERCE_FLAG,Pierce attacks,관통 공격
+GEM_FX_EVADE_REACTION,Evade reaction,회피 반응
+GEM_FX_FIRE_INFUSION,Fire infusion,화염 주입
+GEM_FX_VOLCANO_FIND,Volcano finds,화산 탐색
+GEM_FX_CHAIN_HIT,Chain hit,연쇄 타격
+GEM_FX_CHILL_ON_SKILL,Chill on skill,기술 시 냉각
+GEM_FX_FROST_SHELL,Frost shell,서리 갑피
+GEM_FX_PLAGUE_ON_SKILL,Plague on skill,기술 시 역병
+GEM_FX_PLAGUE_WARD,Plague ward,역병 수호
+GEM_FX_LINGER_PLAGUE,Linger plague,역병 잔류
+GEM_FX_WARD_ON_SKILL,Ward on skill,기술 시 수호
+GEM_FX_SANCTUM_AEGIS,Sanctum aegis,성소의 방패
+GEM_FX_HYMN_HOLD,Hymn hold,성가 유지
+GEM_FX_ROOT_ON_SKILL,Root on skill,기술 시 속박
+GEM_FX_ROOT_ON_HIT,Root on hit,피격 시 속박
+GEM_FX_FOREST_FIND,Forest finds,숲 탐색
+GEM_FX_ASH_ON_SKILL,Ash on skill,기술 시 재
+GEM_FX_ASH_SHROUD,Ash shroud,재의 장막
+GEM_FX_BLOOD_HOLD,Blood hold,피 유지
+GEM_FX_MANOR_FIND,Manor finds,장원 탐색
+BAG_CAPACITY,%d / %d,%d / %d
+MOD,MOD,룬·보석
+MOD_BAG_CAPACITY,Rune/Gem %d,룬·보석 %d

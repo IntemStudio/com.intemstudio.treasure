@@ -50,7 +50,17 @@ func set_card(
 	_rarity = rarity
 	if kind_label:
 		kind_label.visible = true
-		kind_label.text = tr("Rune") if kind == "rune" else tr("Gem")
+		match kind:
+			"rune":
+				kind_label.text = tr("Rune")
+			"gem":
+				kind_label.text = tr("Gem")
+			"weapon":
+				kind_label.text = tr("Weapon")
+			"armor":
+				kind_label.text = tr("Armor")
+			_:
+				kind_label.text = tr(kind)
 	if name_label:
 		name_label.visible = true
 		name_label.text = display_name
@@ -98,7 +108,12 @@ func _apply_visual_state() -> void:
 	if name_label:
 		name_label.add_theme_color_override("font_color", color)
 	if kind_label:
-		var kind_color := Color(0.55, 0.75, 0.95) if kind_label.text == tr("Rune") else Color(0.85, 0.65, 0.45)
+		var kind_color := Color(0.55, 0.75, 0.95)
+		var kind_text := kind_label.text
+		if kind_text == tr("Gem") or kind_text == tr("Armor"):
+			kind_color = Color(0.85, 0.65, 0.45)
+		elif kind_text == tr("Weapon"):
+			kind_color = Color(0.75, 0.55, 0.85)
 		if _selected:
 			kind_color = UIColors.GOLD
 		kind_label.add_theme_color_override("font_color", kind_color)

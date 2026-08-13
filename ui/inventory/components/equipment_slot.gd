@@ -34,7 +34,7 @@ func setup(id: String, slot_texture: Texture2D = null) -> void:
 
 func set_item(item: ItemData) -> void:
 	if item:
-		name_label.text = item.display_name
+		name_label.text = tr(item.display_name)
 		name_label.visible = true
 		empty_label.visible = false
 	else:

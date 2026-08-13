@@ -34,13 +34,9 @@ func _test_roundtrip() -> int:
 	inventory.quick_item.quantity = 7
 	inventory.quick_food = catalog.get_item("dried_fish")
 	inventory.quick_food.quantity = 2
-	var potion: ItemData = null
-	for item in inventory.slots:
-		if item and item.id == "health_potion":
-			potion = item
-			break
-	if potion:
-		potion.quantity = 5
+	var potion := catalog.get_item("health_potion")
+	potion.quantity = 5
+	inventory.slots[0] = potion
 
 	var meta := {"slot": 0, "character_name": character.character_name, "level": character.level}
 	var data := SaveSerializer.to_dict(character, inventory, meta)

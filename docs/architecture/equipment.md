@@ -3,7 +3,7 @@
 주무기 소켓에 룬·보석을 두고 `ResonanceService`가 `skills`를 채운다. 전투는 그 결과만 소비한다.  
 후속(희귀도 경제·책장 격자·인벤 소켓 UI·특수 방): [`docs/design/equipment.md`](../design/equipment.md).
 
-**현황:** 샘플 인벤에 클레이모어 + Counter Verse + Bloodstone. 인벤에서 직접 꽂는 UI는 없음.
+**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 직접 꽂는 UI는 없음.
 
 관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md).
 
@@ -21,7 +21,7 @@
 | 제단 | [`ui/village/registration_altar.tscn`](../../ui/village/registration_altar.tscn) |
 | 가방 | [`InventoryData.runes`](../../ui/inventory/resources/inventory_data.gd) / `gems` |
 | 장비 필드 | [`ItemData.socket_layout`](../../ui/inventory/resources/item_data.gd) · `socketed` · 호환 태그 |
-| 샘플 | [`item_bootstrap.gd`](../../ui/inventory/resources/item_bootstrap.gd) |
+| 샘플 | [`item_bootstrap.gd`](../../ui/inventory/resources/item_bootstrap.gd) · 카탈로그 기본 장비는 [`item_defaults.gd`](../../ui/inventory/resources/item_defaults.gd) |
 
 `ItemCategory`에 `RUNE`/`GEM` 없음. 5×6 격자는 `ItemData`만.
 
@@ -57,7 +57,7 @@ CombatSession 기술 게이지 + 마나 자동 발동
 ## 소켓 UI
 
 인벤 **상세**에 `SocketLayout.describe()`만 표시 ([`item_detail_panel.gd`](../../ui/inventory/components/item_detail_panel.gd)).  
-꽂기·빼기는 `InventoryData.socket_rune` / `socket_gem` API. 샘플 부트스트랩이 클레이모어에 꽂아 둔다.
+꽂기·빼기는 `InventoryData.socket_rune` / `socket_gem` API. 시작 인벤에는 룬·보석이 없고, 개발 오버레이·서비스 API로 꽂는다.
 
 ---
 

@@ -60,8 +60,8 @@ func set_item(item: ItemData) -> void:
 		_clear_container(affix_list)
 		return
 
-	item_name_label.text = item.display_name.to_upper()
-	item_type_label.text = item.item_type
+	item_name_label.text = tr(item.display_name).to_upper()
+	item_type_label.text = tr(item.item_type) if not item.item_type.is_empty() else ""
 	attack_value.text = str(item.attack)
 	attack_bonus.text = "+%d" % item.attack_bonus if item.attack_bonus > 0 else ""
 	attack_bonus.visible = item.attack_bonus > 0
@@ -80,7 +80,7 @@ func set_item(item: ItemData) -> void:
 			socket_label.text = ""
 	cost_label.text = tr("Cost %d") % item.cost
 	gain_label.text = tr("Gain %d") % item.gain
-	flavor_text.text = item.flavor_text
+	flavor_text.text = tr(item.flavor_text) if not item.flavor_text.is_empty() else ""
 	requirements_label.text = "%s %d" % [
 		CharacterStats.get_attribute_label(item.required_stat),
 		item.required_value,
@@ -108,7 +108,8 @@ func _populate_affixes(item: ItemData) -> void:
 	for affix in item.affixes:
 		var row: AffixLine = AFFIX_SCENE.instantiate()
 		affix_list.add_child(row)
-		row.setup(str(affix.get("text", "")), bool(affix.get("positive", true)))
+		var text := str(affix.get("text", ""))
+		row.setup(tr(text) if not text.is_empty() else "", bool(affix.get("positive", true)))
 
 
 func _clear_container(container: Node) -> void:

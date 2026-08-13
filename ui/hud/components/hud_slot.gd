@@ -28,7 +28,7 @@ func set_item(item: ItemData) -> void:
 		clear()
 		return
 	empty_label.visible = false
-	name_label.text = item.display_name
+	name_label.text = tr(item.display_name)
 	name_label.visible = true
 	if charge_bar:
 		charge_bar.visible = false
@@ -45,7 +45,7 @@ func set_skill(skill_name: String, _icon: Texture2D = null) -> void:
 		clear()
 		return
 	empty_label.visible = false
-	name_label.text = trimmed
+	name_label.text = tr(trimmed)
 	name_label.visible = true
 	quantity_label.visible = false
 	if charge_bar:

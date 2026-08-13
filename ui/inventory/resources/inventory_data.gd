@@ -58,17 +58,40 @@ func find_empty_slot() -> int:
 
 
 func get_slot_for_equip(item: ItemData) -> String:
-	if item.equip_slot != "":
-		return item.equip_slot
+	if item == null:
+		return ""
+	var preferred := item.equip_slot
+	if preferred != "":
+		return _pair_slot_fallback(preferred)
 	match item.category:
 		ItemData.ItemCategory.WEAPON:
 			return "main_hand"
 		ItemData.ItemCategory.ARMOR:
 			return "chest"
 		ItemData.ItemCategory.TOOL:
-			return "tool_1" if equipped.get("tool_1") == null else "tool_2"
+			return _pair_slot_fallback("tool_1")
 		_:
 			return ""
+
+
+func _pair_slot_fallback(preferred: String) -> String:
+	var pair := ""
+	match preferred:
+		"ring_1":
+			pair = "ring_2"
+		"ring_2":
+			pair = "ring_1"
+		"tool_1":
+			pair = "tool_2"
+		"tool_2":
+			pair = "tool_1"
+		_:
+			return preferred
+	if equipped.get(preferred) == null:
+		return preferred
+	if equipped.get(pair) == null:
+		return pair
+	return preferred
 
 
 func find_rune(uid: String) -> RuneInstance:

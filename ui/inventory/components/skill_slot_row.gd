@@ -7,4 +7,4 @@ extends HBoxContainer
 
 func setup(button: String, skill_name: String) -> void:
 	button_label.text = "(%s)" % button
-	skill_label.text = skill_name if skill_name != "" else tr("Empty")
+	skill_label.text = tr(skill_name) if skill_name != "" else tr("Empty")

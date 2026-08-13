@@ -176,36 +176,9 @@ static func create_rare_dagger() -> ItemData:
 
 static func create_sample_inventory() -> InventoryData:
 	var inventory := InventoryData.new()
-	var claymore := create_claymore()
-	var dagger := create_rare_dagger()
-	var potion := create_health_potion()
-	var fish := create_dried_fish()
-	inventory.slots = [
-		claymore,
-		create_blood_rusted_sword(),
-		create_iron_helm(),
-		create_chain_chest(),
-		potion,
-		create_iron_ore(),
-		create_fishing_rod(),
-		dagger,
-		fish,
-	]
 	inventory.ensure_grid_size()
-	inventory.equipped["main_hand"] = claymore.duplicate(true)
-	inventory.equipped["off_hand"] = dagger.duplicate(true)
-	inventory.quick_item = potion.duplicate(true)
-	inventory.quick_food = fish.duplicate(true)
-
-	var counter := RuneInstance.create("counter_verse")
-	var pierce := RuneInstance.create("pierce_verse")
-	var blood := GemInstance.create("bloodstone")
-	var wind := GemInstance.create("wind_shard")
-	inventory.runes = [counter, pierce]
-	inventory.gems = [blood, wind]
-	inventory.socket_rune("main_hand", counter.instance_uid, 0)
-	inventory.socket_gem("main_hand", blood.instance_uid, "core_gem", 0)
-
-	var service := ResonanceService.new()
-	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())
+	var sword := ItemDefaults.create_iron_longsword()
+	var shield := ItemDefaults.create_splinter_buckler()
+	inventory.equipped["main_hand"] = sword
+	inventory.equipped["off_hand"] = shield
 	return inventory

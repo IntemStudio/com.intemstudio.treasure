@@ -53,7 +53,7 @@ func _register_defaults() -> void:
 		3,
 		&"element",
 		[&"fire", &"erupt"],
-		{"main_hand": "fire_infusion", "tool_1": "volcano_find"},
+		{"main_hand": "fire_infusion", "tool_1": "volcano_find", "tool_2": "volcano_find"},
 		" of Flame"
 	))
 	_add(_make(
@@ -66,6 +66,83 @@ func _register_defaults() -> void:
 		[&"chain", &"fire", &"wind"],
 		{"main_hand": "chain_hit"},
 		" Chained"
+	))
+	_add(_make(
+		&"frostglass",
+		"Frostglass",
+		ItemData.ItemRarity.COMMON,
+		&"shelf_common",
+		5,
+		&"element",
+		[&"frost", &"tide"],
+		{"main_hand": "chill_on_skill", "chest": "frost_shell"},
+		" of Frost"
+	))
+	_add(_make(
+		&"grave_pearl",
+		"Grave Pearl",
+		ItemData.ItemRarity.UNCOMMON,
+		&"shelf_uncommon",
+		3,
+		&"condition",
+		[&"plague", &"grave"],
+		{
+			"main_hand": "plague_on_skill",
+			"head": "plague_ward",
+			"ring_1": "linger_plague",
+			"ring_2": "linger_plague",
+		},
+		" of the Grave"
+	))
+	_add(_make(
+		&"sanctum_tear",
+		"Sanctum Tear",
+		ItemData.ItemRarity.RARE,
+		&"shelf_rare",
+		4,
+		&"condition",
+		[&"holy", &"ward", &"hymn"],
+		{
+			"main_hand": "ward_on_skill",
+			"head": "sanctum_aegis",
+			"ring_1": "hymn_hold",
+			"ring_2": "hymn_hold",
+		},
+		" of Sanctum"
+	))
+	_add(_make(
+		&"root_amber",
+		"Root Amber",
+		ItemData.ItemRarity.COMMON,
+		&"shelf_common",
+		6,
+		&"explore",
+		[&"earth", &"thorn"],
+		{
+			"main_hand": "root_on_skill",
+			"legs": "root_on_hit",
+			"tool_1": "forest_find",
+			"tool_2": "forest_find",
+		},
+		" Rooted"
+	))
+	_add(_make(
+		&"ash_veil",
+		"Ash Veil",
+		ItemData.ItemRarity.RARE,
+		&"shelf_rare",
+		5,
+		&"mediator",
+		[&"ash", &"blood"],
+		{
+			"main_hand": "ash_on_skill",
+			"chest": "ash_shroud",
+			"ring_1": "blood_hold",
+			"ring_2": "blood_hold",
+			"tool_1": "manor_find",
+			"tool_2": "manor_find",
+		},
+		" of Ash"
 	))
 
 

@@ -62,6 +62,71 @@ func _register_defaults() -> void:
 		"B",
 		[&"erupt", &"fire"]
 	))
+	_add(_make(
+		&"flurry_verse",
+		"Flurry Verse",
+		ItemData.ItemRarity.COMMON,
+		&"shelf_common",
+		4,
+		[&"weapon", &"melee"],
+		"Flurry",
+		"combo",
+		10,
+		"X",
+		[&"flurry", &"wind"]
+	))
+	_add(_make(
+		&"tide_verse",
+		"Tide Verse",
+		ItemData.ItemRarity.UNCOMMON,
+		&"shelf_uncommon",
+		3,
+		[&"weapon"],
+		"Tide Crash",
+		"aoe",
+		20,
+		"Y",
+		[&"tide", &"frost"]
+	))
+	_add(_make(
+		&"hymn_verse",
+		"Hymn Verse",
+		ItemData.ItemRarity.UNCOMMON,
+		&"shelf_uncommon",
+		4,
+		[&"weapon", &"staff", &"melee"],
+		"Hymn",
+		"heal",
+		16,
+		"B",
+		[&"hymn", &"ward"]
+	))
+	_add(_make(
+		&"ward_verse",
+		"Ward Verse",
+		ItemData.ItemRarity.RARE,
+		&"shelf_rare",
+		4,
+		[&"weapon"],
+		"Ward Pulse",
+		"ward",
+		14,
+		"A",
+		[&"ward", &"holy"]
+	))
+	_add(_make(
+		&"thorn_verse",
+		"Thorn Verse",
+		ItemData.ItemRarity.RARE,
+		&"shelf_rare",
+		5,
+		[&"weapon", &"melee"],
+		"Thorn Guard",
+		"thorns",
+		12,
+		"X",
+		[&"thorn", &"earth"]
+	))
 
 
 func _add(rune: RuneData) -> void:

@@ -2,6 +2,7 @@ class_name ItemCatalog
 extends RefCounted
 
 const ITEMS_DIR := "res://ui/inventory/resources/items/"
+const ItemDefaultsScript := preload("res://ui/inventory/resources/item_defaults.gd")
 
 var _templates: Dictionary = {}
 
@@ -46,6 +47,7 @@ func _register_bootstrap() -> void:
 		ItemBootstrap.create_fishing_rod,
 		ItemBootstrap.create_rare_dagger,
 	]
+	factories.append_array(ItemDefaultsScript.factories())
 	for factory in factories:
 		var item: ItemData = factory.call()
 		if item and not item.id.is_empty():

@@ -136,9 +136,9 @@ func _entry_display_name(e: Dictionary) -> String:
 	var id := str(e.get("id", ""))
 	if kind == "rune":
 		var def := _rune_catalog.get_rune(id)
-		return def.display_name if def else id
+		return tr(def.display_name) if def else id
 	var gdef := _gem_catalog.get_gem(id)
-	return gdef.display_name if gdef else id
+	return tr(gdef.display_name) if gdef else id
 
 
 func _entry_rarity(e: Dictionary) -> ItemData.ItemRarity:
@@ -205,7 +205,7 @@ func _update_detail() -> void:
 		var def := _rune_catalog.get_rune(id)
 		if def:
 			lines.append("%s: %s #%d" % [tr("Shelf"), String(def.shelf_id), def.card_number])
-			lines.append("%s: %s" % [tr("Skill"), def.skill_name])
+			lines.append("%s: %s" % [tr("Skill"), tr(def.skill_name)])
 			lines.append("%s: %d" % [tr("Mana cost"), def.mana_cost])
 		if _confirming:
 			lines.append("")

@@ -212,6 +212,7 @@ func _populate_item_options() -> void:
 	_equip_ids = _item_catalog.ids_for_categories([
 		ItemData.ItemCategory.WEAPON,
 		ItemData.ItemCategory.ARMOR,
+		ItemData.ItemCategory.TOOL,
 	])
 	_gem_ids.clear()
 	for gem_id in _gem_catalog.all_ids():
@@ -224,15 +225,15 @@ func _populate_item_options() -> void:
 
 	_fill_option(equip_option, _equip_ids, func(id: String) -> String:
 		var item := _item_catalog.get_item(id)
-		return item.display_name if item else id
+		return tr(item.display_name) if item else id
 	)
 	_fill_option(gem_option, _gem_ids, func(id: String) -> String:
 		var gem := _gem_catalog.get_gem(id)
-		return gem.display_name if gem else id
+		return tr(gem.display_name) if gem else id
 	)
 	_fill_option(rune_option, _rune_ids, func(id: String) -> String:
 		var rune := _rune_catalog.get_rune(id)
-		return rune.display_name if rune else id
+		return tr(rune.display_name) if rune else id
 	)
 
 
@@ -269,7 +270,7 @@ func _on_equip_grant_pressed() -> void:
 		return
 	inventory.slots[slot] = item
 	_ui_manager.refresh_character_views()
-	status_label.text = tr("LOOT_GOT") % item.display_name
+	status_label.text = tr("LOOT_GOT") % tr(item.display_name)
 
 
 func _on_gem_grant_pressed() -> void:
@@ -286,7 +287,7 @@ func _on_gem_grant_pressed() -> void:
 		return
 	inventory.gems.append(GemInstance.create(gem_id))
 	_ui_manager.refresh_character_views()
-	status_label.text = tr("LOOT_GOT") % gem.display_name
+	status_label.text = tr("LOOT_GOT") % tr(gem.display_name)
 
 
 func _on_rune_grant_pressed() -> void:
@@ -303,7 +304,7 @@ func _on_rune_grant_pressed() -> void:
 		return
 	inventory.runes.append(RuneInstance.create(rune_id))
 	_ui_manager.refresh_character_views()
-	status_label.text = tr("LOOT_GOT") % rune.display_name
+	status_label.text = tr("LOOT_GOT") % tr(rune.display_name)
 
 func _on_open_folder_pressed() -> void:
 	_refresh_path()
