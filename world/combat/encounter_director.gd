@@ -100,9 +100,14 @@ func start(room: RoomData, override_encounter: EncounterDef = null) -> bool:
 	var hero_stats := CombatStatsBuilder.build(ui_manager.character_stats, ui_manager.inventory_data)
 	var hero_hp := ui_manager.character_stats.hp if ui_manager.character_stats else hero_stats.max_hp
 	var hero_name := ui_manager.character_stats.character_name if ui_manager.character_stats else "Hero"
-	session.start(enc, hero_stats, hero_hp, hero_name)
+	var hero_mana := ui_manager.character_stats.mana if ui_manager.character_stats else 0
+	var hero_mana_max := ui_manager.character_stats.mana_max if ui_manager.character_stats else 0
+	var hero_skills: Array = _collect_hero_skills()
+	session.start(enc, hero_stats, hero_hp, hero_name, hero_skills, hero_mana, hero_mana_max)
 	if ui_manager:
 		ui_manager.set_combat_active(true)
+		if ui_manager.has_method("bind_skill_gauge"):
+			ui_manager.bind_skill_gauge(session)
 	var state := session.get_state()
 	var room_node: Node2D = room_host.get_current_room_node() if room_host else null
 	if arena:
@@ -111,6 +116,23 @@ func start(room: RoomData, override_encounter: EncounterDef = null) -> bool:
 		hud.show_combat(state, enc)
 	combat_started.emit()
 	return true
+
+
+func _collect_hero_skills() -> Array:
+	if ui_manager == null or ui_manager.inventory_data == null:
+		return []
+	var service := ResonanceService.new()
+	var result := service.rebuild_main_hand_skills(
+		ui_manager.inventory_data,
+		RuneCatalog.new(),
+		GemCatalog.new()
+	)
+	if result.skills.is_empty():
+		var main: ItemData = ui_manager.inventory_data.equipped.get("main_hand") as ItemData
+		if main:
+			return main.skills.duplicate(true)
+		return []
+	return result.skills.duplicate(true)
 
 
 func _pick_encounter(room: RoomData) -> EncounterDef:
@@ -149,7 +171,9 @@ func force_result(result: String) -> void:
 func _on_combat_ended(result: String) -> void:
 	var pending_xp := session.pending_xp if session else 0
 	var hero_hp := session.get_hero_hp() if session else 0
+	var hero_mana := session.get_hero_mana() if session else 0
 	var snapshot := session.snapshot_hero_hp if session else 0
+	var snapshot_mana := session.snapshot_hero_mana if session else 0
 
 	if arena:
 		arena.clear(true)
@@ -157,25 +181,30 @@ func _on_combat_ended(result: String) -> void:
 		hud.hide_combat()
 	if ui_manager:
 		ui_manager.set_combat_active(false)
+		if ui_manager.has_method("unbind_skill_gauge"):
+			ui_manager.unbind_skill_gauge()
 
 	match result:
 		CombatSession.RESULT_WIN:
-			_apply_win(pending_xp, hero_hp)
+			_apply_win(pending_xp, hero_hp, hero_mana)
 		CombatSession.RESULT_LOSE:
 			_apply_lose()
 		CombatSession.RESULT_RETREAT:
-			_apply_retreat(snapshot)
+			_apply_retreat(snapshot, snapshot_mana)
 
 	_active_room = null
 	combat_finished.emit(result)
 
 
-func _apply_win(pending_xp: int, hero_hp: int) -> void:
+func _apply_win(pending_xp: int, hero_hp: int, hero_mana: int) -> void:
 	if _active_room:
 		_active_room.cleared = true
 	if ui_manager and ui_manager.character_stats:
 		ui_manager.character_stats.hp = clampi(
 			hero_hp, 1, ui_manager.character_stats.hp_max
+		)
+		ui_manager.character_stats.mana = clampi(
+			hero_mana, 0, ui_manager.character_stats.mana_max
 		)
 		if pending_xp > 0:
 			ui_manager.character_stats.add_xp(pending_xp)
@@ -245,10 +274,13 @@ func _apply_lose() -> void:
 		ui_manager.return_to_village()
 
 
-func _apply_retreat(snapshot_hp: int) -> void:
+func _apply_retreat(snapshot_hp: int, snapshot_mana: int) -> void:
 	if ui_manager and ui_manager.character_stats:
 		ui_manager.character_stats.hp = clampi(
 			snapshot_hp, 1, ui_manager.character_stats.hp_max
+		)
+		ui_manager.character_stats.mana = clampi(
+			snapshot_mana, 0, ui_manager.character_stats.mana_max
 		)
 		ui_manager.refresh_character_views()
 	if room_host:

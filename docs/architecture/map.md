@@ -85,7 +85,9 @@ Dungeon (Node2D)
 `MenuShell`이 `Tab.MAP`을 마운트하고, `TopBar.CYCLEABLE_TABS`에 Map 포함 (Q/E 순환에 들어감).
 
 이동 불가 칸은 비활성·흐리게 표시. **안개:** 방문+이웃만 칸·타입 글자 표시 (미니맵과 동일). `RoomHost.enter_room`도 `can_enter`를 검사한다.  
-전투 중 칸 클릭은 `UIManager.is_combat_active()`에서 거부. 런 세이브(층·시드·`cleared`)는 후속.
+전투 중 칸 클릭은 `UIManager.is_combat_active()`에서 거부.
+
+런 파일: `dungeon.gd`가 방 이동마다 `seed` / `current` / `visited` / `cleared`를 `slot_N_run.json`에 쓴다 ([`save-load.md`](save-load.md)). `_ready`는 `pending_run`으로 `generate` 후 **입구부터** 시작한다. 저장된 `current`·플래그로 이어하지 않는다.
 
 ---
 

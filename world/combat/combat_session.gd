@@ -16,10 +16,12 @@ var combatants: Array[Dictionary] = []
 var active: bool = false
 var can_retreat: bool = true
 var snapshot_hero_hp: int = 0
+var snapshot_hero_mana: int = 0
 var pending_xp: int = 0
 var speed_index: int = 0
 var _ended: bool = false
 var _counter_depth: int = 0
+var _hero_skills: Array = []
 
 
 func setup(p_rules: CombatRules) -> void:
@@ -31,7 +33,10 @@ func start(
 	p_encounter: EncounterDef,
 	hero_stats: CombatStats,
 	hero_hp: int,
-	hero_name: String = "Hero"
+	hero_name: String = "Hero",
+	hero_skills: Array = [],
+	hero_mana: int = 0,
+	hero_mana_max: int = 0
 ) -> void:
 	encounter = p_encounter
 	combatants.clear()
@@ -41,6 +46,8 @@ func start(
 	_counter_depth = 0
 	can_retreat = encounter.can_retreat if encounter else true
 	snapshot_hero_hp = hero_hp
+	snapshot_hero_mana = hero_mana
+	_hero_skills = hero_skills.duplicate(true)
 
 	var hero := _make_combatant(
 		"hero",
@@ -53,6 +60,11 @@ func start(
 		false
 	)
 	hero["is_hero"] = true
+	hero["mana"] = maxi(0, hero_mana)
+	hero["mana_max"] = maxi(0, hero_mana_max)
+	hero["skill_atb"] = 0.0
+	hero["skills"] = _hero_skills.duplicate(true)
+	hero["last_skill_index"] = -1
 	combatants.append(hero)
 
 	if encounter:
@@ -140,8 +152,93 @@ func tick(dt: float) -> void:
 		while float(unit["atb"]) >= rules.atb_full and unit["alive"] and not _ended:
 			unit["atb"] = float(unit["atb"]) - rules.atb_full
 			_try_attack(unit)
+		if unit.get("is_hero", false) and unit["alive"] and not _ended:
+			_tick_skill_gauge(unit, dt)
 	state_changed.emit()
 	_check_end()
+
+
+func _tick_skill_gauge(hero: Dictionary, dt: float) -> void:
+	var interval := rules.skill_interval_sec
+	if interval <= 0.0:
+		return
+	var fill_rate := 1.0 / interval
+	hero["skill_atb"] = float(hero.get("skill_atb", 0.0)) + fill_rate * dt
+	var full := rules.skill_atb_full if rules.skill_atb_full > 0.0 else 1.0
+	while float(hero["skill_atb"]) >= full and hero["alive"] and not _ended:
+		hero["skill_atb"] = float(hero["skill_atb"]) - full
+		_try_auto_skill(hero)
+
+
+func _try_auto_skill(hero: Dictionary) -> void:
+	var skills: Array = hero.get("skills", []) as Array
+	var mana := int(hero.get("mana", 0))
+	hero["last_skill_index"] = -1
+	for i in range(mini(4, skills.size())):
+		var entry: Variant = skills[i]
+		if not entry is Dictionary:
+			continue
+		var skill: Dictionary = entry
+		var skill_name := str(skill.get("name", "")).strip_edges()
+		if skill_name.is_empty():
+			continue
+		var cost := int(skill.get("mana_cost", 0))
+		if mana < cost:
+			continue
+		hero["mana"] = mana - cost
+		hero["last_skill_index"] = i
+		_resolve_skill(hero, skill)
+		return
+
+
+func _resolve_skill(attacker: Dictionary, skill: Dictionary) -> void:
+	var kind := str(skill.get("kind", "strike"))
+	match kind:
+		"strike", _:
+			_resolve_strike_skill(attacker, skill)
+
+
+func _resolve_strike_skill(attacker: Dictionary, skill: Dictionary = {}) -> void:
+	var target := _pick_target(attacker)
+	if target.is_empty():
+		return
+	var atk_stats: CombatStats = attacker["stats"]
+	if atk_stats == null:
+		return
+	var mult := rules.strike_damage_mult if rules else 1.6
+	var raw := float(randi_range(atk_stats.damage_min, maxi(atk_stats.damage_min, atk_stats.damage_max)))
+	raw *= mult
+	var def_stats: CombatStats = target["stats"]
+	var defense := def_stats.defense if def_stats else 0.0
+	var after_def := rules.apply_defense(raw, defense, false)
+	var is_crit := false
+	if randf() < atk_stats.crit_chance:
+		after_def *= atk_stats.crit_damage
+		is_crit = true
+	var dmg := rules.finalize_damage(after_def)
+	var dealt := _apply_damage(target, dmg)
+	if dealt > 0:
+		var heal_amt := _apply_vampirism(attacker, dealt)
+		var skill_flags: Array = skill.get("behavior_flags", []) as Array
+		if skill_flags.has("lifesteal_on_skill") or str(skill.get("gem_id", "")) == "bloodstone":
+			var gem_heal := maxi(1, int(floor(float(dealt) * 0.25)))
+			_heal(attacker, gem_heal)
+			heal_amt += gem_heal
+		var flags := PackedStringArray(["skill"])
+		if is_crit:
+			flags.append("crit")
+		_emit_action(
+			"hit",
+			attacker,
+			target,
+			dealt,
+			flags,
+			{"heal_amount": heal_amt, "skill_name": str(skill.get("name", "")).strip_edges()}
+		)
+		_apply_retaliation(attacker, target)
+		_gain_stamina_on_hit(target)
+		if skill_flags.has("pierce_flag") or skill_flags.has("chain_hit"):
+			_apply_damage_all(attacker, target, float(dealt) * 0.35)
 
 
 func _tick_resources(unit: Dictionary, dt: float) -> void:
@@ -438,6 +535,13 @@ func get_hero_hp() -> int:
 	return int(hero["hp"])
 
 
+func get_hero_mana() -> int:
+	var hero := get_hero()
+	if hero.is_empty():
+		return 0
+	return int(hero.get("mana", 0))
+
+
 func get_state() -> Dictionary:
 	var units: Array = []
 	for unit in combatants:
@@ -455,7 +559,12 @@ func get_state() -> Dictionary:
 			"is_hero": unit.get("is_hero", false),
 			"stamina": unit.get("stamina", 0.0),
 			"tired": float(unit.get("tired_t", 0.0)) > 0.0,
+			"mana": unit.get("mana", 0),
+			"mana_max": unit.get("mana_max", 0),
+			"skill_atb": unit.get("skill_atb", 0.0),
+			"last_skill_index": unit.get("last_skill_index", -1),
 		})
+	var skill_full := rules.skill_atb_full if rules else 1.0
 	return {
 		"active": active,
 		"can_retreat": can_retreat,
@@ -465,6 +574,8 @@ func get_state() -> Dictionary:
 		"round_index": encounter.round_index if encounter else 1,
 		"speed_mult": get_speed_mult(),
 		"speed_index": speed_index,
+		"skill_atb_full": skill_full if skill_full > 0.0 else 1.0,
+		"hero_skills": _hero_skills.duplicate(true),
 	}
 
 

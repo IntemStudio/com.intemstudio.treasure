@@ -2,9 +2,9 @@
 
 던전 **현재 방**에서 시작하는 **탑다운 ATB 자동 전투**.  
 후속: [`docs/design/combat.md`](../design/combat.md). 방 `win` 장비: [`loot.md`](loot.md).  
-인게임 텍스트 로그: [`game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
+인게임 텍스트 로그: [`game-log.md`](game-log.md). 기술·공명: [`equipment.md`](equipment.md).
 
-**현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired). GameHud·미니맵 전투 중 유지.
+**현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired) + 히어로 기술 게이지·마나 자동 발동. GameHud·미니맵 전투 중 유지.
 
 ---
 
@@ -41,7 +41,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 5. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
 6. `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud 유지**
 7. `CombatArena.start(room)` — Player 숨김, 슬롯에 액터 스폰; `CombatHud.show_combat` (배속·후퇴)
-8. 세션 `_process`로 ATB·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지
+8. 세션 `_process`로 ATB·**기술 게이지**·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지
 9. 메뉴 오픈 → `get_tree().paused` → ATB 일시정지. 미니맵 클릭은 Map 탭을 열지 않음
 10. `combat_ended` → Arena `clear` + `CombatHud.hide_combat` + `set_combat_active(false)`
 
@@ -54,14 +54,16 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 5. Vampirism · Retaliation · Counter (`CombatRules` 플래그)
 6. 틱: `regen_per_sec`, 스태미나 재생. 공격/반격/회피 비용. 0이면 Tired
 
-히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).
+히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).  
+기술: 평타 ATB와 별도 `skill_atb`. 가득 차면 `main_hand.skills`에서 마나가 되는 첫 칸을 자동 발동. 부족하면 평타만 ([`equipment.md`](equipment.md) · HUD 충전 바).
+
 | 결과 | 처리 |
 |------|------|
 | `win` | `RoomData.cleared = true`, 남은 HP 반영, XP, **장비 드랍** ([`loot.md`](loot.md)). **보스**면 `return_to_village()` |
-| `lose` | `UIManager.return_to_village()` (슬롯 저장, 메타 유지) |
+| `lose` | `UIManager.return_to_village()` (슬롯 저장, 런 삭제, 메타 유지) |
 | `retreat` | 입장 시 HP 복구, `RoomHost.enter_room(ZERO)` (입구) |
 
-HP/XP는 메타 `character`에 남는다. 층·`cleared`는 세이브하지 않음 ([`save-load.md`](save-load.md)). 허브: [`village.md`](village.md).
+HP/XP·가방은 메타에 남는다. 방 `cleared`/`visited`는 런 JSON에 쓴다. 마을 복귀 시 런 파일 삭제 ([`save-load.md`](save-load.md)). 허브: [`village.md`](village.md).
 
 ---
 

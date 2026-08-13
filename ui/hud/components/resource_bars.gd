@@ -39,6 +39,19 @@ func set_stats(stats: CharacterStats) -> void:
 	_refresh_labels()
 
 
+func set_combat_resources(mana: int = -1, mana_max: int = -1, hp: int = -1, hp_max: int = -1) -> void:
+	if mana >= 0:
+		_mana = mana
+	if mana_max >= 0:
+		_mana_max = mana_max
+	if hp >= 0:
+		_hp = hp
+	if hp_max >= 0:
+		_hp_max = hp_max
+	_has_stats = true
+	_refresh_labels()
+
+
 func _on_locale_changed(_locale: String) -> void:
 	if _has_stats:
 		_refresh_labels()

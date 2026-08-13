@@ -64,6 +64,20 @@ func _set_skills(main_hand: ItemData) -> void:
 			slot.clear()
 
 
+func set_skill_charge(ratio: float, active_index: int = -1) -> void:
+	for i in _skill_slots.size():
+		var slot := _skill_slots[i]
+		var has_skill := slot.name_label != null and slot.name_label.visible
+		if not has_skill:
+			continue
+		slot.set_charge(ratio, i == active_index)
+
+
+func clear_skill_charge() -> void:
+	for slot in _skill_slots:
+		slot.set_charge(0.0, false)
+
+
 func _clear_all() -> void:
 	for slot in _skill_slots:
 		slot.clear()

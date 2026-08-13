@@ -18,6 +18,7 @@ var _inventory: InventoryData
 var _location_id: String = DEFAULT_LOCATION
 var _pending_floor_map: FloorMap
 var _pending_game_log: GameLog
+var _skill_session: CombatSession
 
 
 func _ready() -> void:
@@ -110,6 +111,55 @@ func _on_loot_toast_timeout() -> void:
 	if loot_toast:
 		loot_toast.visible = false
 		loot_toast.text = ""
+
+
+func bind_skill_session(session: CombatSession) -> void:
+	unbind_skill_session()
+	_skill_session = session
+	if _skill_session and not _skill_session.state_changed.is_connected(_on_skill_state_changed):
+		_skill_session.state_changed.connect(_on_skill_state_changed)
+	_on_skill_state_changed()
+
+
+func unbind_skill_session() -> void:
+	if _skill_session and _skill_session.state_changed.is_connected(_on_skill_state_changed):
+		_skill_session.state_changed.disconnect(_on_skill_state_changed)
+	_skill_session = null
+	if action_bar:
+		action_bar.clear_skill_charge()
+
+
+func _on_skill_state_changed() -> void:
+	if action_bar == null or _skill_session == null or not _skill_session.active:
+		if action_bar:
+			action_bar.clear_skill_charge()
+		return
+	var state := _skill_session.get_state()
+	var full := float(state.get("skill_atb_full", 1.0))
+	if full <= 0.0:
+		full = 1.0
+	var ratio := 0.0
+	var active_index := -1
+	var hero_mana := -1
+	var hero_mana_max := -1
+	var hero_hp := -1
+	var hero_hp_max := -1
+	for unit in state.get("units", []):
+		if not unit is Dictionary:
+			continue
+		var u: Dictionary = unit
+		if not bool(u.get("is_hero", false)):
+			continue
+		ratio = float(u.get("skill_atb", 0.0)) / full
+		active_index = int(u.get("last_skill_index", -1))
+		hero_mana = int(u.get("mana", 0))
+		hero_mana_max = int(u.get("mana_max", 0))
+		hero_hp = int(u.get("hp", 0))
+		hero_hp_max = int(u.get("max_hp", 0))
+		break
+	action_bar.set_skill_charge(ratio, active_index)
+	if resource_bars:
+		resource_bars.set_combat_resources(hero_mana, hero_mana_max, hero_hp, hero_hp_max)
 
 
 func _on_minimap_open_requested() -> void:

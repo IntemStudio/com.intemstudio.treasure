@@ -2,7 +2,8 @@
 
 인벤토리 탭 본문 스펙. 전체화면 크롬(Overlay / TopBar / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다.
 
-후속(룬·보석·소켓·공명·카드 등록): [`docs/design/equipment.md`](../design/equipment.md).
+소켓·룬·보석·공명·제단: [`equipment.md`](equipment.md). 후속(인벤에서 꽂기 UI 등): [`docs/design/equipment.md`](../design/equipment.md).  
+방 클리어 장비 드랍: [`loot.md`](loot.md).
 
 ---
 
@@ -78,9 +79,10 @@ ui/inventory/components/
 
 ## 데이터·조작
 
-- **카테고리:** WEAPON / ARMOR / CONSUMABLE / MATERIAL / TOOL  
+- **카테고리:** WEAPON / ARMOR / CONSUMABLE / MATERIAL / TOOL (`runes[]` / `gems[]`는 격자 밖, [`equipment.md`](equipment.md))  
 - **정렬 사이클:** `time` → `name` → `weight` → `rarity`  
-- **장비 슬롯:** `InventoryData.EQUIP_SLOTS`  
+- **장비 슬롯:** `InventoryData.EQUIP_SLOTS`. 상세에 `SocketLayout.describe()`  
+- **룬·보석:** 가방 격자가 아님. 꽂기 UI 없음 (샘플·서비스 API)  
 - **푸터 액션:** `sort`, `equip`, `discard`, `close`  
 - **그리드 슬롯:** 이름 텍스트(`HudSlot`과 동일). 선택 시 `UIColors.GOLD` + `SELECT_BORDER` (스탯 `AttributeRowSelected` / 설정 행과 동일)  
 - **입력:** 카테고리 `1`/`3`·LT/RT, 그리드 이동, Equip / Discard / Sort, Esc → `request_close`  

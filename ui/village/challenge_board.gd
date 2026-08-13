@@ -266,6 +266,11 @@ func _confirm_challenge() -> void:
 	if params.is_empty():
 		return
 	SaveManager.set_pending_run(params)
+	if SaveManager.current_slot >= 0:
+		var run := params.duplicate(true)
+		if _ui_manager and _ui_manager.inventory_data:
+			run.merge(SaveSerializer.run_equipment_snapshot(_ui_manager.inventory_data), true)
+		SaveManager.save_run(SaveManager.current_slot, run)
 	challenge_confirmed.emit(params)
 	_active = false
 	visible = false

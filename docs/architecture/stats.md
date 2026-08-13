@@ -2,7 +2,8 @@
 
 스탯 탭 본문 스펙. 전체화면 크롬(Overlay / TopBar / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Stats 콘텐츠 패널**만 다룹니다.
 
-후속(성장·전투 매핑): [`docs/design/stats.md`](../design/stats.md).
+후속(Focus→Mana 라벨·무게 전투 보정): [`docs/design/stats.md`](../design/stats.md).  
+기술 게이지·마나 자동 발동은 전투 ([`combat.md`](combat.md) · [`equipment.md`](equipment.md)).
 
 **현황:** v1.1 — COMBAT 열·`CombatStatsBuilder` 표시 소스·Defense 키·Insight 토글.
 

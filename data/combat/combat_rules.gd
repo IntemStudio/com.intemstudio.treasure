@@ -9,6 +9,11 @@ extends Resource
 @export var base_attack_interval_sec: float = 1.5
 @export var atb_full: float = 1.0
 
+## Separate skill gauge (hero only). Full ~ every skill_interval_sec at 1.0 fill rate.
+@export var skill_interval_sec: float = 4.0
+@export var skill_atb_full: float = 1.0
+@export var strike_damage_mult: float = 1.6
+
 @export var stamina_max: float = 100.0
 @export var stamina_regen_per_sec: float = 15.0
 @export var stamina_cost_attack: float = 25.0

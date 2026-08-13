@@ -1,6 +1,6 @@
 # 마을 허브 / 도전 게시판
 
-**미구현 후속:** v1.1 런 JSON · v2 여관/상점. **v1 현황(구조):** [`docs/architecture/village.md`](../architecture/village.md).  
+**미구현 후속:** 이어하기 던전 복귀 · 후퇴=원정 포기 · 여관/상점. **현황(구조):** [`docs/architecture/village.md`](../architecture/village.md).  
 다키스트 던전 1의 햄릿(허브) + Embark(원정 출발)를 참고한 루프.  
 런 파일: [`save-load.md`](save-load.md) v2. 층 생성: [`map.md`](map.md). 전투 종료: [`combat.md`](combat.md).
 
@@ -34,7 +34,7 @@
 | 출발 UI | Embark (전체화면) | **도전 게시판 (전체화면 메뉴)** |
 | 맵 생성 | Embark 직후 | 게시판 **도전 확정** 직후 |
 | 영구 데이터 | 영지·영웅 | 메타 `slot_N.json` |
-| 일회 원정 | 퀘스트 던전 | 런 `slot_N_run.json` (v1.1+) |
+| 일회 원정 | 퀘스트 던전 | 런 `slot_N_run.json` (쓰기·삭제. 이어하기는 후속) |
 
 타이틀은 슬롯 선택만 한다. 패배해도 타이틀이 아니라 마을로 돌아온다.
 
@@ -45,7 +45,7 @@
 | 단계 | 범위 | 상태 |
 |------|------|------|
 | **v1** | 마을 씬, 게시판 전체화면, 확정 시 생성·입장, 전멸→마을 | 구현됨 → [`architecture/village.md`](../architecture/village.md) |
-| **v1.1** | 런 JSON, 이어하기 시 던전 복귀, 후퇴=원정 포기, 정산 | 설계만 — save-load v2 |
+| **v1.1** | 런 JSON 쓰기·삭제, 이어하기 시 던전 복귀, 후퇴=원정 포기, 정산 | 파일 쓰기·마을 복귀 시 삭제는 구현됨. 던전 이어하기·후퇴 포기는 후속 |
 | **v1.region** | 게시판 지역 4종 + en/ko + 지역별 인카운터 | 구현됨 |
 | **v2** | 여관, 상점, 길이별 난이도 | 설계만 |
 
@@ -143,7 +143,7 @@ ChallengeBoard
 | `normal` | Normal / 보통 | 12 | ×1.5 |
 | `long` | Long / 긴 | 16 | ×2 |
 
-보상 배수는 **UI 문구**만. XP·드랍·지역별 인카운터는 후속.
+보상 배수는 **UI 문구**만. 드랍 개수·희귀도에는 쓰지 않음 ([`loot.md`](loot.md)). 지역 인카운터는 구현됨.
 
 게시판 좌측: **지역** 열 + **길이** 열. 우측: 지역·길이 설명. ←/→ 열 전환.
 
@@ -192,7 +192,7 @@ ChallengeBoard
 |------|------|-----|
 | 보스 클리어 | 던전에 잔류 | 던전에 잔류해도 됨. 입구 또는 보스 방에 **마을로** 상호작용을 두거나, 클리어 직후 마을로 보내도 됨 — 구현 직전 한쪽만 고른다. **권장:** 보스 승리 후 마을 |
 | 후퇴 | 입구 방, 원정 유지 | **유지** (입구) |
-| 전멸 | `return_to_title()` | `return_to_village()` — 메타 유지, 이번 층은 버림 |
+| 전멸 | `return_to_title()` | `return_to_village()` — 메타 유지, 런 파일 삭제 |
 | 설정 → 메인 메뉴 | 타이틀 | 타이틀 (슬롯 선택으로). 원정 포기는 v1.1 |
 
 `UIManager.return_to_village()`:
@@ -200,11 +200,11 @@ ChallengeBoard
 - `paused = false` 후 deferred `village.tscn` (타이틀 복귀와 같은 pause 함정)
 - `unbind_dungeon`, `in_combat = false`
 - `current_slot`은 **유지** (타이틀로 갈 때만 `-1`)
-- 런이 있으면 삭제 (v1은 메모리만 버려도 됨)
+- 런이 있으면 `clear_run` (구현됨)
 
-전멸 후 마을 HP는 최대. XP는 이미 메타 `character`에 반영된 분(클리어한 방)만 남긴다. 미정산 런 전리품은 v1에 없으므로 버릴 것이 없다.
+전멸 후 마을 HP는 최대. XP는 이미 메타 `character`에 반영된 분(클리어한 방)만 남긴다. 방 클리어 장비는 메타 인벤에 바로 들어가므로 전멸해도 남는다 ([`loot.md`](loot.md)).
 
-### API (예정)
+### API
 
 ```
 ChallengeBoard.setup(ui_manager)
@@ -245,7 +245,7 @@ Dungeon.gd: consume RunParams → floor_map.generate(seed, room_count)
 - 보급(횃불·식량): 전투 스태미나/피로와 같이 검토 — 새 스탯이 아니라 Stamina 상한/재생 ([`stats.md`](stats.md))
 - 파티 편성: 전투 [`combat.md`](combat.md) 다수 아군 이후
 - 길이별 적 레벨·방당 랜덤 조우
-- 등록 제단·책장: 룬·보석 카드 등록은 마을만. 게시판·MenuShell 탭과 별개 전체화면 ([`equipment.md`](equipment.md))
+- 등록 제단·책장: 룬·보석 카드 등록은 마을만. **제단 UI 구현됨** ([`registration_altar.tscn`](../../ui/village/registration_altar.tscn)). 책장 격자 UI는 후속 ([`equipment.md`](equipment.md))
 
 게시판은 **전체화면 메뉴** 유지. 월드에 퀘스트 목록을 펼치지 않는다.
 
@@ -257,11 +257,12 @@ Dungeon.gd: consume RunParams → floor_map.generate(seed, room_count)
 |------|----------------|
 | [`title.md`](../architecture/title.md) | 프로필 → `village.tscn`. `dungeon.tscn`은 게시판 확정 후 |
 | [`map.md`](map.md) | `dungeon._ready`의 즉시 `generate` 제거. 파라미터 생성 |
-| [`save-load.md`](save-load.md) | v1은 런 파일 없이 허브 루프. v1.1이 레이어 2 |
+| [`save-load.md`](save-load.md) | 런 파일 쓰기·삭제. 던전 이어하기는 후속 |
 | [`combat.md`](combat.md) | `lose` → `return_to_village()` |
 | [`hud.md`](hud.md) | `LOCATION_VILLAGE`, 마을에서 미니맵 숨김 |
+| [`game-log.md`](game-log.md) | `return_to_village` 시 로그 `clear`. v1 제단 문구는 로그 필수 아님 |
 | [`settings.md`](../architecture/settings.md) | v1 나가기 타이틀 유지. v1.1 던전→마을 |
-| [`equipment.md`](equipment.md) | v2 제단·책장. 던전에서 카드 등록하지 않음 |
+| [`equipment.md`](equipment.md) | 제단 구현됨. 책장 격자·여관은 후속. 던전에서 카드 등록하지 않음 |
 
 ---
 

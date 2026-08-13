@@ -16,7 +16,7 @@
 | **v1** | 생성기 + RoomHost + Map 탭 + 문 + WASD | 구현됨 → 구조 문서 |
 | **미니맵 v1** | HUD 우상단 안개 격자 | 구현됨 → [`minimap.md`](../architecture/minimap.md) |
 | **v1.1** | 패드 맵 커서, Area2D로 문 보행, (선택) visited-only | 설계만 |
-| **v2** | 런 세이브에 시드·current·visited, 특수 방 | 설계만 — save-load v2 |
+| **v2** | 런에 시드·current·visited·cleared 기록, 특수 방 | 탐험 플래그 쓰기는 구현됨. 이어하기 복원·특수 방은 후속 |
 
 ---
 
@@ -31,18 +31,14 @@
 
 ---
 
-## v2 — 런 연동 (예정)
+## v2 — 런 연동
 
-생성 시점: 마을 도전 게시판에서 **확정한 뒤**만 [`village.md`](village.md). `dungeon._ready`의 즉시 `randi()` 생성은 허브 루프에서 제거한다 (에디터 직접 실행 폴백만 남김).
+쓰기는 구현됨 ([`architecture/map.md`](../architecture/map.md) · [`save-load.md`](save-load.md)). **남은 것:**
 
-[`save-load.md`](save-load.md) `slot_N_run.json` 후보와 정렬:
+- 이어하기: `load_run` → 시드로 `generate` 후 `visited`/`cleared`/`current` 덮어쓰기
+- 특수 방 타입(`room_type` 확장). 룬 제단·보석 광맥은 [`equipment.md`](equipment.md) — 현재는 `START`/`NORMAL`/`BOSS`만. 카드 등록은 던전 방이 아니라 마을
 
-- `dungeon_id`, `floor`, `seed` (`length_id` / `room_count`는 게시판이 넣음)
-- `current: Vector2i`, 방별 `visited` / `cleared`
-
-로드 시 `generate` 재현 후 탐험 플래그만 덮어쓰거나, 방 목록을 직렬화할지 구현 직전에 확정한다.
-
-특수 방 타입(`room_type` 확장)은 미니맵 `type_letter()`와 같이 추가한다. 룬 제단·보석 광맥은 [`equipment.md`](equipment.md) — 현재는 `START`/`NORMAL`/`BOSS`만. 카드 등록은 던전 방이 아니라 마을.
+에디터 직접 실행 폴백(`randi()` + 12방)은 유지.
 
 ---
 

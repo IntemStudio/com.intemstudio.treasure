@@ -14,6 +14,8 @@ var current_slot: int = -1
 var play_time_sec: float = 0.0
 ## In-memory expedition params (v1). Set on challenge confirm; consumed by dungeon.
 var pending_run: Dictionary = {}
+## Card registration meta (also persisted inside slot_N.json meta).
+var _card_meta: Dictionary = {}
 
 var _catalog: ItemCatalog
 var _slot_created_at: Dictionary = {}
@@ -53,6 +55,18 @@ func open_save_folder() -> Error:
 
 func get_slot_path(slot: int) -> String:
 	return SAVE_DIR.path_join("slot_%d.json" % slot)
+
+
+func get_run_path(slot: int) -> String:
+	return SAVE_DIR.path_join("slot_%d_run.json" % slot)
+
+
+func get_card_meta() -> Dictionary:
+	return CardRegistrationService.ensure_meta(_card_meta)
+
+
+func set_card_meta(meta: Dictionary) -> void:
+	_card_meta = CardRegistrationService.ensure_meta(meta)
 
 
 func has_save(slot: int) -> bool:
@@ -114,10 +128,12 @@ func new_game(slot: int) -> SaveGame:
 	}
 	current_slot = slot
 	play_time_sec = 0.0
+	_card_meta = {}
 	_slot_created_at[slot] = save.meta["created_at"]
 	var err := save_game(slot, save.character, save.inventory)
 	if err != OK:
 		return null
+	clear_run(slot)
 	return save
 
 
@@ -147,6 +163,15 @@ func save_game(slot: int, character: CharacterStats, inventory: InventoryData) -
 		"character_name": character.character_name,
 		"level": character.level,
 	}
+	meta = CardRegistrationService.ensure_meta(meta)
+	for key in ["registered_cards", "unlocked_shelves", "card_pity", "discovered_cards"]:
+		if _card_meta.has(key):
+			meta[key] = (_card_meta[key] as Variant)
+			if meta[key] is Array:
+				meta[key] = (meta[key] as Array).duplicate(true)
+			elif meta[key] is Dictionary:
+				meta[key] = (meta[key] as Dictionary).duplicate(true)
+	_card_meta = CardRegistrationService.ensure_meta(meta)
 	var data := SaveSerializer.to_dict(character, inventory, meta, SAVE_VERSION)
 	var err := _write_atomic(get_slot_path(slot), data)
 	var ok := err == OK
@@ -191,8 +216,43 @@ func load_game(slot: int) -> SaveGame:
 	current_slot = slot
 	play_time_sec = float((save.meta as Dictionary).get("play_time_sec", 0))
 	_slot_created_at[slot] = str(save.meta.get("created_at", _now_iso()))
+	_card_meta = CardRegistrationService.ensure_meta(save.meta)
 	load_completed.emit(slot, true)
 	return save
+
+
+func save_run(slot: int, run: Dictionary) -> Error:
+	if not _is_valid_slot(slot):
+		return ERR_INVALID_PARAMETER
+	ensure_save_dir()
+	var payload := run.duplicate(true)
+	payload["slot"] = slot
+	payload["updated_at"] = _now_iso()
+	return _write_atomic(get_run_path(slot), payload)
+
+
+func load_run(slot: int) -> Dictionary:
+	if not _is_valid_slot(slot):
+		return {}
+	var path := get_run_path(slot)
+	if not FileAccess.file_exists(path):
+		return {}
+	return _read_json_file(path)
+
+
+func clear_run(slot: int) -> Error:
+	if not _is_valid_slot(slot):
+		return ERR_INVALID_PARAMETER
+	var path := get_run_path(slot)
+	if FileAccess.file_exists(path):
+		return DirAccess.remove_absolute(path)
+	return OK
+
+
+func has_run(slot: int) -> bool:
+	if not _is_valid_slot(slot):
+		return false
+	return FileAccess.file_exists(get_run_path(slot))
 
 
 func set_pending_run(params: Dictionary) -> void:
@@ -221,10 +281,12 @@ func delete_slot(slot: int) -> Error:
 		var err := DirAccess.remove_absolute(path)
 		if err != OK:
 			return err
+	clear_run(slot)
 	_slot_created_at.erase(slot)
 	if current_slot == slot:
 		current_slot = -1
 		play_time_sec = 0.0
+		_card_meta = {}
 	slot_deleted.emit(slot)
 	return OK
 

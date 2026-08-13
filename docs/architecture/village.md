@@ -1,7 +1,7 @@
 # 마을 허브 / 도전 게시판
 
-프로필 선택 후 **마을**이 플레이 허브. 도전 게시판(전체화면)에서 확정한 뒤에만 던전 맵을 생성한다.  
-후속(런 JSON·여관): [`docs/design/village.md`](../design/village.md).
+프로필 선택 후 **마을**이 플레이 허브. 도전 게시판에서 확정한 뒤에만 던전 맵을 생성한다. 게시판 옆에 **등록 제단**.  
+후속(이어하기 던전 복귀·여관): [`docs/design/village.md`](../design/village.md). 제단 데이터: [`equipment.md`](equipment.md).
 
 ---
 
@@ -11,8 +11,9 @@
 |------|------|
 | 마을 루트 | [`scenes/village/village.tscn`](../../scenes/village/village.tscn) + [`village.gd`](../../scenes/village/village.gd) |
 | 도전 메뉴 | [`ui/village/challenge_board.tscn`](../../ui/village/challenge_board.tscn) + [`challenge_board.gd`](../../ui/village/challenge_board.gd) |
+| 등록 제단 | [`ui/village/registration_altar.tscn`](../../ui/village/registration_altar.tscn) + [`registration_altar.gd`](../../ui/village/registration_altar.gd) |
 | 길이 정의 | [`data/village/challenge_def.gd`](../../data/village/challenge_def.gd) |
-| 원정 파라미터 | [`SaveManager`](../../autoload/save_manager.gd) `pending_run` (메모리, v1) |
+| 원정 파라미터 | [`SaveManager`](../../autoload/save_manager.gd) `pending_run` + `save_run` |
 | 프로필 진입 | [`profile_select.gd`](../../scenes/title/profile_select.gd) → `village.tscn` |
 | 던전 생성 | [`dungeon.gd`](../../scenes/dungeon/dungeon.gd) `take_pending_run()` |
 | 허브 UI | [`ui_manager.gd`](../../ui/ui_manager.gd) `set_hub_mode` / `return_to_village` |
@@ -24,12 +25,14 @@
 ```
 Village (Node2D)
 ├── VillageRoom          # 고정 ColorRect. FloorMap 없음
-│   └── Board            # 클릭 / 근처 ui_accept
+│   ├── Board            # 클릭 / 근처 ui_accept
+│   └── Altar            # 클릭 / 근처 ui_accept
 ├── Player
 ├── Camera2D
 ├── UIManager
 └── ChallengeHost (CanvasLayer, WHEN_PAUSED)
-    └── ChallengeBoard
+    ├── ChallengeBoard
+    └── RegistrationAltar
 ```
 
 전투 노드 없음. 미니맵·Map 탭은 허브에서 숨김.
@@ -40,10 +43,10 @@ Village (Node2D)
 
 1. 타이틀 → 프로필 → `village.tscn`
 2. `UIManager.set_hub_mode(true)` — `LOCATION_VILLAGE`, HP 풀, Map 탭 숨김
-3. 게시판 클릭 또는 근처 `ui_accept` → `ChallengeBoard.open()` (pause)
-4. 지역·길이 선택 → CHALLENGE → `SaveManager.set_pending_run` → `dungeon.tscn`
-5. `dungeon._ready` → `take_pending_run` → `FloorMap.generate(seed, room_count)`
-6. 보스 승리 / 전멸 → `return_to_village()` (슬롯 저장 후). 후퇴는 입구 유지
+3. 게시판 클릭 또는 근처 `ui_accept` → `ChallengeBoard.open()` (pause). 제단은 `RegistrationAltar.open()`
+4. 지역·길이 선택 → CHALLENGE → `set_pending_run` + `save_run` → `dungeon.tscn`
+5. `dungeon._ready` → `take_pending_run` → `FloorMap.generate(seed, room_count)` · 방 이동 시 런 JSON 갱신
+6. 보스 승리 / 전멸 → `return_to_village()` (메타 저장, **`clear_run`**). 후퇴는 입구 유지
 7. 설정 → 메인 메뉴는 타이틀 (`return_to_title`)
 
 에디터에서 `dungeon.tscn` 직접 실행 시 `pending_run`이 없으면 `randi()` + 12방 폴백.
@@ -81,18 +84,20 @@ Village (Node2D)
 ChallengeDef.build_run_params(region_index, length_index, seed=-1) -> Dictionary
 # { dungeon_id, length_id, seed, room_count, reward_mult }
 SaveManager.set_pending_run(params) / take_pending_run() / clear_pending_run()
+SaveManager.save_run / clear_run
 UIManager.set_hub_mode(bool)
-UIManager.set_challenge_board_open(bool)
-UIManager.return_to_village()   # save slot, keep current_slot, village.tscn
+UIManager.set_challenge_board_open(bool)   # 게시판·제단 공통 pause 플래그
+UIManager.return_to_village()   # clear_run, save slot, keep current_slot, village.tscn
 ChallengeBoard.open() / close() / is_open()
+RegistrationAltar.open() / close() / is_open()
 ```
 
-`return_to_village`는 씬 전환 전 `save_to_slot`을 호출한다 (`UIManager._ready`가 디스크에서 다시 로드하므로).
+`return_to_village`는 씬 전환 전 `clear_run` + `save_to_slot`을 호출한다 (`UIManager._ready`가 디스크에서 다시 로드하므로).
 
 ---
 
-## 비범위 (v1)
+## 비범위
 
-- `slot_N_run.json`, 이어하기 시 던전 복귀
-- 후퇴 = 원정 포기, 여관·상점
+- 이어하기 시 런 파일로 던전 복귀
+- 후퇴 = 원정 포기, 여관·상점, 책장 격자 UI
 - 길이별 적 레벨·랜덤 조우 가중치

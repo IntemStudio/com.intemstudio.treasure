@@ -45,6 +45,10 @@ static func item_to_dict(item: ItemData) -> Dictionary:
 		d["attack_bonus"] = item.attack_bonus
 	if item.defense_bonus != 0:
 		d["defense_bonus"] = item.defense_bonus
+	if not item.socketed.is_empty():
+		d["socketed"] = item.socketed.duplicate(true)
+	if not item.skills.is_empty():
+		d["skills"] = item.skills.duplicate(true)
 	return d
 
 
@@ -74,6 +78,19 @@ static func item_from_dict(d: Dictionary, catalog: ItemCatalog) -> ItemData:
 		item.attack_bonus = int(d["attack_bonus"])
 	if d.has("defense_bonus"):
 		item.defense_bonus = int(d["defense_bonus"])
+	if d.has("socketed"):
+		var socketed: Array[Dictionary] = []
+		for entry in d["socketed"]:
+			if entry is Dictionary:
+				socketed.append((entry as Dictionary).duplicate(true))
+		item.socketed = socketed
+	if d.has("skills"):
+		var skills: Array[Dictionary] = []
+		for entry in d["skills"]:
+			if entry is Dictionary:
+				skills.append((entry as Dictionary).duplicate(true))
+		item.skills = skills
+	item.ensure_socket_layout()
 	return item
 
 
@@ -154,6 +171,14 @@ static func _inventory_to_dict(inventory: InventoryData) -> Dictionary:
 
 	var quick_item: ItemData = inventory.quick_item
 	var quick_food: ItemData = inventory.quick_food
+	var runes: Array = []
+	for ri in inventory.runes:
+		if ri is RuneInstance:
+			runes.append((ri as RuneInstance).to_dict())
+	var gems: Array = []
+	for gi in inventory.gems:
+		if gi is GemInstance:
+			gems.append((gi as GemInstance).to_dict())
 	return {
 		"currencies": inventory.currencies.duplicate(true),
 		"current_category": int(inventory.current_category),
@@ -162,6 +187,8 @@ static func _inventory_to_dict(inventory: InventoryData) -> Dictionary:
 		"equipped": equipped,
 		"quick_item": item_to_dict(quick_item) if quick_item else null,
 		"quick_food": item_to_dict(quick_food) if quick_food else null,
+		"runes": runes,
+		"gems": gems,
 	}
 
 
@@ -210,4 +237,46 @@ static func _inventory_from_dict(d: Dictionary, catalog: ItemCatalog) -> Invento
 	else:
 		inventory.quick_food = null
 
+	inventory.runes.clear()
+	for entry in d.get("runes", []):
+		if entry is Dictionary:
+			var ri := RuneInstance.from_dict(entry as Dictionary)
+			if ri:
+				inventory.runes.append(ri)
+	inventory.gems.clear()
+	for entry in d.get("gems", []):
+		if entry is Dictionary:
+			var gi := GemInstance.from_dict(entry as Dictionary)
+			if gi:
+				inventory.gems.append(gi)
+
+	var service := ResonanceService.new()
+	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())
 	return inventory
+
+
+static func run_to_dict(run: Dictionary) -> Dictionary:
+	return run.duplicate(true)
+
+
+static func run_equipment_snapshot(inventory: InventoryData) -> Dictionary:
+	if inventory == null:
+		return {}
+	var runes: Array = []
+	for ri in inventory.runes:
+		if ri is RuneInstance:
+			runes.append((ri as RuneInstance).to_dict())
+	var gems: Array = []
+	for gi in inventory.gems:
+		if gi is GemInstance:
+			gems.append((gi as GemInstance).to_dict())
+	var socketed := {}
+	for slot_name in InventoryData.EQUIP_SLOTS:
+		var item: ItemData = inventory.equipped.get(slot_name) as ItemData
+		if item and not item.socketed.is_empty():
+			socketed[slot_name] = item.socketed.duplicate(true)
+	return {
+		"runes": runes,
+		"gems": gems,
+		"socketed": socketed,
+	}

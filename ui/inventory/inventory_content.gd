@@ -380,6 +380,7 @@ func _try_equip() -> void:
 	inventory.equipped[slot_id] = item
 	inventory.slots[grid_index] = previous
 	item_equipped.emit(item, slot_id)
+	_rebuild_resonance()
 	_refresh_all()
 
 
@@ -392,7 +393,17 @@ func _unequip_slot(slot_id: String) -> void:
 	if empty_index >= 0:
 		inventory.slots[empty_index] = item
 	item_equipped.emit(item, slot_id)
+	_rebuild_resonance()
 	_refresh_all()
+
+
+func _rebuild_resonance() -> void:
+	if inventory == null:
+		return
+	var service := ResonanceService.new()
+	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())
+	if _ui_manager:
+		_ui_manager.refresh_character_views()
 
 
 func _try_discard() -> void:

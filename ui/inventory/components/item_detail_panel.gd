@@ -21,6 +21,7 @@ const SKILL_SCENE := preload("res://ui/inventory/components/skill_slot_row.tscn"
 @onready var requirements_label: Label = %RequirementsLabel
 @onready var durability_bar: ProgressBar = %DurabilityBar
 @onready var weight_label: Label = %WeightLabel
+@onready var socket_label: Label = %SocketLabel
 
 var _item: ItemData
 
@@ -47,6 +48,8 @@ func set_item(item: ItemData) -> void:
 		defense_value.text = "-"
 		defense_bonus.text = ""
 		scaling_label.text = ""
+		if socket_label:
+			socket_label.text = ""
 		cost_label.text = ""
 		gain_label.text = ""
 		flavor_text.text = ""
@@ -69,6 +72,12 @@ func set_item(item: ItemData) -> void:
 		scaling_label.text = tr("Scales with: %s") % CharacterStats.get_attribute_label(item.scales_with)
 	else:
 		scaling_label.text = ""
+	item.ensure_socket_layout()
+	if socket_label:
+		if item.socket_layout:
+			socket_label.text = "%s: %s" % [tr("Sockets"), item.socket_layout.describe()]
+		else:
+			socket_label.text = ""
 	cost_label.text = tr("Cost %d") % item.cost
 	gain_label.text = tr("Gain %d") % item.gain
 	flavor_text.text = item.flavor_text

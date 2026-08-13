@@ -173,6 +173,18 @@ func unbind_dungeon() -> void:
 func set_combat_active(active: bool) -> void:
 	in_combat = active
 	_refresh_hud_visibility()
+	if not active:
+		unbind_skill_gauge()
+
+
+func bind_skill_gauge(session: CombatSession) -> void:
+	if _hud:
+		_hud.bind_skill_session(session)
+
+
+func unbind_skill_gauge() -> void:
+	if _hud:
+		_hud.unbind_skill_session()
 
 
 func is_combat_active() -> bool:
@@ -415,6 +427,8 @@ func return_to_village() -> void:
 		_shell.visible = false
 	unbind_dungeon()
 	SaveManager.clear_pending_run()
+	if SaveManager.current_slot >= 0:
+		SaveManager.clear_run(SaveManager.current_slot)
 	# Hub heals to full; persist before scene change so the next dungeon load
 	# does not restore pre-defeat HP from disk.
 	if character_stats:

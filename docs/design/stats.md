@@ -21,7 +21,7 @@
 | **v1** | 8속성 투자, GENERAL/DEFENSE/WEIGHT, 무기 표, XP→포인트 | 구현됨 → 구조 문서 |
 | **v1.1** | 접두사 수치 키, `CombatStatsBuilder`가 전투 스탯 합산, 스탯 탭 COMBAT 열 | 구현됨 → 구조 문서 |
 | **v1.2** | 세션이 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 적용 | 구현됨 → [`combat.md`](../architecture/combat.md) |
-| **v1.3** | 기술 게이지 + 마나 소모 자동 발동, Focus→Mana 표기 | 설계만 — HUD는 [`hud.md`](hud.md) |
+| **v1.3** | 기술 게이지 + 마나 소모 자동 발동, Focus→Mana 표기 | 게이지·마나 발동 구현됨 — Focus 라벨 정렬은 HUD와 동시 후속 |
 | **v2** | 무게 등급 전투 보정, Poise=ATB 저항, 원소 피해 연동 | 설계만 |
 
 계수(`k`)는 빌더 상수·`combat_rules.tres`에서 튜닝한다.
@@ -46,7 +46,7 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 | `CombatStats` | Loop Hero 전투 필드 + 스태미나 | 구현. 빌더가 채움 |
 | `CombatRules` | 방어 곡선, ATB, 스태미나 비용, Magic HP·반격 규칙 | 구현. 세션이 소비 |
 | `ItemData.affixes` | 접두사 | `id`/`value`/`text` |
-| `ItemData.skills` | 무기 기술 4칸 | HUD 이름만 (v1.3 전) |
+| `ItemData.skills` | 무기 기술 4칸 | HUD + 게이지 자동 발동. 룬이 채움 ([`equipment.md`](equipment.md)) |
 
 ---
 
@@ -237,7 +237,7 @@ Heat / Cold / Electric / Plague는 지역 4종과 나중에 맞춘다. `CombatSt
 | 문서 | 점 |
 |------|----|
 | [`architecture/stats.md`](../architecture/stats.md) | v1 UI. COMBAT 열·라벨 변경은 이 문서 v1.1+ |
-| [`combat.md`](combat.md) | 빌더 출력을 세션이 소비. 고급 스탯·기술 게이지는 전투 후속 |
+| [`combat.md`](combat.md) | 빌더 출력을 세션이 소비. 기술 게이지는 구현됨 ([`architecture/combat.md`](../architecture/combat.md)) |
 | [`hud.md`](hud.md) | Focus→Mana. 전투 중 기술은 자동, 키는 소모품 |
 | [`village.md`](village.md) | 보급 피로는 Stamina 상한/재생 |
 | [`equipment.md`](equipment.md) | 접두사 `id`/`value`만 수치. 룬은 v1.3 게이지 소스. 보석은 `AFFIX_FIELDS`에 가산하지 않음 |

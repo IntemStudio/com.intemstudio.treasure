@@ -21,7 +21,7 @@ static func create_claymore() -> ItemData:
 	item.cost = 23
 	item.gain = 9
 	item.skills = [
-		{"button": "X", "name": "Juggle Strike"},
+		{"button": "X", "name": "Juggle Strike", "kind": "strike", "mana_cost": 12},
 		{"button": "Y", "name": ""},
 		{"button": "B", "name": ""},
 		{"button": "A", "name": ""},
@@ -37,6 +37,9 @@ static func create_claymore() -> ItemData:
 	item.durability_max = 100
 	item.weight = 29.6
 	item.equip_slot = "main_hand"
+	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
+	item.compatible_gem_tags = [&"weapon", &"element", &"condition"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -53,6 +56,9 @@ static func create_blood_rusted_sword() -> ItemData:
 	item.scales_with = "dexterity"
 	item.weight = 12.5
 	item.equip_slot = "main_hand"
+	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
+	item.compatible_gem_tags = [&"weapon", &"element"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -67,6 +73,8 @@ static func create_iron_helm() -> ItemData:
 	item.defense = 8
 	item.weight = 5.2
 	item.equip_slot = "head"
+	item.compatible_gem_tags = [&"armor", &"defense"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -81,6 +89,8 @@ static func create_chain_chest() -> ItemData:
 	item.defense = 14
 	item.weight = 11.0
 	item.equip_slot = "chest"
+	item.compatible_gem_tags = [&"armor", &"defense"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -138,6 +148,8 @@ static func create_fishing_rod() -> ItemData:
 	item.icon = ICON
 	item.weight = 3.5
 	item.equip_slot = "tool_1"
+	item.compatible_gem_tags = [&"tool", &"explore"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -157,6 +169,8 @@ static func create_rare_dagger() -> ItemData:
 	]
 	item.weight = 4.2
 	item.equip_slot = "off_hand"
+	item.compatible_gem_tags = [&"weapon", &"off_hand", &"element"]
+	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
 	return item
 
 
@@ -182,4 +196,16 @@ static func create_sample_inventory() -> InventoryData:
 	inventory.equipped["off_hand"] = dagger.duplicate(true)
 	inventory.quick_item = potion.duplicate(true)
 	inventory.quick_food = fish.duplicate(true)
+
+	var counter := RuneInstance.create("counter_verse")
+	var pierce := RuneInstance.create("pierce_verse")
+	var blood := GemInstance.create("bloodstone")
+	var wind := GemInstance.create("wind_shard")
+	inventory.runes = [counter, pierce]
+	inventory.gems = [blood, wind]
+	inventory.socket_rune("main_hand", counter.instance_uid, 0)
+	inventory.socket_gem("main_hand", blood.instance_uid, "core_gem", 0)
+
+	var service := ResonanceService.new()
+	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())
 	return inventory

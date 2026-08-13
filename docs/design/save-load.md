@@ -1,9 +1,7 @@
 # 세이브 / 로드 — 후속 설계
 
 **v1 현황(구조):** [`docs/architecture/save-load.md`](../architecture/save-load.md)  
-이 문서는 **미구현** 로드맵만 다룬다.
-
-최종 목표는 4레이어 분리(메타 / 런 / 설정 / 헤더·무결성). v1은 메타 + 설정 분리 + `version`/`meta`까지 반영됨.
+이 문서는 **미구현** 로드맵만 다룬다. `slot_N_run.json` 쓰기·삭제는 구현됨. 이어하기 던전 복귀·메타↔런 병합 정산은 후속.
 
 ---
 
@@ -13,7 +11,7 @@
 |------|------|------|
 | v1 | 메타 슬롯 JSON, 프로필 슬롯 UI, `` ` `` 개발 오버레이 | 구현됨 → 구조 문서 |
 | **v1.1** | 무결성 강화, 선택적 자동 저장 | 설계만 |
-| **v2** | 런·던전 상태 분리, 메타↔런 병합 | 설계만 |
+| **v2** | 런·던전 상태 분리, 메타↔런 병합 | 파일 쓰기·삭제·장비 스냅샷 구현됨. 던전 이어하기·정산 병합은 후속 |
 
 ---
 
@@ -30,38 +28,26 @@
 
 ## v2 — 런 (레이어 2)
 
-### 저장소
+쓰기·삭제·스냅샷은 구현됨 ([`architecture/save-load.md`](../architecture/save-load.md)). 아래는 **남은 것**.
 
-```
-user://saves/
-  slot_N.json       # 메타 (기존)
-  slot_N_run.json   # 런 (신규) — 메타와 수명·저장 빈도 분리
-```
+### 아직 없는 규칙
 
-### 포함 후보
-던전 id, 층, 시드, 탐험 맵 상태, 런 전용 인벤/버프, 장착·보관 룬·보석·소켓.  
-맵·방 텔레포트 스펙: [`map.md`](map.md). 룬·보석 인스턴스는 런, 등록 카드는 메타: [`equipment.md`](equipment.md).
+- 이어하기: 런 있으면 던전(시드로 `generate` 후 `visited`/`cleared`/`current` 덮어쓰기), 없으면 마을
+- 귀환 성공 → 런 보상만 메타에 병합 후 `clear_run` → 마을 (지금은 장비를 이미 메타에 넣으므로 병합할 전리품 가방이 없음, [`loot.md`](loot.md))
+- 후퇴 → 원정 포기 확인 → `clear_run` → 마을 (지금은 입구 잔류)
+- `dungeon._ready`가 `load_run`으로 복원하지 않음. `pending_run`으로 새 층만 연다
 
-허브 루프(마을에서만 원정 시작): [`village.md`](village.md). 도전 확정 시에만 런을 만들고 맵을 생성한다.
-
-### 규칙 예
-- 도전 확정 → `save_run` 후 던전 입장 (게시판 열기만으로는 런·맵 없음)
-- 이어하기: 런 있으면 던전, 없으면 마을
-- 귀환 성공 → 런 보상만 메타에 병합 후 `clear_run` → 마을
-- 사망 → 런만 삭제 (메타 유지) → 마을. 전투 사망 정책: [`combat.md`](combat.md) · [`village.md`](village.md)
-
-### API (예정)
+### API (구현됨)
 
 ```
 SaveManager.save_run(slot, run)
-SaveManager.load_run(slot) -> RunState
+SaveManager.load_run(slot) -> Dictionary
 SaveManager.clear_run(slot)
+SaveManager.has_run(slot) -> bool
+SaveSerializer.run_equipment_snapshot(inventory)
 ```
 
-`SaveGame`에 `run` 필드를 두되, 디스크에서는 별도 파일 권장.
-
-### 마이그레이션
-구버전 단일 파일에 런 필드가 섞여 있으면 마이그레이터로 `slot_N_run.json`으로 분리.
+`load_run`은 읽기만. 프로필·마을이 던전 씬으로 보내지 않는다.
 
 ---
 

@@ -51,6 +51,29 @@ vertical_alignment = 1
 text = "Board"
 mouse_filter = 2
 
+[node name="Altar" type="Node2D" parent="VillageRoom"]
+position = Vector2(220, -40)
+
+[node name="AltarPanel" type="ColorRect" parent="VillageRoom/Altar"]
+offset_left = -55.0
+offset_top = -35.0
+offset_right = 55.0
+offset_bottom = 35.0
+mouse_filter = 0
+color = Color(0.22, 0.2, 0.38, 1)
+
+[node name="AltarLabel" type="Label" parent="VillageRoom/Altar"]
+offset_left = -70.0
+offset_top = -18.0
+offset_right = 70.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Altar"
+mouse_filter = 2
+
 [node name="Player" parent="." instance=ExtResource("2")]
 z_index = 1
 position = Vector2(0, 40)

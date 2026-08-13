@@ -252,3 +252,27 @@ DEV_ENCOUNTER_STARTED,Encounter started,조우 시작
 DEV_ENCOUNTER_FAILED,Failed to start encounter,조우 시작 실패
 DEV_FORCED_WIN,Forced win,강제 승리
 DEV_FORCED_RETREAT,Forced retreat,강제 후퇴
+Sockets,Sockets,소켓
+Altar,Altar,제단
+Register Card,Register Card,카드 등록
+REGISTER,REGISTER,등록
+No runes or gems to register,No runes or gems to register,등록할 룬·보석이 없습니다
+Confirm register rune,Register this rune as a card? It cannot be equipped again.,이 룬을 카드로 등록하시겠습니까? 다시 장착할 수 없습니다.
+Confirm register gem,Register this gem as a card? It cannot be equipped again.,이 보석을 카드로 등록하시겠습니까? 다시 장착할 수 없습니다.
+Registered cards,Registered cards,등록된 카드
+Resonance,Resonance,공명
+BASE_SKILL_ONLY,Base skill only,기본 기술만
+RESONANT,Resonant,공명
+COMPLETE,Complete,완성
+INACTIVE,Inactive,비활성
+ALTAR_LABEL,Altar,제단
+Select a rune or gem,Select a rune or gem,룬 또는 보석을 선택하세요
+Rune,Rune,룬
+Gem,Gem,보석
+Equipped,Equipped,장착 중
+Currently equipped,Currently equipped,현재 장착됨
+In storage,In storage,보관 중
+Shelf,Shelf,책장
+Skill,Skill,기술
+Mana cost,Mana cost,마나 비용
+Type,Type,유형

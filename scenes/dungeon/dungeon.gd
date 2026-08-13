@@ -14,6 +14,7 @@ var encounter_director: EncounterDirector
 var combat_session: CombatSession
 var combat_arena: CombatArena
 var combat_hud: CombatHud
+var _run_state: Dictionary = {}
 
 
 func _ready() -> void:
@@ -45,10 +46,13 @@ func _ready() -> void:
 		# Editor direct-run fallback (no village challenge).
 		seed_value = randi()
 		room_count = ROOM_COUNT
+	_run_state = run.duplicate(true)
+	_run_state["seed"] = seed_value
+	_run_state["room_count"] = room_count
+	_run_state["dungeon_id"] = dungeon_id
 	floor_map.generate(seed_value, room_count)
 	room_host.setup(floor_map, player)
 	ui_manager.bind_dungeon(floor_map, room_host)
-	ui_manager.bind_combat(encounter_director)
 
 	encounter_director.setup(
 		ui_manager,
@@ -59,10 +63,12 @@ func _ready() -> void:
 		combat_hud,
 		dungeon_id
 	)
+	ui_manager.bind_combat(encounter_director)
 	if not floor_map.room_changed.is_connected(_on_room_changed):
 		floor_map.room_changed.connect(_on_room_changed)
 
 	room_host.enter_room(Vector2i.ZERO)
+	_persist_run_progress()
 	if camera:
 		camera.make_current()
 
@@ -95,3 +101,26 @@ func _on_room_changed(pos: Vector2i) -> void:
 	var room := floor_map.get_room(pos)
 	if encounter_director:
 		encounter_director.on_room_entered(room)
+	_persist_run_progress()
+
+
+func _persist_run_progress() -> void:
+	if SaveManager.current_slot < 0:
+		return
+	_run_state["current"] = {"x": floor_map.get_current().x, "y": floor_map.get_current().y}
+	var visited: Array = []
+	var cleared: Array = []
+	for pos in floor_map.get_rooms().keys():
+		var room: RoomData = floor_map.get_rooms()[pos] as RoomData
+		if room == null:
+			continue
+		var key := "%d,%d" % [room.grid_pos.x, room.grid_pos.y]
+		if room.visited:
+			visited.append(key)
+		if room.cleared:
+			cleared.append(key)
+	_run_state["visited"] = visited
+	_run_state["cleared"] = cleared
+	if ui_manager and ui_manager.inventory_data:
+		_run_state.merge(SaveSerializer.run_equipment_snapshot(ui_manager.inventory_data), true)
+	SaveManager.save_run(SaveManager.current_slot, _run_state)

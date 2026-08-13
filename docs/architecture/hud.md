@@ -4,7 +4,7 @@
 
 후속: [`docs/design/hud.md`](../design/hud.md).  
 미니맵: [`minimap.md`](minimap.md) · 후속 [`docs/design/minimap.md`](../design/minimap.md).  
-게임 로그: [`game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
+게임 로그: [`docs/architecture/game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
 
 ---
 
@@ -66,12 +66,12 @@ GameHud (CanvasLayer)
 | HUD | 소스 |
 |-----|------|
 | XP | `CharacterStats.xp` / `xp_to_next` |
-| 마나 | `CharacterStats.mana` / `mana_max` (`recalculate_derived` 시 `general.focus` → `mana_max`) |
+| 마나 | `CharacterStats.mana` / `mana_max` (`recalculate_derived` 시 `general.focus` → `mana_max`). 전투 중 `set_combat_resources`로 세션 마나 반영 |
 | HP | `CharacterStats.hp` / `hp_max` |
 | 지역 | `UIManager.location_id` → `set_location` |
 | 버전 | `AppVersion.MAJOR/MINOR/PATCH` (세이브 `version`과 별개) |
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
-| 기술 | `equipped.main_hand.skills` (최대 4, 빈 이름 → Empty). 이름 텍스트만 |
+| 기술 | `equipped.main_hand.skills` (최대 4). 전투 중 게이지 충전 표시. 자동 발동 ([`equipment.md`](equipment.md)) |
 | 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. 이름 텍스트만 (아이콘 없음) |
 | 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot |
 | 토스트 | `UIManager.show_loot_toast` → `LootToast` |
@@ -102,5 +102,4 @@ UIManager.show_loot_toast(result)
 GameHud.show_loot_toast(result)
 signal GameHud.map_open_requested
 ```
-
 퀵/기술 사용 입력은 후속.

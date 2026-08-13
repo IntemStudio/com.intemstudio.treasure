@@ -17,8 +17,9 @@
 | **v2.region** | 지역별 유닛·인카운터 (`dungeon_id`) | 구현됨 → 구조 문서 |
 | **v2c** | 선택 유닛 하단 스탯, 전투 줌, 다수 아군 슬롯 | 설계만 |
 | **v2.stats** | 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 | 구현됨 → 구조 문서 |
-| **게임 로그** | `action_resolved` → 우하 텍스트. `unit_hit` 유지 | 구현됨 → [`game-log.md`](../architecture/game-log.md) |
 | **loot v1** | 방 `win` 장비 드랍 | 구현됨 → [`loot.md`](loot.md) / [`architecture/loot.md`](../architecture/loot.md) |
+| **게임 로그** | `action_resolved` → 우하 텍스트. `unit_hit` 유지 | 구현됨 → [`game-log.md`](../architecture/game-log.md) |
+| **기술 게이지** | 평타와 별도 ATB, 마나 자동 발동, HUD 충전 | 구현됨 → [`equipment.md`](equipment.md) · 구조 문서 |
 
 ---
 
@@ -39,14 +40,15 @@
 
 ## v2.stats — 고급 스탯
 
-구현됨. 히어로 스냅샷은 `CombatStatsBuilder.build` ([`stats.md`](stats.md) v1.1). 세션은 회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired를 적용. 기술 게이지는 stats v1.3. 룬·공명 결과는 `ResonanceService`가 만들고 세션은 소비만 한다 ([`equipment.md`](equipment.md)).
+구현됨. 히어로 스냅샷은 `CombatStatsBuilder.build` ([`stats.md`](stats.md) v1.1). 세션은 회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired를 적용. 기술 게이지는 구현됨 ([`equipment.md`](equipment.md)). 룬·공명 결과는 `ResonanceService`가 만들고 세션은 소비만 한다.
+
 ---
 
-## 전멸 목적지 (예정)
+## 전멸 목적지
 
-현행 `lose` → `UIManager.return_to_title()`. 마을 허브 이후는 `return_to_village()` — 메타 유지, 런 삭제. 타이틀은 설정 나가기·프로필 선택만.
+`lose` → `UIManager.return_to_village()` — 메타 유지, 런 삭제. 타이틀은 설정 나가기·프로필 선택만.
 
-후퇴는 v1 입구 잔류, v1.1에서 원정 포기→마을 ([`village.md`](village.md)).
+후퇴는 입구 잔류. 원정 포기→마을은 [`village.md`](village.md) 후속.
 
 ---
 

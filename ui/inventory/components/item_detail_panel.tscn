@@ -83,6 +83,12 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
 text = "Scales with: strength"
 
+[node name="SocketLabel" type="Label" parent="DetailRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.7, 0.85, 1)
+text = ""
+
 [node name="SkillSlots" type="VBoxContainer" parent="DetailRoot"]
 unique_name_in_owner = true
 layout_mode = 2

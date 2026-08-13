@@ -39,6 +39,19 @@ enum ItemRarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 
 @export var equip_slot: String = ""
 
+@export var socket_layout: SocketLayout
+@export var compatible_rune_tags: Array[StringName] = []
+@export var compatible_gem_tags: Array[StringName] = []
+@export var intrinsic_effects: Array[Dictionary] = []
+## Socket contents: [{ "kind": "rune"|"core_gem"|"aux_gem", "index": int, "instance_uid": String }]
+@export var socketed: Array[Dictionary] = []
+
+
+func ensure_socket_layout() -> void:
+	if socket_layout != null:
+		return
+	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+
 
 func get_rarity_color() -> Color:
 	match rarity:
