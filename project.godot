@@ -8,11 +8,15 @@
 
 config_version=5
 
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
 [application]
 
 config/name="treasure-hunter"
 run/main_scene="res://scenes/title/title.tscn"
-config/features=PackedStringArray("4.5", "Mobile")
+config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -29,14 +33,6 @@ window/size/window_width_override=1600
 window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
-
-[internationalization]
-
-locale/fallback="en"
 
 [input]
 
