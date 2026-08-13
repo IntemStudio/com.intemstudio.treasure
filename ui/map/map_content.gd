@@ -76,7 +76,7 @@ func _disconnect_room_changed() -> void:
 
 func _on_room_changed(_pos: Vector2i) -> void:
 	if visible:
-		_refresh_cell_styles()
+		_rebuild_grid()
 
 
 func _is_using_gamepad() -> bool:
@@ -116,6 +116,28 @@ func _on_footer_prompt(action: String) -> void:
 		request_close.emit()
 
 
+## Visited rooms + neighbors of any visited room (same fog as HUD minimap).
+func _collect_known_rooms() -> Dictionary:
+	var result: Dictionary = {}
+	if _floor_map == null:
+		return result
+	var rooms: Dictionary = _floor_map.get_rooms()
+	for pos in rooms.keys():
+		var p: Vector2i = pos
+		var room: RoomData = rooms[p]
+		if not room.visited:
+			continue
+		result[p] = room
+		for neighbor_pos in room.neighbors.values():
+			var np: Vector2i = neighbor_pos
+			if result.has(np):
+				continue
+			if not rooms.has(np):
+				continue
+			result[np] = rooms[np]
+	return result
+
+
 func _rebuild_grid() -> void:
 	var has_map := _floor_map != null and not _floor_map.get_rooms().is_empty()
 	empty_label.visible = not has_map
@@ -135,13 +157,19 @@ func _rebuild_grid() -> void:
 		child.queue_free()
 	_cell_buttons.clear()
 
-	var rooms: Dictionary = _floor_map.get_rooms()
+	var all_rooms: Dictionary = _floor_map.get_rooms()
+	var known: Dictionary = _collect_known_rooms()
+	if known.is_empty():
+		_pending_layout = false
+		return
+
+	# Bounds from full floor so cell positions stay stable as fog expands
 	var min_x := 0
 	var max_x := 0
 	var min_y := 0
 	var max_y := 0
 	var first := true
-	for pos in rooms.keys():
+	for pos in all_rooms.keys():
 		var p: Vector2i = pos
 		if first:
 			min_x = p.x
@@ -164,9 +192,9 @@ func _rebuild_grid() -> void:
 		(grid_host.size.y - grid_h) * 0.5
 	)
 
-	for pos in rooms.keys():
+	for pos in known.keys():
 		var p: Vector2i = pos
-		var room: RoomData = rooms[p]
+		var room: RoomData = known[p]
 		var btn := Button.new()
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -177,6 +205,8 @@ func _rebuild_grid() -> void:
 			(p.y - min_y) * (CELL_SIZE + CELL_GAP)
 		)
 		btn.tooltip_text = "%s (%d, %d)" % [tr("ROOM_TYPE_%s" % room.type_name().to_upper()), p.x, p.y]
+		btn.text = room.type_letter()
+		btn.add_theme_font_size_override("font_size", 18)
 		btn.pressed.connect(_on_cell_pressed.bind(p))
 		grid_host.add_child(btn)
 		_cell_buttons[p] = btn
@@ -215,6 +245,7 @@ func _refresh_cell_styles() -> void:
 		var border := UIColors.GOLD if p == current else Color(0.35, 0.35, 0.38, 1)
 		var border_w := 3 if p == current else 1
 		btn.disabled = not reachable
+		btn.text = room.type_letter()
 		btn.mouse_default_cursor_shape = (
 			Control.CURSOR_POINTING_HAND if reachable else Control.CURSOR_ARROW
 		)
@@ -235,9 +266,12 @@ func _apply_cell_style(
 	btn.add_theme_stylebox_override("focus", style)
 	btn.add_theme_stylebox_override("disabled", style)
 	btn.modulate = Color(1, 1, 1, 1) if reachable else Color(1, 1, 1, 0.45)
-	btn.add_theme_color_override("font_color", Color(0, 0, 0, 0))
-	btn.add_theme_color_override("font_disabled_color", Color(0, 0, 0, 0))
-
+	var letter := UIColors.TEXT_MAIN
+	btn.add_theme_color_override("font_color", letter)
+	btn.add_theme_color_override("font_hover_color", letter)
+	btn.add_theme_color_override("font_pressed_color", letter)
+	btn.add_theme_color_override("font_disabled_color", letter)
+	btn.add_theme_color_override("font_focus_color", letter)
 
 func _on_cell_pressed(pos: Vector2i) -> void:
 	if _room_host == null:

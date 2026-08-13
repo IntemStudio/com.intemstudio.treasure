@@ -23,6 +23,7 @@ var _dev_overlay: CanvasLayer
 var _active_tab: int = -1
 var _last_tab: int = Tab.STATS
 var _room_changed_connected: bool = false
+var _menu_open: bool = false
 
 
 func _ready() -> void:
@@ -45,6 +46,7 @@ func _ready() -> void:
 	_hud = GAME_HUD_SCENE.instantiate()
 	add_child(_hud)
 	_hud.setup(character_stats, inventory_data, location_id)
+	_hud.map_open_requested.connect(_on_hud_map_open_requested)
 
 	var menu_shell_scene := load(MENU_SHELL_PATH) as PackedScene
 	if menu_shell_scene == null:
@@ -107,6 +109,8 @@ func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
 	if floor_map and not floor_map.room_changed.is_connected(_on_floor_room_changed):
 		floor_map.room_changed.connect(_on_floor_room_changed)
 		_room_changed_connected = true
+	if _hud:
+		_hud.bind_floor_map(floor_map)
 	if floor_map and floor_map.has_room(floor_map.get_current()):
 		_on_floor_room_changed(floor_map.get_current())
 
@@ -115,8 +119,27 @@ func unbind_dungeon() -> void:
 	if floor_map and _room_changed_connected and floor_map.room_changed.is_connected(_on_floor_room_changed):
 		floor_map.room_changed.disconnect(_on_floor_room_changed)
 	_room_changed_connected = false
+	if _hud:
+		_hud.unbind_floor_map()
 	floor_map = null
 	room_host = null
+
+
+func is_menu_open() -> bool:
+	return _menu_open
+
+
+func is_world_input_blocked() -> bool:
+	if _menu_open:
+		return true
+	if _dev_overlay and _dev_overlay.is_open():
+		return true
+	return false
+
+
+func _refresh_hud_visibility() -> void:
+	if _hud:
+		_hud.set_menu_open(_menu_open)
 
 
 func _on_floor_room_changed(pos: Vector2i) -> void:
@@ -146,7 +169,12 @@ func open_tab(tab: int) -> void:
 	_active_tab = tab
 	_last_tab = tab
 	_shell.open_tab(tab, character_stats, inventory_data)
+	_menu_open = true
 	popup_visibility_changed.emit(true)
+
+
+func _on_hud_map_open_requested() -> void:
+	open_tab(Tab.MAP)
 
 
 func close_all() -> void:
@@ -158,6 +186,7 @@ func close_all() -> void:
 
 func _on_shell_closed() -> void:
 	_active_tab = -1
+	_menu_open = false
 	popup_visibility_changed.emit(false)
 
 
@@ -197,10 +226,10 @@ func refresh_character_views() -> void:
 
 
 func _on_popup_visibility_changed(is_open: bool) -> void:
-	if _hud:
-		_hud.set_menu_open(is_open)
-		if not is_open:
-			_hud.refresh(character_stats, inventory_data)
+	_menu_open = is_open
+	_refresh_hud_visibility()
+	if not is_open and _hud:
+		_hud.refresh(character_stats, inventory_data)
 
 
 func save_to_slot(slot: int) -> Error:
@@ -224,9 +253,16 @@ func start_new_game(slot: int) -> bool:
 
 
 func return_to_title() -> void:
-	close_all()
+	_menu_open = false
+	if _shell:
+		_shell.visible = false
 	unbind_dungeon()
-	get_tree().paused = false
 	SaveManager.current_slot = -1
 	SaveManager.play_time_sec = 0.0
-	get_tree().change_scene_to_file("res://scenes/title/title.tscn")
+	var tree := get_tree()
+	if tree == null:
+		return
+	# MenuShell is WHEN_PAUSED. Changing scenes from that stack while paused
+	# can leave the title frozen or skip the switch. Unpause, then defer.
+	tree.paused = false
+	tree.change_scene_to_file.call_deferred("res://scenes/title/title.tscn")

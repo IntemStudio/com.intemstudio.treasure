@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://game_hud"]
+[gd_scene load_steps=6 format=3 uid="uid://game_hud"]
 
 [ext_resource type="Script" path="res://ui/hud/game_hud.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://resource_bars" path="res://ui/hud/components/resource_bars.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://world_info" path="res://ui/hud/components/world_info.tscn" id="3"]
 [ext_resource type="PackedScene" uid="uid://action_bar" path="res://ui/hud/components/action_bar.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://minimap_hud" path="res://ui/hud/components/minimap.tscn" id="5"]
 
 [node name="GameHud" type="CanvasLayer"]
 layer = 0
@@ -17,32 +18,37 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopRow" type="HBoxContainer" parent="Root"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+[node name="ResourceBars" parent="Root" instance=ExtResource("2")]
+unique_name_in_owner = true
+layout_mode = 0
 offset_left = 24.0
 offset_top = 20.0
-offset_right = -24.0
+offset_right = 344.0
 offset_bottom = 100.0
-grow_horizontal = 2
-mouse_filter = 2
-theme_override_constants/separation = 24
 
-[node name="ResourceBars" parent="Root/TopRow" instance=ExtResource("2")]
+[node name="TopRight" type="VBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -204.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 280.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 0
+
+[node name="WorldInfo" parent="Root/TopRight" instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 0
+size_flags_horizontal = 8
 
-[node name="Spacer" type="Control" parent="Root/TopRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-
-[node name="WorldInfo" parent="Root/TopRow" instance=ExtResource("3")]
+[node name="MiniMap" parent="Root/TopRight" instance=ExtResource("5")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 0
+size_flags_horizontal = 8
 
 [node name="ActionBar" parent="Root" instance=ExtResource("4")]
 unique_name_in_owner = true

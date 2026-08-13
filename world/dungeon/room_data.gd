@@ -19,3 +19,13 @@ var cleared: bool = false
 
 func type_name() -> String:
 	return TYPE_NAMES.get(room_type, "normal")
+
+
+func type_letter() -> String:
+	match room_type:
+		RoomType.START:
+			return "S"
+		RoomType.BOSS:
+			return "B"
+		_:
+			return "N"

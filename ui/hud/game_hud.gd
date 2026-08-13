@@ -1,20 +1,29 @@
 class_name GameHud
 extends CanvasLayer
 
+signal map_open_requested
+
 const DEFAULT_LOCATION := "LOCATION_TEST"
 
 @onready var resource_bars: ResourceBars = %ResourceBars
 @onready var world_info: WorldInfo = %WorldInfo
 @onready var action_bar: ActionBar = %ActionBar
+@onready var mini_map: MiniMap = %MiniMap
 
 var _stats: CharacterStats
 var _inventory: InventoryData
 var _location_id: String = DEFAULT_LOCATION
+var _pending_floor_map: FloorMap
 
 
 func _ready() -> void:
 	layer = 0
 	_apply()
+	if mini_map and not mini_map.map_open_requested.is_connected(_on_minimap_open_requested):
+		mini_map.map_open_requested.connect(_on_minimap_open_requested)
+	if _pending_floor_map != null:
+		mini_map.set_floor_map(_pending_floor_map)
+		_pending_floor_map = null
 
 
 func setup(stats: CharacterStats, inventory: InventoryData, location_id: String = DEFAULT_LOCATION) -> void:
@@ -42,6 +51,23 @@ func set_location(location_id: String) -> void:
 
 func set_menu_open(is_open: bool) -> void:
 	visible = not is_open
+
+
+func bind_floor_map(floor_map: FloorMap) -> void:
+	if mini_map:
+		mini_map.set_floor_map(floor_map)
+	else:
+		_pending_floor_map = floor_map
+
+
+func unbind_floor_map() -> void:
+	_pending_floor_map = null
+	if mini_map:
+		mini_map.clear_floor_map()
+
+
+func _on_minimap_open_requested() -> void:
+	map_open_requested.emit()
 
 
 func _apply() -> void:
