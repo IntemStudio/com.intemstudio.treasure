@@ -35,7 +35,7 @@
 | 단계 | 범위 | 상태 |
 |------|------|------|
 | **v1** | 우하 패널, 전투 이산 행동 + 승패, 링 버퍼, `tr` 한 줄 | 구현됨 → [`architecture/game-log.md`](../architecture/game-log.md) |
-| **loot 연동** | `grant` / 가득 스킵을 같은 버퍼에 | 설계만 — [`loot.md`](loot.md) |
+| **loot 연동** | `grant` / 가득 스킵을 같은 버퍼에 | 구현됨 — [`loot.md`](loot.md) |
 | **v1.1** | 상세도 설정, 호버 시 스크롤 정지, 페이드 | 설계만 — [`settings.md`](settings.md) |
 | **v2** | 줄 클릭 → 유닛 패널, 전투 종료 요약 | 설계만 — combat v2c |
 

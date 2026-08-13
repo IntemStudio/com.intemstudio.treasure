@@ -19,6 +19,7 @@
 | 기술·퀵슬롯 | [`ui/hud/components/action_bar.*`](../../ui/hud/components/action_bar.tscn) |
 | 슬롯 | [`ui/hud/components/hud_slot.*`](../../ui/hud/components/hud_slot.tscn) |
 | 게임 로그 | [`ui/hud/components/game_log_view.*`](../../ui/hud/components/game_log_view.tscn) |
+| 전리품 토스트 | `LootToast` / `LootToastTimer` ([`loot.md`](loot.md)) |
 | 앱 버전 | [`ui/hud/app_version.gd`](../../ui/hud/app_version.gd) |
 | 소유 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) |
 
@@ -36,6 +37,7 @@ CanvasLayer: HUD `layer = 0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 | 우상 | 지역명 · `AppVersion` **위**, 그 아래 미니맵 (안개 격자) |
 | 좌하 | 기술 4칸(상) + 주무기·보조·아이템·음식(하) |
 | 우하 | 게임 로그 (배속/후퇴 **위**) |
+| 상단 중앙 | 방 `win` 전리품 토스트 (~3초, [`loot.md`](loot.md)) |
 | 중앙 | 없음 |
 
 초상화·시계·맵 아이콘·재화·중앙 프롬프트는 없음.
@@ -71,7 +73,8 @@ GameHud (CanvasLayer)
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
 | 기술 | `equipped.main_hand.skills` (최대 4, 빈 이름 → Empty). 이름 텍스트만 |
 | 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. 이름 텍스트만 (아이콘 없음) |
-| 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end |
+| 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot |
+| 토스트 | `UIManager.show_loot_toast` → `LootToast` |
 
 `UIManager.apply_save_game` / 메뉴 닫힘 / 전투 승패 후 `refresh_character_views` 시 `GameHud.refresh`.  
 `popup_visibility_changed(true)` → HUD 숨김. `set_combat_active`는 HUD를 숨기지 않는다.  
@@ -95,6 +98,8 @@ GameHud.unbind_floor_map()
 GameHud.bind_game_log(log)
 UIManager.push_log(payload)
 UIManager.clear_log()
+UIManager.show_loot_toast(result)
+GameHud.show_loot_toast(result)
 signal GameHud.map_open_requested
 ```
 

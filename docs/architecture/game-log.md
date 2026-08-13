@@ -1,7 +1,7 @@
 # 게임 로그
 
 인게임 HUD 우하의 스크롤 텍스트. 전투에서 일어난 이산 행동을 다시 읽는다.  
-플로팅 데미지와 병행한다.
+플로팅 데미지·전리품 토스트와 병행한다.
 
 후속: [`docs/design/game-log.md`](../design/game-log.md).
 
@@ -54,6 +54,8 @@ GameLogView  (GameHud 우하, 배속/후퇴 위)
 | `death` | HP 0 |
 | `tired` | Tired **진입** 한 번 |
 | `combat.end` | `win` / `lose` / `retreat` |
+| `loot.grant` | 획득 표시명 나열 (`LOOT_GOT`) |
+| `loot.skip` | 가방 가득 (`LOOT_INVENTORY_FULL`) |
 
 ---
 

@@ -21,6 +21,19 @@ func get_item(item_id: String) -> ItemData:
 	return (_templates[item_id] as ItemData).duplicate(true)
 
 
+## Sorted ids for deterministic loot rolls.
+func ids_for_categories(categories: Array) -> Array[String]:
+	var out: Array[String] = []
+	for item_id in _templates.keys():
+		var item: ItemData = _templates[item_id] as ItemData
+		if item == null:
+			continue
+		if categories.has(item.category):
+			out.append(str(item_id))
+	out.sort()
+	return out
+
+
 func _register_bootstrap() -> void:
 	var factories: Array[Callable] = [
 		ItemBootstrap.create_claymore,

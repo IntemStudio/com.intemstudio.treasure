@@ -226,6 +226,8 @@ LOG_CRIT_SUFFIX, (crit), (크리)
 LOG_VAMP_SUFFIX, +%d, +%d
 LOG_COUNTER_SUFFIX, (counter), (반격)
 LOG_RETALIATION_SUFFIX, (retaliation), (보복)
+LOOT_GOT,Got %s,%s 획득
+LOOT_INVENTORY_FULL,Inventory full — loot skipped,가방이 가득 차 전리품을 받지 못함
 Slime,Slime,슬라임
 Brute,Brute,브루트
 Skeleton,Skeleton,해골

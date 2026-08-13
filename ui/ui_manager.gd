@@ -290,6 +290,11 @@ func push_log(payload: Dictionary) -> void:
 		game_log.push(payload)
 
 
+func show_loot_toast(result: Dictionary) -> void:
+	if _hud and _hud.has_method("show_loot_toast"):
+		_hud.show_loot_toast(result)
+
+
 func clear_log() -> void:
 	if game_log:
 		game_log.clear()

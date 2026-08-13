@@ -1,7 +1,7 @@
 # 자동 전투
 
 던전 **현재 방**에서 시작하는 **탑다운 ATB 자동 전투**.  
-후속: [`docs/design/combat.md`](../design/combat.md).  
+후속: [`docs/design/combat.md`](../design/combat.md). 방 `win` 장비: [`loot.md`](loot.md).  
 인게임 텍스트 로그: [`game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
 
 **현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired). GameHud·미니맵 전투 중 유지.
@@ -57,7 +57,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).
 | 결과 | 처리 |
 |------|------|
-| `win` | `RoomData.cleared = true`, 남은 HP 반영, XP. **보스**면 `return_to_village()` |
+| `win` | `RoomData.cleared = true`, 남은 HP 반영, XP, **장비 드랍** ([`loot.md`](loot.md)). **보스**면 `return_to_village()` |
 | `lose` | `UIManager.return_to_village()` (슬롯 저장, 메타 유지) |
 | `retreat` | 입장 시 HP 복구, `RoomHost.enter_room(ZERO)` (입구) |
 

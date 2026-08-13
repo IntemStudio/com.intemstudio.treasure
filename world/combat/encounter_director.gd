@@ -179,10 +179,65 @@ func _apply_win(pending_xp: int, hero_hp: int) -> void:
 		)
 		if pending_xp > 0:
 			ui_manager.character_stats.add_xp(pending_xp)
+	_grant_loot()
+	if ui_manager:
 		ui_manager.refresh_character_views()
 	if _active_room and _active_room.room_type == RoomData.RoomType.BOSS:
 		if ui_manager:
 			ui_manager.return_to_village()
+
+
+func _grant_loot() -> void:
+	if ui_manager == null or ui_manager.inventory_data == null:
+		return
+	var room := _active_room
+	var seed_value := 0
+	if floor_map:
+		seed_value = floor_map.seed_value
+	var cell := Vector2i.ZERO
+	var room_type := RoomData.RoomType.NORMAL
+	if room:
+		cell = room.grid_pos
+		room_type = room.room_type
+	var catalog := ItemCatalog.new()
+	var result: Dictionary = LootService.grant(
+		ui_manager.inventory_data,
+		catalog,
+		LootService.default_table(),
+		{
+			"room_type": room_type,
+			"seed": seed_value,
+			"cell": cell,
+		}
+	)
+	if ui_manager.has_method("show_loot_toast"):
+		ui_manager.show_loot_toast(result)
+	_push_loot_log(result)
+
+
+func _push_loot_log(result: Dictionary) -> void:
+	if ui_manager == null:
+		return
+	var granted: Array = result.get("granted", [])
+	if not granted.is_empty():
+		var names: PackedStringArray = PackedStringArray()
+		for item in granted:
+			if item is ItemData:
+				var data := item as ItemData
+				var n := data.display_name if not data.display_name.is_empty() else data.id
+				names.append(n)
+		ui_manager.push_log({
+			"category": "loot",
+			"kind": "loot.grant",
+			"actor_name": ", ".join(names),
+		})
+	var skipped := int(result.get("skipped", 0))
+	if skipped > 0:
+		ui_manager.push_log({
+			"category": "loot",
+			"kind": "loot.skip",
+			"amount": skipped,
+		})
 
 
 func _apply_lose() -> void:

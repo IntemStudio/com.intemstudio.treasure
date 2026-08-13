@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/loot/loot_table.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+weight_equipment = 1.0
+weight_rune = 0.0
+weight_gem = 0.0
+weight_consumable = 0.0
+normal_min = 1
+normal_max = 2
+boss_min = 2
+boss_max = 3

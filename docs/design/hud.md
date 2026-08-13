@@ -5,7 +5,8 @@
 
 전투 중 HUD 유지·메뉴 시 숨김은 구현됨. 미니맵 후속: [`minimap.md`](minimap.md).  
 마나·기술 칸 의미: [`stats.md`](stats.md). 후속 룬이 채우는 4칸: [`equipment.md`](equipment.md).  
-우하 텍스트 로그: [`game-log.md`](game-log.md).
+우하 텍스트 로그: [`game-log.md`](game-log.md).  
+방 클리어 획득 토스트: [`loot.md`](loot.md).
 
 ---
 
@@ -17,6 +18,7 @@
 | **미니맵 v1** | 우상단 격자 미니맵 | 구현됨 → [`minimap.md`](../architecture/minimap.md) |
 | **v1.1** | 퀵/기술 사용 입력, 지역 id 월드 연동 | 설계만 |
 | **게임 로그** | 우하 스크롤. 전투 이산 행동·승패. 메뉴 시 숨김 | 구현됨 → [`game-log.md`](../architecture/game-log.md) |
+| **loot 토스트** | 방 `win` 짧은 획득 문구. 인벤 자동 오픈 없음 | 구현됨 — [`loot.md`](loot.md) |
 | **v2** | 스탯 Focus→Mana 정렬, 인벤 퀵 슬롯 UI | 설계만 |
 
 ---

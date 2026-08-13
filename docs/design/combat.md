@@ -4,7 +4,7 @@
 이 문서는 **미구현** 로드맵만 다룬다.
 
 방 안 ATB·머리 위 HP/ATB·배속/후퇴·승패는 구현됨.  
-관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 마을 책장 ≠ 전투 카드) · [`game-log.md`](game-log.md) (인게임 텍스트 로그).
+관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 마을 책장 ≠ 전투 카드) · [`loot.md`](loot.md) (방 `win` 장비) · [`game-log.md`](game-log.md) (인게임 텍스트 로그).
 
 ---
 
@@ -18,6 +18,7 @@
 | **v2c** | 선택 유닛 하단 스탯, 전투 줌, 다수 아군 슬롯 | 설계만 |
 | **v2.stats** | 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 | 구현됨 → 구조 문서 |
 | **게임 로그** | `action_resolved` → 우하 텍스트. `unit_hit` 유지 | 구현됨 → [`game-log.md`](../architecture/game-log.md) |
+| **loot v1** | 방 `win` 장비 드랍 | 구현됨 → [`loot.md`](loot.md) / [`architecture/loot.md`](../architecture/loot.md) |
 
 ---
 
