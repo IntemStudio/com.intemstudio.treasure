@@ -117,4 +117,4 @@ signal action_resolved(payload)
 
 ## 디버그
 
-DevOverlay Character 탭: 강제 조우 / 승리 / 패배 / 후퇴.
+DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급.

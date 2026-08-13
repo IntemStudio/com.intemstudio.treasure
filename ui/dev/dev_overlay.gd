@@ -1,13 +1,15 @@
 extends CanvasLayer
 
-enum Tab { SAVE = 0, CHARACTER = 1 }
+enum Tab { CHARACTER = 0, ITEM = 1, SAVE = 2 }
 
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %TitleLabel
-@onready var save_tab_button: Button = %SaveTabButton
 @onready var character_tab_button: Button = %CharacterTabButton
-@onready var save_panel: VBoxContainer = %SavePanel
+@onready var item_tab_button: Button = %ItemTabButton
+@onready var save_tab_button: Button = %SaveTabButton
 @onready var character_panel: VBoxContainer = %CharacterPanel
+@onready var item_panel: VBoxContainer = %ItemPanel
+@onready var save_panel: VBoxContainer = %SavePanel
 @onready var path_label: Label = %PathLabel
 @onready var open_folder_button: Button = %OpenFolderButton
 @onready var level_info_label: Label = %LevelInfoLabel
@@ -17,27 +19,47 @@ enum Tab { SAVE = 0, CHARACTER = 1 }
 @onready var force_win_button: Button = %ForceWinButton
 @onready var force_lose_button: Button = %ForceLoseButton
 @onready var force_retreat_button: Button = %ForceRetreatButton
+@onready var equip_label: Label = %EquipLabel
+@onready var equip_option: OptionButton = %EquipOption
+@onready var equip_grant_button: Button = %EquipGrantButton
+@onready var gem_label: Label = %GemLabel
+@onready var gem_option: OptionButton = %GemOption
+@onready var gem_grant_button: Button = %GemGrantButton
+@onready var rune_label: Label = %RuneLabel
+@onready var rune_option: OptionButton = %RuneOption
+@onready var rune_grant_button: Button = %RuneGrantButton
 @onready var status_label: Label = %StatusLabel
 @onready var close_hint_label: Label = %CloseHintLabel
 
 var _ui_manager: UIManager
-var _active_tab: int = Tab.SAVE
+var _active_tab: int = Tab.CHARACTER
 var _empty_style: StyleBoxEmpty
+var _item_catalog: ItemCatalog
+var _gem_catalog: GemCatalog
+var _rune_catalog: RuneCatalog
+var _equip_ids: Array[String] = []
+var _gem_ids: Array[String] = []
+var _rune_ids: Array[String] = []
 
 
 func _ready() -> void:
 	layer = 100
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_item_catalog = ItemCatalog.new()
+	_gem_catalog = GemCatalog.new()
+	_rune_catalog = RuneCatalog.new()
 	_empty_style = StyleBoxEmpty.new()
 	_empty_style.content_margin_left = 0
 	_empty_style.content_margin_top = 0
 	_empty_style.content_margin_right = 0
 	_empty_style.content_margin_bottom = 0
-	_style_tab_button(save_tab_button)
 	_style_tab_button(character_tab_button)
-	save_tab_button.pressed.connect(_on_tab_pressed.bind(Tab.SAVE))
+	_style_tab_button(item_tab_button)
+	_style_tab_button(save_tab_button)
 	character_tab_button.pressed.connect(_on_tab_pressed.bind(Tab.CHARACTER))
+	item_tab_button.pressed.connect(_on_tab_pressed.bind(Tab.ITEM))
+	save_tab_button.pressed.connect(_on_tab_pressed.bind(Tab.SAVE))
 	open_folder_button.pressed.connect(_on_open_folder_pressed)
 	level_up_button.pressed.connect(_on_level_up_pressed)
 	level_down_button.pressed.connect(_on_level_down_pressed)
@@ -45,7 +67,11 @@ func _ready() -> void:
 	force_win_button.pressed.connect(_on_force_win_pressed)
 	force_lose_button.pressed.connect(_on_force_lose_pressed)
 	force_retreat_button.pressed.connect(_on_force_retreat_pressed)
+	equip_grant_button.pressed.connect(_on_equip_grant_pressed)
+	gem_grant_button.pressed.connect(_on_gem_grant_pressed)
+	rune_grant_button.pressed.connect(_on_rune_grant_pressed)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
+	_populate_item_options()
 	_refresh_texts()
 	_apply_tab()
 
@@ -79,14 +105,16 @@ func is_open() -> bool:
 
 func _on_locale_changed(_locale: String) -> void:
 	_refresh_texts()
+	_populate_item_options()
 	if visible:
 		_apply_tab()
 
 
 func _refresh_texts() -> void:
-	title_label.text = tr("Developer")
-	save_tab_button.text = tr("Save Data")
-	character_tab_button.text = tr("Character")
+	title_label.text = "[%s]" % tr("Developer")
+	character_tab_button.text = "[%s]" % tr("Character")
+	item_tab_button.text = "[%s]" % tr("Items")
+	save_tab_button.text = "[%s]" % tr("Save Data")
 	open_folder_button.text = tr("Open Save Folder")
 	level_up_button.text = tr("Force Level Up")
 	level_down_button.text = tr("Force Level Down")
@@ -94,6 +122,12 @@ func _refresh_texts() -> void:
 	force_win_button.text = tr("DEV_FORCE_WIN")
 	force_lose_button.text = tr("DEV_FORCE_LOSE")
 	force_retreat_button.text = tr("DEV_FORCE_RETREAT")
+	equip_label.text = tr("Equipment")
+	gem_label.text = tr("Gem")
+	rune_label.text = tr("Rune")
+	equip_grant_button.text = tr("DEV_GRANT")
+	gem_grant_button.text = tr("DEV_GRANT")
+	rune_grant_button.text = tr("DEV_GRANT")
 	close_hint_label.text = tr("` / Esc: Close")
 	_refresh_tab_colors()
 
@@ -117,19 +151,23 @@ func _on_tab_pressed(tab: int) -> void:
 
 
 func _apply_tab() -> void:
-	var show_save := _active_tab == Tab.SAVE
-	save_panel.visible = show_save
-	character_panel.visible = not show_save
+	character_panel.visible = _active_tab == Tab.CHARACTER
+	item_panel.visible = _active_tab == Tab.ITEM
+	save_panel.visible = _active_tab == Tab.SAVE
 	_refresh_tab_colors()
-	if show_save:
-		_refresh_path()
-	else:
-		_refresh_level()
+	match _active_tab:
+		Tab.CHARACTER:
+			_refresh_level()
+		Tab.ITEM:
+			pass
+		Tab.SAVE:
+			_refresh_path()
 
 
 func _refresh_tab_colors() -> void:
-	_set_tab_color(save_tab_button, _active_tab == Tab.SAVE)
 	_set_tab_color(character_tab_button, _active_tab == Tab.CHARACTER)
+	_set_tab_color(item_tab_button, _active_tab == Tab.ITEM)
+	_set_tab_color(save_tab_button, _active_tab == Tab.SAVE)
 
 
 func _set_tab_color(button: Button, active: bool) -> void:
@@ -163,6 +201,109 @@ func _character_stats() -> CharacterStats:
 		return null
 	return _ui_manager.character_stats
 
+
+func _inventory() -> InventoryData:
+	if _ui_manager == null:
+		return null
+	return _ui_manager.inventory_data
+
+
+func _populate_item_options() -> void:
+	_equip_ids = _item_catalog.ids_for_categories([
+		ItemData.ItemCategory.WEAPON,
+		ItemData.ItemCategory.ARMOR,
+	])
+	_gem_ids.clear()
+	for gem_id in _gem_catalog.all_ids():
+		_gem_ids.append(str(gem_id))
+	_gem_ids.sort()
+	_rune_ids.clear()
+	for rune_id in _rune_catalog.all_ids():
+		_rune_ids.append(str(rune_id))
+	_rune_ids.sort()
+
+	_fill_option(equip_option, _equip_ids, func(id: String) -> String:
+		var item := _item_catalog.get_item(id)
+		return item.display_name if item else id
+	)
+	_fill_option(gem_option, _gem_ids, func(id: String) -> String:
+		var gem := _gem_catalog.get_gem(id)
+		return gem.display_name if gem else id
+	)
+	_fill_option(rune_option, _rune_ids, func(id: String) -> String:
+		var rune := _rune_catalog.get_rune(id)
+		return rune.display_name if rune else id
+	)
+
+
+func _fill_option(option: OptionButton, ids: Array[String], label_fn: Callable) -> void:
+	var prev := option.selected
+	option.clear()
+	for i in ids.size():
+		option.add_item(str(label_fn.call(ids[i])), i)
+	if ids.is_empty():
+		option.disabled = true
+		return
+	option.disabled = false
+	if prev >= 0 and prev < ids.size():
+		option.select(prev)
+	else:
+		option.select(0)
+
+
+func _on_equip_grant_pressed() -> void:
+	var inventory := _inventory()
+	if inventory == null:
+		status_label.text = tr("No character")
+		return
+	var idx := equip_option.selected
+	if idx < 0 or idx >= _equip_ids.size():
+		return
+	var item_id := _equip_ids[idx]
+	var item := _item_catalog.get_item(item_id)
+	if item == null:
+		return
+	var slot := inventory.find_empty_slot()
+	if slot < 0:
+		status_label.text = tr("LOOT_INVENTORY_FULL")
+		return
+	inventory.slots[slot] = item
+	_ui_manager.refresh_character_views()
+	status_label.text = tr("LOOT_GOT") % item.display_name
+
+
+func _on_gem_grant_pressed() -> void:
+	var inventory := _inventory()
+	if inventory == null:
+		status_label.text = tr("No character")
+		return
+	var idx := gem_option.selected
+	if idx < 0 or idx >= _gem_ids.size():
+		return
+	var gem_id := _gem_ids[idx]
+	var gem := _gem_catalog.get_gem(gem_id)
+	if gem == null:
+		return
+	inventory.gems.append(GemInstance.create(gem_id))
+	_ui_manager.refresh_character_views()
+	status_label.text = tr("LOOT_GOT") % gem.display_name
+
+
+func _on_rune_grant_pressed() -> void:
+	var inventory := _inventory()
+	if inventory == null:
+		status_label.text = tr("No character")
+		return
+	var idx := rune_option.selected
+	if idx < 0 or idx >= _rune_ids.size():
+		return
+	var rune_id := _rune_ids[idx]
+	var rune := _rune_catalog.get_rune(rune_id)
+	if rune == null:
+		return
+	inventory.runes.append(RuneInstance.create(rune_id))
+	_ui_manager.refresh_character_views()
+	status_label.text = tr("LOOT_GOT") % rune.display_name
 
 func _on_open_folder_pressed() -> void:
 	_refresh_path()

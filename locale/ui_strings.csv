@@ -116,9 +116,12 @@ Loaded slot %d,Loaded slot %d,슬롯 %d 불러옴
 Load failed,Load failed,불러오기 실패
 Deleted slot %d,Deleted slot %d,슬롯 %d 삭제됨
 Delete failed,Delete failed,삭제 실패
-Developer,Developer,개발자
+Developer,Developer Tools,개발자 도구
 Save Data,Save Data,세이브 데이터
 Character,Character,캐릭터
+Items,Items,아이템
+Equipment,Equipment,장비
+DEV_GRANT,Grant,획득
 Open Save Folder,Open Save Folder,세이브 폴더 열기
 Opened save folder,Opened save folder,세이브 폴더를 열었습니다
 Failed to open save folder,Failed to open save folder,세이브 폴더를 열지 못했습니다

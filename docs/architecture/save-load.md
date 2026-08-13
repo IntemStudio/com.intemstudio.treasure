@@ -89,4 +89,4 @@ SaveManager.save_run / load_run / clear_run / has_run → slot_N_run.json
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
 - `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV. 기존 런 파일 삭제  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
-- 개발 오버레이: 세이브 폴더 절대 경로 표시 + OS에서 열기
+- 개발 오버레이 (`` ` ``): 탭 `[캐릭터]` / `[아이템]` / `[세이브 데이터]`. 세이브 탭은 폴더 절대 경로 표시 + OS에서 열기

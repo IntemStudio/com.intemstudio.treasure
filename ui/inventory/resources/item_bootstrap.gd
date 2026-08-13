@@ -155,7 +155,7 @@ static func create_fishing_rod() -> ItemData:
 
 static func create_rare_dagger() -> ItemData:
 	var item := ItemData.new()
-	item.id = "rare_dagger"
+	item.id = "night_dagger"
 	item.display_name = "Night Dagger"
 	item.item_type = "Dagger"
 	item.category = ItemData.ItemCategory.WEAPON
