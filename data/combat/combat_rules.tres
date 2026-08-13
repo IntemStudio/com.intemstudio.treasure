@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="CombatRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/combat/combat_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+base_attack_interval_sec = 1.5
+min_damage = 1

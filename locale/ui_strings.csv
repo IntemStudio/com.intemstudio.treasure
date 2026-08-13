@@ -171,3 +171,17 @@ UI_TEST_HINT_3,HUD: XP / Mana / HP · location · skills & quick slots,HUD: 경�
 UI_TEST_HINT_4,"Arrows/WASD: Move    Q/E: Switch tabs    1/3: Inventory categories","방향키/WASD: 이동    Q/E: 탭 전환    1/3: 인벤토리 카테고리"
 UI_TEST_HINT_5,"Click: Select    Double-click: Equip    Right-click: Discard","클릭: 선택    더블클릭: 장착    우클릭: 버리기"
 UI_TEST_HINT_6,Esc/B: Close popup,Esc/B: 팝업 닫기
+COMBAT_RETREAT,Retreat,후퇴
+COMBAT_SPEED,Speed %s,배속 %s
+Slime,Slime,슬라임
+Brute,Brute,브루트
+DEV_FORCE_ENCOUNTER,Force Encounter,강제 조우
+DEV_FORCE_WIN,Force Win,강제 승리
+DEV_FORCE_LOSE,Force Lose,강제 패배
+DEV_FORCE_RETREAT,Force Retreat,강제 후퇴
+DEV_NO_COMBAT,No active combat,활성 전투 없음
+DEV_COMBAT_ACTIVE,Combat already active,이미 전투 중
+DEV_ENCOUNTER_STARTED,Encounter started,조우 시작
+DEV_ENCOUNTER_FAILED,Failed to start encounter,조우 시작 실패
+DEV_FORCED_WIN,Forced win,강제 승리
+DEV_FORCED_RETREAT,Forced retreat,강제 후퇴

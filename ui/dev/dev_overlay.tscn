@@ -26,7 +26,7 @@ mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(640, 360)
+custom_minimum_size = Vector2(640, 420)
 layout_mode = 2
 theme = ExtResource("2")
 
@@ -108,6 +108,38 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Level Up"
+
+[node name="CombatButtons" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ForceEncounterButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Force Encounter"
+
+[node name="ForceWinButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Force Win"
+
+[node name="CombatButtons2" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ForceLoseButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Force Lose"
+
+[node name="ForceRetreatButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Force Retreat"
 
 [node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true

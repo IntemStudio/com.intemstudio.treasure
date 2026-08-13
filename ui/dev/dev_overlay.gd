@@ -13,6 +13,10 @@ enum Tab { SAVE = 0, CHARACTER = 1 }
 @onready var level_info_label: Label = %LevelInfoLabel
 @onready var level_down_button: Button = %LevelDownButton
 @onready var level_up_button: Button = %LevelUpButton
+@onready var force_encounter_button: Button = %ForceEncounterButton
+@onready var force_win_button: Button = %ForceWinButton
+@onready var force_lose_button: Button = %ForceLoseButton
+@onready var force_retreat_button: Button = %ForceRetreatButton
 @onready var status_label: Label = %StatusLabel
 @onready var close_hint_label: Label = %CloseHintLabel
 
@@ -37,6 +41,10 @@ func _ready() -> void:
 	open_folder_button.pressed.connect(_on_open_folder_pressed)
 	level_up_button.pressed.connect(_on_level_up_pressed)
 	level_down_button.pressed.connect(_on_level_down_pressed)
+	force_encounter_button.pressed.connect(_on_force_encounter_pressed)
+	force_win_button.pressed.connect(_on_force_win_pressed)
+	force_lose_button.pressed.connect(_on_force_lose_pressed)
+	force_retreat_button.pressed.connect(_on_force_retreat_pressed)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 	_refresh_texts()
 	_apply_tab()
@@ -82,6 +90,10 @@ func _refresh_texts() -> void:
 	open_folder_button.text = tr("Open Save Folder")
 	level_up_button.text = tr("Force Level Up")
 	level_down_button.text = tr("Force Level Down")
+	force_encounter_button.text = tr("DEV_FORCE_ENCOUNTER")
+	force_win_button.text = tr("DEV_FORCE_WIN")
+	force_lose_button.text = tr("DEV_FORCE_LOSE")
+	force_retreat_button.text = tr("DEV_FORCE_RETREAT")
 	close_hint_label.text = tr("` / Esc: Close")
 	_refresh_tab_colors()
 
@@ -187,3 +199,55 @@ func _on_level_down_pressed() -> void:
 	_ui_manager.refresh_character_views()
 	_refresh_level()
 	status_label.text = tr("Forced level down → %d") % stats.level
+
+
+func _director() -> EncounterDirector:
+	if _ui_manager == null:
+		return null
+	return _ui_manager.encounter_director
+
+
+func _on_force_encounter_pressed() -> void:
+	var director := _director()
+	if director == null:
+		status_label.text = tr("DEV_NO_COMBAT")
+		return
+	close()
+	if director.is_active():
+		status_label.text = tr("DEV_COMBAT_ACTIVE")
+		open()
+		return
+	if director.force_start_current():
+		status_label.text = tr("DEV_ENCOUNTER_STARTED")
+	else:
+		status_label.text = tr("DEV_ENCOUNTER_FAILED")
+		open()
+
+
+func _on_force_win_pressed() -> void:
+	var director := _director()
+	if director == null or not director.is_active():
+		status_label.text = tr("DEV_NO_COMBAT")
+		return
+	close()
+	director.force_result(CombatSession.RESULT_WIN)
+	status_label.text = tr("DEV_FORCED_WIN")
+
+
+func _on_force_lose_pressed() -> void:
+	var director := _director()
+	if director == null or not director.is_active():
+		status_label.text = tr("DEV_NO_COMBAT")
+		return
+	close()
+	director.force_result(CombatSession.RESULT_LOSE)
+
+
+func _on_force_retreat_pressed() -> void:
+	var director := _director()
+	if director == null or not director.is_active():
+		status_label.text = tr("DEV_NO_COMBAT")
+		return
+	close()
+	director.force_result(CombatSession.RESULT_RETREAT)
+	status_label.text = tr("DEV_FORCED_RETREAT")

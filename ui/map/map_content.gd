@@ -276,6 +276,8 @@ func _apply_cell_style(
 func _on_cell_pressed(pos: Vector2i) -> void:
 	if _room_host == null:
 		return
+	if _ui_manager and _ui_manager.is_combat_active():
+		return
 	if _floor_map and not _floor_map.can_enter(pos):
 		return
 	if _room_host.enter_room(pos):

@@ -16,6 +16,8 @@ var location_id: String = "LOCATION_TEST"
 var using_gamepad: bool = false
 var floor_map: FloorMap
 var room_host: RoomHost
+var encounter_director: EncounterDirector
+var in_combat: bool = false
 
 var _shell: CanvasLayer
 var _hud: GameHud
@@ -115,6 +117,10 @@ func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
 		_on_floor_room_changed(floor_map.get_current())
 
 
+func bind_combat(p_director: EncounterDirector) -> void:
+	encounter_director = p_director
+
+
 func unbind_dungeon() -> void:
 	if floor_map and _room_changed_connected and floor_map.room_changed.is_connected(_on_floor_room_changed):
 		floor_map.room_changed.disconnect(_on_floor_room_changed)
@@ -123,6 +129,17 @@ func unbind_dungeon() -> void:
 		_hud.unbind_floor_map()
 	floor_map = null
 	room_host = null
+	encounter_director = null
+	set_combat_active(false)
+
+
+func set_combat_active(active: bool) -> void:
+	in_combat = active
+	_refresh_hud_visibility()
+
+
+func is_combat_active() -> bool:
+	return in_combat or (encounter_director != null and encounter_director.is_active())
 
 
 func is_menu_open() -> bool:
@@ -130,7 +147,7 @@ func is_menu_open() -> bool:
 
 
 func is_world_input_blocked() -> bool:
-	if _menu_open:
+	if _menu_open or is_combat_active():
 		return true
 	if _dev_overlay and _dev_overlay.is_open():
 		return true
@@ -140,7 +157,6 @@ func is_world_input_blocked() -> bool:
 func _refresh_hud_visibility() -> void:
 	if _hud:
 		_hud.set_menu_open(_menu_open)
-
 
 func _on_floor_room_changed(pos: Vector2i) -> void:
 	if floor_map == null:
@@ -174,6 +190,8 @@ func open_tab(tab: int) -> void:
 
 
 func _on_hud_map_open_requested() -> void:
+	if is_combat_active():
+		return
 	open_tab(Tab.MAP)
 
 
@@ -188,7 +206,6 @@ func _on_shell_closed() -> void:
 	_active_tab = -1
 	_menu_open = false
 	popup_visibility_changed.emit(false)
-
 
 func _on_tab_changed(tab: int) -> void:
 	if (
@@ -235,7 +252,6 @@ func _on_popup_visibility_changed(is_open: bool) -> void:
 func save_to_slot(slot: int) -> Error:
 	return SaveManager.save_game(slot, character_stats, inventory_data)
 
-
 func load_from_slot(slot: int) -> bool:
 	var sg := SaveManager.load_game(slot)
 	if sg == null or sg.is_empty():
@@ -253,6 +269,7 @@ func start_new_game(slot: int) -> bool:
 
 
 func return_to_title() -> void:
+	in_combat = false
 	_menu_open = false
 	if _shell:
 		_shell.visible = false
