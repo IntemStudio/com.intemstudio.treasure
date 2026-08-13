@@ -334,12 +334,24 @@ func _add_exit_option(action_id: String, label_text: String) -> void:
 
 
 func _style_flat_button(button: Button) -> void:
-	if _empty_style == null:
-		_empty_style = StyleBoxEmpty.new()
-	button.add_theme_stylebox_override("normal", _empty_style)
-	button.add_theme_stylebox_override("hover", _empty_style)
-	button.add_theme_stylebox_override("pressed", _empty_style)
-	button.add_theme_stylebox_override("focus", _empty_style)
+	_apply_left_select_mark(button, false, UIColors.TEXT_MAIN)
+
+
+func _apply_left_select_mark(button: Button, selected: bool, idle_color: Color) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0)
+	style.border_width_left = 3
+	style.border_color = UIColors.SELECT_BORDER if selected else Color(0, 0, 0, 0)
+	style.content_margin_left = 16
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	style.content_margin_right = 4
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		button.add_theme_stylebox_override(state_name, style)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var color := UIColors.GOLD if selected else idle_color
+	button.add_theme_color_override("font_color", color)
+	button.add_theme_color_override("font_hover_color", UIColors.GOLD)
 
 
 func _sync_rows_from_settings() -> void:
@@ -621,8 +633,7 @@ func _cancel_exit_confirm() -> void:
 
 func _update_exit_selection() -> void:
 	for i in range(_exit_buttons.size()):
-		var color := UIColors.GOLD if i == _exit_focus else UIColors.TEXT_MAIN
-		_exit_buttons[i].add_theme_color_override("font_color", color)
+		_apply_left_select_mark(_exit_buttons[i], i == _exit_focus, UIColors.TEXT_MAIN)
 
 
 func _update_exit_detail() -> void:
@@ -655,12 +666,8 @@ func _update_exit_detail() -> void:
 
 
 func _update_exit_confirm_style() -> void:
-	exit_yes_button.add_theme_color_override(
-		"font_color", UIColors.GOLD if _confirm_yes_selected else UIColors.TEXT_MUTED
-	)
-	exit_no_button.add_theme_color_override(
-		"font_color", UIColors.TEXT_MUTED if _confirm_yes_selected else UIColors.GOLD
-	)
+	_apply_left_select_mark(exit_yes_button, _confirm_yes_selected, UIColors.TEXT_MUTED)
+	_apply_left_select_mark(exit_no_button, not _confirm_yes_selected, UIColors.TEXT_MUTED)
 
 
 func _on_exit_yes() -> void:

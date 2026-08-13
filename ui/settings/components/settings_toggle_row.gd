@@ -14,6 +14,7 @@ var _enabled: bool = false
 var _selected: bool = false
 var _empty_style: StyleBoxEmpty
 var _box_style: StyleBoxFlat
+var _select_bar: ColorRect
 
 
 func _ready() -> void:
@@ -70,6 +71,13 @@ func _ensure_nodes() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
+	_select_bar = ColorRect.new()
+	_select_bar.custom_minimum_size = Vector2(3, 0)
+	_select_bar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_select_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_select_bar.color = Color(0, 0, 0, 0)
+	add_child(_select_bar)
+
 	label = Label.new()
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(label)
@@ -118,6 +126,8 @@ func _apply_selection_style() -> void:
 	_mark.add_theme_color_override("font_color", color)
 	_box_style.border_color = color
 	_box.add_theme_stylebox_override("panel", _box_style)
+	if _select_bar:
+		_select_bar.color = UIColors.SELECT_BORDER if _selected else Color(0, 0, 0, 0)
 
 
 func _on_mouse_entered() -> void:

@@ -13,6 +13,7 @@ var _options: Array = []
 var _index: int = 0
 var _selected: bool = false
 var _empty_style: StyleBoxEmpty
+var _select_bar: ColorRect
 
 
 func _ready() -> void:
@@ -80,6 +81,9 @@ func _ensure_nodes() -> void:
 	add_theme_constant_override("separation", 16)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	_select_bar = _make_select_bar()
+	add_child(_select_bar)
+
 	label = Label.new()
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(label)
@@ -119,6 +123,15 @@ func _make_flat_button(text: String) -> Button:
 	return button
 
 
+func _make_select_bar() -> ColorRect:
+	var bar := ColorRect.new()
+	bar.custom_minimum_size = Vector2(3, 0)
+	bar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.color = Color(0, 0, 0, 0)
+	return bar
+
+
 func _refresh_value() -> void:
 	if _options.is_empty():
 		value_label.text = "-"
@@ -132,6 +145,8 @@ func _apply_selection_style() -> void:
 	value_label.add_theme_color_override("font_color", color)
 	left_button.add_theme_color_override("font_color", color)
 	right_button.add_theme_color_override("font_color", color)
+	if _select_bar:
+		_select_bar.color = UIColors.SELECT_BORDER if _selected else Color(0, 0, 0, 0)
 
 
 func _on_left() -> void:

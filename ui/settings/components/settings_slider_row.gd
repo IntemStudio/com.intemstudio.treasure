@@ -12,6 +12,7 @@ var value_label: Label
 
 var _selected: bool = false
 var _empty_style: StyleBoxEmpty
+var _select_bar: ColorRect
 
 
 func _ready() -> void:
@@ -62,6 +63,13 @@ func _ensure_nodes() -> void:
 	add_theme_constant_override("separation", 16)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	_select_bar = ColorRect.new()
+	_select_bar.custom_minimum_size = Vector2(3, 0)
+	_select_bar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_select_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_select_bar.color = Color(0, 0, 0, 0)
+	add_child(_select_bar)
+
 	label = Label.new()
 	label.custom_minimum_size = Vector2(160, 0)
 	add_child(label)
@@ -94,6 +102,8 @@ func _apply_selection_style() -> void:
 	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
 	label.add_theme_color_override("font_color", color)
 	value_label.add_theme_color_override("font_color", color)
+	if _select_bar:
+		_select_bar.color = UIColors.SELECT_BORDER if _selected else Color(0, 0, 0, 0)
 
 
 func _on_slider_changed(_value: float) -> void:

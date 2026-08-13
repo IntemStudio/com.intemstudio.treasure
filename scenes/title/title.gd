@@ -119,6 +119,7 @@ func _on_start() -> void:
 func _on_settings() -> void:
 	if _profile_select.visible:
 		return
+	_set_menu_interactive(false)
 	settings_host.visible = true
 	_settings_content.activate(null, null)
 
@@ -127,8 +128,20 @@ func _close_settings() -> void:
 	if _settings_content:
 		_settings_content.deactivate()
 	settings_host.visible = false
+	_set_menu_interactive(true)
 	if not _profile_select.visible:
 		start_button.grab_focus()
+
+
+func _set_menu_interactive(active: bool) -> void:
+	for button in _menu_buttons:
+		button.focus_mode = Control.FOCUS_ALL if active else Control.FOCUS_NONE
+		button.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
+	if active:
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != null and _menu_buttons.has(focused):
+		focused.release_focus()
 
 
 func _on_profile_back() -> void:
