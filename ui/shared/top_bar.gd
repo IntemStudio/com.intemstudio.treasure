@@ -4,7 +4,7 @@ extends HBoxContainer
 signal tab_changed(index: int)
 
 const TAB_NAMES: Array[String] = ["Inventory", "Map", "Stats", "Settings"]
-const CYCLEABLE_TABS: Array[int] = [0, 1, 2, 3]
+var CYCLEABLE_TABS: Array[int] = [0, 1, 2, 3]
 
 @onready var currency_display: CurrencyDisplay = %CurrencyDisplay
 @onready var nav_tabs: HBoxContainer = %NavTabs
@@ -14,6 +14,7 @@ var _active_tab: int = 2
 var _tab_buttons: Array[Button] = []
 var _empty_style: StyleBoxEmpty
 var _stats: CharacterStats
+var _hub_mode: bool = false
 
 
 func _ready() -> void:
@@ -25,6 +26,21 @@ func _ready() -> void:
 	_build_tab_labels()
 	set_active_tab(_active_tab)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
+
+
+func set_hub_mode(enabled: bool) -> void:
+	_hub_mode = enabled
+	if enabled:
+		CYCLEABLE_TABS = [0, 2, 3]
+		if _tab_buttons.size() > 1:
+			_tab_buttons[1].visible = false
+		if _active_tab == 1:
+			set_active_tab(2)
+			tab_changed.emit(2)
+	else:
+		CYCLEABLE_TABS = [0, 1, 2, 3]
+		if _tab_buttons.size() > 1:
+			_tab_buttons[1].visible = true
 
 
 func set_active_tab(index: int) -> void:
@@ -82,6 +98,8 @@ func _refresh_tab_labels() -> void:
 
 
 func _on_tab_button_pressed(index: int) -> void:
+	if _hub_mode and index == 1:
+		return
 	set_active_tab(index)
 	tab_changed.emit(index)
 

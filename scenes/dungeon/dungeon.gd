@@ -32,8 +32,17 @@ func _ready() -> void:
 	encounter_director.name = "EncounterDirector"
 	add_child(encounter_director)
 
-	var seed_value := randi()
-	floor_map.generate(seed_value, ROOM_COUNT)
+	var run := SaveManager.take_pending_run()
+	var seed_value: int
+	var room_count: int
+	if not run.is_empty():
+		seed_value = int(run.get("seed", randi()))
+		room_count = int(run.get("room_count", ROOM_COUNT))
+	else:
+		# Editor direct-run fallback (no village challenge).
+		seed_value = randi()
+		room_count = ROOM_COUNT
+	floor_map.generate(seed_value, room_count)
 	room_host.setup(floor_map, player)
 	ui_manager.bind_dungeon(floor_map, room_host)
 	ui_manager.bind_combat(encounter_director)

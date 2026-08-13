@@ -141,6 +141,25 @@ LOCATION_UNKNOWN,Unknown,알 수 없음
 LOCATION_DUNGEON,Dungeon,던전
 LOCATION_ROOM_START,Entrance,입구
 LOCATION_ROOM_BOSS,Boss Chamber,보스 방
+LOCATION_VILLAGE,Village,마을
+Challenge,Challenge,도전
+Region,Region,지역
+Length,Length,길이
+REGION_CEMETERY,Cemetery,묘지
+REGION_GROVE,Grove,숲
+REGION_MANSION,Mansion,영지
+REGION_BATTLEFIELD,Battlefield,전장
+REGION_DESC_CEMETERY,"Bones and ruins. Skeletons and watchers haunt the stones.","뼈와 유적. 해골과 감시자가 돌 사이를 배회합니다."
+REGION_DESC_GROVE,"Twisted woods. Ratwolves and spiders stalk the path.","뒤틀린 숲. 랫울프와 거미가 길을 노립니다."
+REGION_DESC_MANSION,"A bloodstained estate. Vampires and ghouls hold court.","피 묻은 영지. 뱀파이어와 구울이 군림합니다."
+REGION_DESC_BATTLEFIELD,"Scarred ground and wreckage. Ghosts and raiders linger.","상처 난 전장과 잔해. 유령과 약탈자가 남았습니다."
+CHALLENGE_SHORT,Short,짧음
+CHALLENGE_NORMAL,Normal,보통
+CHALLENGE_LONG,Long,긴
+CHALLENGE_DESC_SHORT,"8 rooms. Reward ×1. A brief delve.","방 8개. 보상 ×1. 짧은 탐험."
+CHALLENGE_DESC_NORMAL,"12 rooms. Reward ×1.5. A standard expedition.","방 12개. 보상 ×1.5. 보통 원정."
+CHALLENGE_DESC_LONG,"16 rooms. Reward ×2. A long and dangerous run.","방 16개. 보상 ×2. 길고 위험한 원정."
+BOARD_LABEL,Board,게시판
 MAP_NO_DUNGEON,No dungeon loaded,던전이 없습니다
 ROOM_TYPE_START,Start,시작
 ROOM_TYPE_NORMAL,Room,방

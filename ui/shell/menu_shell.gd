@@ -42,6 +42,11 @@ func setup(ui_manager: UIManager) -> void:
 	_wire_contents()
 
 
+func set_hub_mode(enabled: bool) -> void:
+	if top_bar and top_bar.has_method("set_hub_mode"):
+		top_bar.set_hub_mode(enabled)
+
+
 func _mount_contents() -> void:
 	if body_host == null:
 		push_error("MenuShell: BodyHost missing")
@@ -117,6 +122,8 @@ func open_tab(tab: int, stats: CharacterStats, inventory: InventoryData) -> void
 		and tab != Tab.SETTINGS
 	):
 		return
+	if _ui_manager and _ui_manager.hub_mode and tab == Tab.MAP:
+		return
 	_character_stats = stats
 	_inventory_data = inventory
 	_active_tab = tab
@@ -162,6 +169,8 @@ func _sync_chrome(tab: int) -> void:
 
 func _on_top_bar_tab_changed(tab: int) -> void:
 	tab_changed.emit(tab)
+	if _ui_manager and _ui_manager.hub_mode and tab == Tab.MAP:
+		return
 	if (
 		tab == Tab.INVENTORY
 		or tab == Tab.MAP

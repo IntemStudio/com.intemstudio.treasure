@@ -19,8 +19,9 @@
 | Map UI | [`ui/map/map_content.tscn`](../../ui/map/map_content.tscn) + [`map_content.gd`](../../ui/map/map_content.gd) |
 | 바인딩 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) `bind_dungeon` / `unbind_dungeon` (HUD 미니맵에 `FloorMap` 전달) |
 
-게임 진입: [`profile_select.gd`](../../scenes/title/profile_select.gd) → `dungeon.tscn`.  
-전투: [`combat.md`](combat.md). `dungeon.gd`가 세션·아레나·디렉터·CombatHud를 런타임에 붙인다.
+게임 진입: [`profile_select.gd`](../../scenes/title/profile_select.gd) → [`village.tscn`](../../scenes/village/village.tscn).  
+던전은 도전 게시판 확정 후 ([`village.md`](village.md)). `dungeon.gd`가 `SaveManager.take_pending_run()`으로 시드·방 수를 받아 `generate`.  
+전투: [`combat.md`](combat.md).
 
 ---
 
@@ -46,7 +47,7 @@ Dungeon (Node2D)
 
 ## 흐름
 
-1. `FloorMap.generate(seed, 12)` — 아이작식 격자 + start/boss
+1. `FloorMap.generate(seed, room_count)` — 게시판 길이(또는 에디터 폴백 12) · 아이작식 격자 + start/boss
 2. `UIManager.bind_dungeon(floor_map, room_host)` · `bind_combat(director)`
 3. `RoomHost.enter_room(Vector2i.ZERO)`
 4. Map 탭 클릭 **또는** WASD 문 이동 → `enter_room`  

@@ -12,6 +12,8 @@ const CHARACTER_TEMPLATE_PATH := "res://ui/stats/resources/character_stats.tres"
 
 var current_slot: int = -1
 var play_time_sec: float = 0.0
+## In-memory expedition params (v1). Set on challenge confirm; consumed by dungeon.
+var pending_run: Dictionary = {}
 
 var _catalog: ItemCatalog
 var _slot_created_at: Dictionary = {}
@@ -191,6 +193,24 @@ func load_game(slot: int) -> SaveGame:
 	_slot_created_at[slot] = str(save.meta.get("created_at", _now_iso()))
 	load_completed.emit(slot, true)
 	return save
+
+
+func set_pending_run(params: Dictionary) -> void:
+	pending_run = params.duplicate(true)
+
+
+func take_pending_run() -> Dictionary:
+	var out := pending_run.duplicate(true)
+	pending_run.clear()
+	return out
+
+
+func clear_pending_run() -> void:
+	pending_run.clear()
+
+
+func has_pending_run() -> bool:
+	return not pending_run.is_empty()
 
 
 func delete_slot(slot: int) -> Error:

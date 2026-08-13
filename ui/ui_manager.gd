@@ -18,6 +18,8 @@ var floor_map: FloorMap
 var room_host: RoomHost
 var encounter_director: EncounterDirector
 var in_combat: bool = false
+var hub_mode: bool = false
+var challenge_board_open: bool = false
 
 var _shell: CanvasLayer
 var _hud: GameHud
@@ -97,14 +99,41 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("stats_toggle") or event.is_action_pressed("inventory_toggle"):
+		if challenge_board_open:
+			get_viewport().set_input_as_handled()
+			return
 		if _active_tab >= 0:
 			close_all()
 		else:
-			open_tab(_last_tab)
+			var tab := _last_tab
+			if hub_mode and tab == Tab.MAP:
+				tab = Tab.STATS
+			open_tab(tab)
 		get_viewport().set_input_as_handled()
 
 
+func set_hub_mode(enabled: bool) -> void:
+	hub_mode = enabled
+	unbind_dungeon()
+	if enabled:
+		set_location("LOCATION_VILLAGE")
+		if character_stats:
+			character_stats.hp = character_stats.hp_max
+			refresh_character_views()
+	if _shell and _shell.has_method("set_hub_mode"):
+		_shell.set_hub_mode(enabled)
+
+
+func set_challenge_board_open(open: bool) -> void:
+	challenge_board_open = open
+	_menu_open = open or (_shell != null and _shell.visible)
+	popup_visibility_changed.emit(_menu_open)
+
+
 func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
+	hub_mode = false
+	if _shell and _shell.has_method("set_hub_mode"):
+		_shell.set_hub_mode(false)
 	unbind_dungeon()
 	floor_map = p_floor_map
 	room_host = p_room_host
@@ -147,6 +176,8 @@ func is_menu_open() -> bool:
 
 
 func is_world_input_blocked() -> bool:
+	if challenge_board_open:
+		return true
 	if _menu_open or is_combat_active():
 		return true
 	if _dev_overlay and _dev_overlay.is_open():
@@ -156,7 +187,7 @@ func is_world_input_blocked() -> bool:
 
 func _refresh_hud_visibility() -> void:
 	if _hud:
-		_hud.set_menu_open(_menu_open)
+		_hud.set_menu_open(_menu_open or challenge_board_open)
 
 func _on_floor_room_changed(pos: Vector2i) -> void:
 	if floor_map == null:
@@ -175,6 +206,10 @@ func _on_floor_room_changed(pos: Vector2i) -> void:
 
 
 func open_tab(tab: int) -> void:
+	if challenge_board_open:
+		return
+	if hub_mode and tab == Tab.MAP:
+		return
 	if (
 		tab != Tab.INVENTORY
 		and tab != Tab.MAP
@@ -190,7 +225,7 @@ func open_tab(tab: int) -> void:
 
 
 func _on_hud_map_open_requested() -> void:
-	if is_combat_active():
+	if hub_mode or is_combat_active():
 		return
 	open_tab(Tab.MAP)
 
@@ -271,9 +306,12 @@ func start_new_game(slot: int) -> bool:
 func return_to_title() -> void:
 	in_combat = false
 	_menu_open = false
+	challenge_board_open = false
+	hub_mode = false
 	if _shell:
 		_shell.visible = false
 	unbind_dungeon()
+	SaveManager.clear_pending_run()
 	SaveManager.current_slot = -1
 	SaveManager.play_time_sec = 0.0
 	var tree := get_tree()
@@ -283,3 +321,24 @@ func return_to_title() -> void:
 	# can leave the title frozen or skip the switch. Unpause, then defer.
 	tree.paused = false
 	tree.change_scene_to_file.call_deferred("res://scenes/title/title.tscn")
+
+
+func return_to_village() -> void:
+	in_combat = false
+	_menu_open = false
+	challenge_board_open = false
+	if _shell:
+		_shell.visible = false
+	unbind_dungeon()
+	SaveManager.clear_pending_run()
+	# Hub heals to full; persist before scene change so the next dungeon load
+	# does not restore pre-defeat HP from disk.
+	if character_stats:
+		character_stats.hp = character_stats.hp_max
+	if SaveManager.current_slot >= 0 and character_stats != null and inventory_data != null:
+		save_to_slot(SaveManager.current_slot)
+	var tree := get_tree()
+	if tree == null:
+		return
+	tree.paused = false
+	tree.change_scene_to_file.call_deferred("res://scenes/village/village.tscn")

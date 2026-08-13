@@ -167,11 +167,14 @@ func _apply_win(pending_xp: int, hero_hp: int) -> void:
 		if pending_xp > 0:
 			ui_manager.character_stats.add_xp(pending_xp)
 		ui_manager.refresh_character_views()
+	if _active_room and _active_room.room_type == RoomData.RoomType.BOSS:
+		if ui_manager:
+			ui_manager.return_to_village()
 
 
 func _apply_lose() -> void:
 	if ui_manager:
-		ui_manager.return_to_title()
+		ui_manager.return_to_village()
 
 
 func _apply_retreat(snapshot_hp: int) -> void:

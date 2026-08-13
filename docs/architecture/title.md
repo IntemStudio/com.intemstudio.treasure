@@ -16,7 +16,7 @@
 | 프로필 선택 | [`scenes/title/profile_select.tscn`](../../scenes/title/profile_select.tscn) + [`profile_select.gd`](../../scenes/title/profile_select.gd) |
 | 슬롯 카드 | [`scenes/title/components/profile_slot.tscn`](../../scenes/title/components/profile_slot.tscn) + [`profile_slot.gd`](../../scenes/title/components/profile_slot.gd) |
 | 설정 오버레이 | [`ui/settings/settings_content.tscn`](../../ui/settings/settings_content.tscn) + Footer ([`settings.md`](settings.md)) |
-| 게임 진입 | [`scenes/dungeon/dungeon.tscn`](../../scenes/dungeon/dungeon.tscn) ([`map.md`](map.md)) |
+| 게임 진입 | [`scenes/village/village.tscn`](../../scenes/village/village.tscn) ([`village.md`](village.md)). 던전은 게시판 확정 후 ([`map.md`](map.md)) |
 | UI 회귀 (수동) | [`scenes/ui_test.tscn`](../../scenes/ui_test.tscn) |
 | 부트 로드 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) (`current_slot >= 0`이면 슬롯 로드) |
 
@@ -68,8 +68,8 @@ scenes/title/
 ## 플로우·조작
 
 1. **Start** → 프로필 선택 (메뉴·브랜드 숨김)
-2. **빈 슬롯** → `SaveManager.new_game(slot)` (레벨 1, XP 0) → `dungeon.tscn`
-3. **유효 슬롯** → `SaveManager.load_game(slot)` → `dungeon.tscn`
+2. **빈 슬롯** → `SaveManager.new_game(slot)` (레벨 1, XP 0) → `village.tscn`
+3. **유효 슬롯** → `SaveManager.load_game(slot)` → `village.tscn`
 4. **삭제(`× Delete` / `× 삭제`)** → 슬롯 내 2단 확인 → `delete_slot`
 5. **Settings** → settings_content (게임 플레이/조작/디스플레이/오디오). 타이틀에서는 **나가기 탭 숨김**. 서브 탭은 `Q`/`E` ([`settings.md`](settings.md))
 6. **Quit** → `get_tree().quit()`
@@ -100,4 +100,4 @@ scenes/title/
 
 - 슬롯 스크린샷·마스크/재화 아이콘 실데이터  
 - 타이틀 BGM, 종료 확인 팝업  
-- 별도 `game.tscn` (현재 `dungeon.tscn`이 메인 진입점)
+- 별도 `game.tscn` (플레이 허브는 [`village.md`](village.md), 던전은 도전 후)
