@@ -18,10 +18,12 @@ var snapshot_hero_hp: int = 0
 var pending_xp: int = 0
 var speed_index: int = 0
 var _ended: bool = false
+var _counter_depth: int = 0
 
 
 func setup(p_rules: CombatRules) -> void:
 	rules = p_rules if p_rules else CombatRules.new()
+	speed_index = rules.default_speed_index
 
 
 func start(
@@ -35,7 +37,7 @@ func start(
 	pending_xp = 0
 	_ended = false
 	active = true
-	speed_index = rules.default_speed_index if rules else 0
+	_counter_depth = 0
 	can_retreat = encounter.can_retreat if encounter else true
 	snapshot_hero_hp = hero_hp
 
@@ -86,6 +88,12 @@ func _make_combatant(
 	face_left: bool
 ) -> Dictionary:
 	var max_hp := stats.max_hp if stats else 1
+	var stamina_max := stats.stamina_max if stats else rules.stamina_max
+	var magic_hp := 0
+	if stats and rules and rules.magic_hp_refills_each_fight:
+		magic_hp = maxi(0, stats.magic_hp)
+	elif stats:
+		magic_hp = maxi(0, stats.magic_hp)
 	return {
 		"id": id,
 		"display_name": display_name,
@@ -93,6 +101,7 @@ func _make_combatant(
 		"stats": stats,
 		"hp": clampi(hp, 0, max_hp),
 		"max_hp": max_hp,
+		"magic_hp": magic_hp,
 		"atb": 0.0,
 		"alive": hp > 0,
 		"xp_reward": xp_reward,
@@ -100,6 +109,10 @@ func _make_combatant(
 		"face_left": face_left,
 		"is_hero": false,
 		"target_priority": 0,
+		"stamina": stamina_max,
+		"stamina_max": stamina_max,
+		"tired_t": 0.0,
+		"regen_accum": 0.0,
 	}
 
 
@@ -116,14 +129,38 @@ func tick(dt: float) -> void:
 	for unit in combatants:
 		if not unit["alive"]:
 			continue
+		_tick_resources(unit, dt)
 		var stats: CombatStats = unit["stats"]
-		var aps := rules.attacks_per_sec(stats.attack_speed if stats else 0.0)
+		var ias := 0.0
+		if stats and float(unit.get("tired_t", 0.0)) <= 0.0:
+			ias = stats.attack_speed
+		var aps := rules.attacks_per_sec(ias)
 		unit["atb"] = float(unit["atb"]) + aps * dt
 		while float(unit["atb"]) >= rules.atb_full and unit["alive"] and not _ended:
 			unit["atb"] = float(unit["atb"]) - rules.atb_full
 			_try_attack(unit)
 	state_changed.emit()
 	_check_end()
+
+
+func _tick_resources(unit: Dictionary, dt: float) -> void:
+	var stats: CombatStats = unit["stats"]
+	if stats == null:
+		return
+	var tired_t := float(unit.get("tired_t", 0.0))
+	if tired_t > 0.0:
+		unit["tired_t"] = maxf(0.0, tired_t - dt)
+
+	var stam_max := float(unit.get("stamina_max", rules.stamina_max))
+	var regen := stats.stamina_regen if stats.stamina_regen > 0.0 else rules.stamina_regen_per_sec
+	unit["stamina"] = minf(stam_max, float(unit.get("stamina", stam_max)) + regen * dt)
+
+	if stats.regen_per_sec > 0.0 and int(unit["hp"]) < int(unit["max_hp"]):
+		unit["regen_accum"] = float(unit.get("regen_accum", 0.0)) + stats.regen_per_sec * dt
+		var heal := int(floor(float(unit["regen_accum"])))
+		if heal > 0:
+			unit["regen_accum"] = float(unit["regen_accum"]) - float(heal)
+			unit["hp"] = mini(int(unit["max_hp"]), int(unit["hp"]) + heal)
 
 
 func get_speed_mult() -> float:
@@ -146,7 +183,8 @@ func _try_attack(attacker: Dictionary) -> void:
 	var target := _pick_target(attacker)
 	if target.is_empty():
 		return
-	_resolve_hit(attacker, target)
+	_spend_stamina(attacker, rules.stamina_cost_attack)
+	_resolve_hit(attacker, target, false)
 
 
 func _pick_target(attacker: Dictionary) -> Dictionary:
@@ -172,22 +210,118 @@ func _pick_target(attacker: Dictionary) -> Dictionary:
 	return candidates[randi() % candidates.size()]
 
 
-func _resolve_hit(attacker: Dictionary, defender: Dictionary) -> void:
+func _resolve_hit(attacker: Dictionary, defender: Dictionary, is_counter: bool) -> void:
 	var atk_stats: CombatStats = attacker["stats"]
 	var def_stats: CombatStats = defender["stats"]
-	if atk_stats == null:
+	if atk_stats == null or not defender["alive"] or _ended:
 		return
+
+	var evaded := _roll_evasion(defender)
+	if evaded:
+		_spend_stamina(defender, rules.stamina_cost_evade)
+		# amount 0 = miss (arena may skip float)
+		unit_hit.emit(str(defender["id"]), 0)
+		if not is_counter and rules.counter_can_trigger_on_evade:
+			_try_counter(defender, attacker)
+		return
+
 	var raw := float(randi_range(atk_stats.damage_min, maxi(atk_stats.damage_min, atk_stats.damage_max)))
 	var defense := def_stats.defense if def_stats else 0.0
 	var after_def := rules.apply_defense(raw, defense, false)
+	if randf() < atk_stats.crit_chance:
+		after_def *= atk_stats.crit_damage
+	if atk_stats.magic_damage > 0.0:
+		after_def += rules.apply_defense(atk_stats.magic_damage, defense, true)
 	var dmg := rules.finalize_damage(after_def)
-	_apply_damage(defender, dmg)
+	var dealt := _apply_damage(defender, dmg)
+	if dealt > 0:
+		_on_landed_hit(attacker, defender, dealt)
+
+	if not is_counter and atk_stats.damage_all > 0.0:
+		_apply_damage_all(attacker, defender, atk_stats.damage_all)
+
+	if not is_counter:
+		_try_counter(defender, attacker)
+	elif rules.counter_can_be_countered:
+		_try_counter(defender, attacker)
 
 
-func _apply_damage(unit: Dictionary, amount: int) -> void:
-	if not unit["alive"] or amount <= 0:
+func _apply_damage_all(attacker: Dictionary, primary: Dictionary, amount: float) -> void:
+	var atk_stats: CombatStats = attacker["stats"]
+	if atk_stats == null:
 		return
-	unit["hp"] = maxi(0, int(unit["hp"]) - amount)
+	for unit in combatants:
+		if not unit["alive"] or unit == primary:
+			continue
+		if unit["side"] == attacker["side"]:
+			continue
+		if _roll_evasion(unit):
+			continue
+		var def_stats: CombatStats = unit["stats"]
+		var defense := def_stats.defense if def_stats else 0.0
+		var after := rules.apply_defense(amount, defense, false)
+		var dmg := rules.finalize_damage(after)
+		var dealt := _apply_damage(unit, dmg)
+		if dealt > 0 and atk_stats.vampirism > 0.0:
+			_heal(attacker, int(floor(float(dealt) * atk_stats.vampirism)))
+
+
+func _roll_evasion(defender: Dictionary) -> bool:
+	var stats: CombatStats = defender["stats"]
+	if stats == null:
+		return false
+	var chance := stats.evasion
+	if float(defender.get("tired_t", 0.0)) > 0.0:
+		chance *= rules.tired_evasion_mult
+	return randf() < chance
+
+
+func _on_landed_hit(attacker: Dictionary, defender: Dictionary, dealt: int) -> void:
+	var atk_stats: CombatStats = attacker["stats"]
+	var def_stats: CombatStats = defender["stats"]
+	if atk_stats and atk_stats.vampirism > 0.0 and dealt > 0:
+		_heal(attacker, int(floor(float(dealt) * atk_stats.vampirism)))
+	if def_stats and def_stats.retaliation > 0.0 and attacker["alive"]:
+		var after := rules.apply_defense(def_stats.retaliation, atk_stats.defense if atk_stats else 0.0, false)
+		_apply_damage(attacker, rules.finalize_damage(after))
+	_gain_stamina_on_hit(defender)
+
+
+func _try_counter(defender: Dictionary, attacker: Dictionary) -> void:
+	if _ended:
+		return
+	if not defender["alive"] or not attacker["alive"]:
+		return
+	if _counter_depth > 0 and not rules.counter_can_be_countered:
+		return
+	if _counter_depth >= 2:
+		return
+	var def_stats: CombatStats = defender["stats"]
+	if def_stats == null or def_stats.counter_chance <= 0.0:
+		return
+	if randf() >= def_stats.counter_chance:
+		return
+	_spend_stamina(defender, rules.stamina_cost_counter)
+	if rules.counter_resets_atb:
+		defender["atb"] = 0.0
+	_counter_depth += 1
+	_resolve_hit(defender, attacker, true)
+	_counter_depth -= 1
+
+
+func _apply_damage(unit: Dictionary, amount: int) -> int:
+	if not unit["alive"] or amount <= 0:
+		return 0
+	var remaining := amount
+	var absorbed := 0
+	if rules and rules.magic_hp_before_hp:
+		var shield := int(unit.get("magic_hp", 0))
+		if shield > 0:
+			absorbed = mini(shield, remaining)
+			unit["magic_hp"] = shield - absorbed
+			remaining -= absorbed
+	if remaining > 0:
+		unit["hp"] = maxi(0, int(unit["hp"]) - remaining)
 	unit_hit.emit(str(unit["id"]), amount)
 	if int(unit["hp"]) <= 0:
 		unit["alive"] = false
@@ -195,6 +329,27 @@ func _apply_damage(unit: Dictionary, amount: int) -> void:
 		unit["hp"] = 0
 		if unit["side"] == CombatUnitDef.UnitSide.ENEMY:
 			pending_xp += int(unit.get("xp_reward", 0))
+	return amount
+
+
+func _heal(unit: Dictionary, amount: int) -> void:
+	if not unit["alive"] or amount <= 0:
+		return
+	unit["hp"] = mini(int(unit["max_hp"]), int(unit["hp"]) + amount)
+
+
+func _spend_stamina(unit: Dictionary, cost: float) -> bool:
+	var stam := float(unit.get("stamina", 0.0))
+	# Always attempt the action; depleting stamina applies Tired.
+	unit["stamina"] = maxf(0.0, stam - cost)
+	if float(unit["stamina"]) <= 0.0:
+		unit["tired_t"] = rules.tired_duration_sec
+	return true
+
+
+func _gain_stamina_on_hit(unit: Dictionary) -> void:
+	var stam_max := float(unit.get("stamina_max", rules.stamina_max))
+	unit["stamina"] = minf(stam_max, float(unit.get("stamina", 0.0)) + rules.stamina_gain_on_hit)
 
 
 func _check_end() -> void:
@@ -261,11 +416,14 @@ func get_state() -> Dictionary:
 			"side": unit["side"],
 			"hp": unit["hp"],
 			"max_hp": unit["max_hp"],
+			"magic_hp": unit.get("magic_hp", 0),
 			"atb": unit["atb"],
 			"alive": unit["alive"],
 			"body_color": unit["body_color"],
 			"face_left": unit["face_left"],
 			"is_hero": unit.get("is_hero", false),
+			"stamina": unit.get("stamina", 0.0),
+			"tired": float(unit.get("tired_t", 0.0)) > 0.0,
 		})
 	return {
 		"active": active,

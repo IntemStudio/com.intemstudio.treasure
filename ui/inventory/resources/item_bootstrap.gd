@@ -27,8 +27,8 @@ static func create_claymore() -> ItemData:
 		{"button": "A", "name": ""},
 	]
 	item.affixes = [
-		{"text": "14% Stamina Refill Chance", "positive": true},
-		{"text": "Stamina decreased by 24%", "positive": false},
+		{"id": "vampirism", "value": 0.05, "positive": true, "text": "+5% Vampirism"},
+		{"id": "attack_speed", "value": 0.08, "positive": true, "text": "+8% Attack Speed"},
 	]
 	item.flavor_text = "A heavy blade forged for warriors who favor raw power."
 	item.required_stat = "strength"
@@ -152,7 +152,9 @@ static func create_rare_dagger() -> ItemData:
 	item.attack = 9
 	item.attack_bonus = 6
 	item.scales_with = "dexterity"
-	item.affixes = [{"text": "+10% Critical Chance", "positive": true}]
+	item.affixes = [
+		{"id": "crit_chance", "value": 0.10, "positive": true, "text": "+10% Critical Chance"},
+	]
 	item.weight = 4.2
 	item.equip_slot = "off_hand"
 	return item

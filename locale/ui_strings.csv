@@ -43,6 +43,27 @@ Focus Points,Focus Points,집중력 포인트
 Stamina Regen,Stamina Regen,지구력 재생
 Focus Gain,Focus Gain,집중력 획득
 Armor,Armor,물리 저항
+Defense,Defense,방어
+COMBAT,COMBAT,전투
+Damage,Damage,피해
+Attack Speed,Attack Speed,공격 속도
+Critical,Critical,치명타
+Magic Damage,Magic Damage,마법 피해
+Damage to All,Damage to All,전체 피해
+Vampirism,Vampirism,흡혈
+Regen,Regen,재생
+Counter,Counter,반격
+Evasion,Evasion,회피
+Magic HP,Magic HP,마법 체력
+Retaliation,Retaliation,보복
+ATTR_DESC_health,Raises maximum Life.,최대 생명력을 올립니다.
+ATTR_DESC_stamina,"Raises Stamina and Stamina Regen. Empty Stamina causes Tired, which halves Evasion.","지구력과 재생을 올립니다. 지구력이 비면 Tired가 되어 회피가 반감됩니다."
+ATTR_DESC_strength,"Raises Defense and Retaliation. Improves Strength-scaling weapons.","방어와 보복을 올립니다. 근력 스케일 무기의 위력이 증가합니다."
+ATTR_DESC_dexterity,"Raises Attack Speed, Evasion, Critical, and Counter. Improves Dexterity-scaling weapons.","공격 속도, 회피, 치명타, 반격을 올립니다. 민첩성 스케일 무기의 위력이 증가합니다."
+ATTR_DESC_intelligence,"Raises Magic Damage. Improves Intelligence-scaling weapons.","마법 피해를 올립니다. 지력 스케일 무기의 위력이 증가합니다."
+ATTR_DESC_faith,"Raises Vampirism, Regen, and Magic HP. Improves Faith-scaling weapons.","흡혈, 재생, 마법 체력을 올립니다. 신앙 스케일 무기의 위력이 증가합니다."
+ATTR_DESC_focus,"Raises Focus (mana) and Focus Gain.","집중력(마나)과 집중력 획득을 올립니다."
+ATTR_DESC_equip_load,Raises maximum Equip Load.,최대 장비 무게를 올립니다.
 Poise,Poise,자세
 Heat,Heat,화염 저항
 Cold,Cold,냉기 저항

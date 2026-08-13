@@ -16,4 +16,4 @@ attack_bonus = 6
 scales_with = "dexterity"
 weight = 4.2
 equip_slot = "off_hand"
-affixes = [{"positive": true, "text": "+10% Critical Chance"}]
+affixes = [{"id": "crit_chance", "value": 0.10, "positive": true, "text": "+10% Critical Chance"}]

@@ -16,6 +16,8 @@ extends Resource
 @export var retaliation: float = 0.0
 @export var magic_damage: float = 0.0
 @export var damage_all: float = 0.0
+@export var stamina_max: float = 100.0
+@export var stamina_regen: float = 15.0
 
 
 func duplicate_stats() -> CombatStats:

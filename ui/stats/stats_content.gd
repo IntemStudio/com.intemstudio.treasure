@@ -17,25 +17,40 @@ const GENERAL_STATS: Array[Dictionary] = [
 	{"key": "focus_gain", "label": "Focus Gain"},
 ]
 
-const DEFENSE_STATS: Array[Dictionary] = [
-	{"key": "armor", "label": "Armor"},
-	{"key": "poise", "label": "Poise"},
-	{"key": "heat", "label": "Heat"},
-	{"key": "cold", "label": "Cold"},
-	{"key": "electric", "label": "Electric"},
-	{"key": "plague", "label": "Plague"},
+const DEFENSE_BASE: Array[Dictionary] = [
+	{"key": "defense", "label": "Defense"},
+]
+
+const COMBAT_STATS: Array[Dictionary] = [
+	{"key": "damage", "label": "Damage"},
+	{"key": "attack_speed", "label": "Attack Speed"},
+	{"key": "crit", "label": "Critical"},
+	{"key": "magic_damage", "label": "Magic Damage"},
+	{"key": "damage_all", "label": "Damage to All"},
+	{"key": "vampirism", "label": "Vampirism"},
+	{"key": "regen_per_sec", "label": "Regen"},
+	{"key": "counter_chance", "label": "Counter"},
+	{"key": "evasion", "label": "Evasion"},
+	{"key": "magic_hp", "label": "Magic HP"},
+	{"key": "retaliation", "label": "Retaliation"},
 ]
 
 var stats: CharacterStats
+var inventory: InventoryData
+var _combat_snapshot: CombatStats
+var _insight_open: bool = false
 
 @onready var portrait: TextureRect = %Portrait
 @onready var points_label: Label = %PointsLabel
 @onready var points_value_label: Label = %PointsValueLabel
 @onready var attribute_list: VBoxContainer = %AttributeList
 @onready var general_col: VBoxContainer = %GeneralCol
+@onready var combat_col: VBoxContainer = %CombatCol
 @onready var defense_col: VBoxContainer = %DefenseCol
 @onready var general_title: Label = %GeneralTitle
+@onready var combat_title: Label = %CombatTitle
 @onready var defense_title: Label = %DefenseTitle
+@onready var insight_hint: Label = %InsightHint
 @onready var weight_title: Label = %WeightTitle
 @onready var max_weight_label: Label = %MaxWeightLabel
 @onready var current_weight_label: Label = %CurrentWeightLabel
@@ -78,8 +93,9 @@ func setup(ui_manager: UIManager, footer: FooterPrompts) -> void:
 		_footer_connected = true
 
 
-func activate(character_stats: CharacterStats, _inventory: InventoryData) -> void:
+func activate(character_stats: CharacterStats, inv: InventoryData) -> void:
 	stats = character_stats
+	inventory = inv
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_selected_attr_index = 0
@@ -129,9 +145,15 @@ func _on_footer_prompt(action: String) -> void:
 			var attr_id := CharacterStats.ATTRIBUTE_IDS[_selected_attr_index]
 			_try_spend_point(attr_id)
 		"insight":
-			insight_pressed.emit()
+			_toggle_insight()
 		"close":
 			request_close.emit()
+
+
+func _toggle_insight() -> void:
+	_insight_open = not _insight_open
+	insight_pressed.emit()
+	_refresh_insight_hint()
 
 
 func _setup_portrait_shader() -> void:
@@ -160,25 +182,38 @@ func _build_attribute_rows() -> void:
 
 
 func _build_stat_columns() -> void:
-	for child in general_col.get_children():
-		if child.name != "GeneralTitle":
-			child.queue_free()
-	for child in defense_col.get_children():
-		if child.name != "DefenseTitle":
-			child.queue_free()
+	_clear_col_rows(general_col, "GeneralTitle")
+	_clear_col_rows(combat_col, "CombatTitle")
+	_clear_col_rows(defense_col, "DefenseTitle")
 	for entry in GENERAL_STATS:
-		var row: StatRow = STAT_ROW_SCENE.instantiate()
-		general_col.add_child(row)
-		row.name = "Stat_%s" % entry["key"]
-	for entry in DEFENSE_STATS:
-		var row: StatRow = STAT_ROW_SCENE.instantiate()
-		defense_col.add_child(row)
-		row.name = "Stat_%s" % entry["key"]
+		_add_stat_row(general_col, "Stat_%s" % entry["key"])
+	for entry in COMBAT_STATS:
+		_add_stat_row(combat_col, "Combat_%s" % entry["key"])
+	for entry in DEFENSE_BASE:
+		_add_stat_row(defense_col, "Stat_%s" % entry["key"])
+
+
+func _clear_col_rows(col: VBoxContainer, keep_title: String) -> void:
+	var to_free: Array[Node] = []
+	for child in col.get_children():
+		if child.name == keep_title:
+			continue
+		to_free.append(child)
+	for child in to_free:
+		col.remove_child(child)
+		child.free()
+
+
+func _add_stat_row(col: VBoxContainer, row_name: String) -> void:
+	var row: StatRow = STAT_ROW_SCENE.instantiate()
+	col.add_child(row)
+	row.name = row_name
 
 
 func _refresh() -> void:
 	if not stats:
 		return
+	_combat_snapshot = CombatStatsBuilder.build(stats, inventory)
 	_refresh_static_labels()
 	points_value_label.text = str(stats.attribute_points)
 	max_weight_label.text = tr("Max Weight: %.1f") % stats.weight_max
@@ -188,12 +223,14 @@ func _refresh() -> void:
 	weight_bar.value = stats.weight_current
 	_refresh_attributes()
 	_refresh_general_defense()
+	_refresh_combat()
 	_refresh_weapon_table()
 
 
 func _refresh_static_labels() -> void:
 	points_label.text = tr("Attribute Points")
 	general_title.text = tr("GENERAL")
+	combat_title.text = tr("COMBAT")
 	defense_title.text = tr("DEFENSE")
 	weight_title.text = tr("WEIGHT")
 	weapon_header.text = tr("Weapon")
@@ -201,6 +238,7 @@ func _refresh_static_labels() -> void:
 	attr_bonus_header.text = tr("Attr Bonus")
 	other_header.text = tr("Other")
 	total_header.text = tr("Total")
+	_refresh_insight_hint()
 
 
 func _refresh_attributes() -> void:
@@ -216,11 +254,60 @@ func _refresh_attributes() -> void:
 
 func _refresh_general_defense() -> void:
 	for entry in GENERAL_STATS:
-		var row: StatRow = general_col.get_node("Stat_%s" % entry["key"])
-		row.setup(tr(entry["label"]), stats.general.get(entry["key"], 0))
-	for entry in DEFENSE_STATS:
-		var row: StatRow = defense_col.get_node("Stat_%s" % entry["key"])
-		row.setup(tr(entry["label"]), stats.defense.get(entry["key"], 0))
+		var row: StatRow = general_col.get_node_or_null("Stat_%s" % entry["key"])
+		if row:
+			row.setup(tr(entry["label"]), stats.general.get(entry["key"], 0))
+	for entry in DEFENSE_BASE:
+		var row: StatRow = defense_col.get_node_or_null("Stat_%s" % entry["key"])
+		if row:
+			var value: Variant = stats.defense.get(entry["key"], 0)
+			if entry["key"] == "defense" and _combat_snapshot:
+				value = _combat_snapshot.defense
+			row.setup(tr(entry["label"]), _format_stat(value))
+
+
+func _refresh_combat() -> void:
+	if _combat_snapshot == null:
+		return
+	var c := _combat_snapshot
+	var values := {
+		"damage": "%d-%d" % [c.damage_min, c.damage_max],
+		"attack_speed": c.attack_speed,
+		"crit": "%.0f%% / ×%.2f" % [c.crit_chance * 100.0, c.crit_damage],
+		"magic_damage": c.magic_damage,
+		"damage_all": c.damage_all,
+		"vampirism": c.vampirism,
+		"regen_per_sec": c.regen_per_sec,
+		"counter_chance": c.counter_chance,
+		"evasion": c.evasion,
+		"magic_hp": c.magic_hp,
+		"retaliation": c.retaliation,
+	}
+	for entry in COMBAT_STATS:
+		var row: StatRow = combat_col.get_node_or_null("Combat_%s" % entry["key"])
+		if row == null:
+			continue
+		var raw: Variant = values.get(entry["key"], 0)
+		row.setup(tr(entry["label"]), _format_combat_value(entry["key"], raw))
+
+
+func _format_combat_value(key: String, raw: Variant) -> Variant:
+	match key:
+		"damage", "crit", "magic_hp":
+			return raw
+		"vampirism", "evasion", "counter_chance", "attack_speed":
+			if raw is float or raw is int:
+				return "%.1f%%" % (float(raw) * 100.0) if key != "attack_speed" else "+%.0f%%" % (float(raw) * 100.0)
+	return _format_stat(raw)
+
+
+func _format_stat(value: Variant) -> Variant:
+	if value is float:
+		var f := float(value)
+		if is_equal_approx(f, roundf(f)):
+			return int(roundf(f))
+		return snappedf(f, 0.1)
+	return value
 
 
 func _refresh_weapon_table() -> void:
@@ -235,6 +322,22 @@ func _refresh_weapon_table() -> void:
 func _update_attribute_selection() -> void:
 	for i in range(_attribute_rows.size()):
 		_attribute_rows[i].set_selected(i == _selected_attr_index)
+	_refresh_insight_hint()
+
+
+func _refresh_insight_hint() -> void:
+	if not insight_hint:
+		return
+	insight_hint.visible = _insight_open
+	if not _insight_open:
+		insight_hint.text = ""
+		return
+	if _selected_attr_index < 0 or _selected_attr_index >= CharacterStats.ATTRIBUTE_IDS.size():
+		insight_hint.text = ""
+		return
+	var attr_id := CharacterStats.ATTRIBUTE_IDS[_selected_attr_index]
+	var label := CharacterStats.get_attribute_label(attr_id)
+	insight_hint.text = "%s — %s" % [label, tr("ATTR_DESC_%s" % attr_id)]
 
 
 func _on_attribute_selected(attr_id: String) -> void:
@@ -287,7 +390,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_spend_point(attr_id)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("stats_insight"):
-		insight_pressed.emit()
+		_toggle_insight()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_up"):
 		_selected_attr_index = maxi(_selected_attr_index - 1, 0)

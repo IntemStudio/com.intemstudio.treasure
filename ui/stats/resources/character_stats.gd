@@ -52,7 +52,7 @@ const ATTRIBUTE_LABELS: Dictionary = {
 }
 
 @export var defense: Dictionary = {
-	"armor": 24,
+	"defense": 0.0,
 	"poise": 18,
 	"heat": 10,
 	"cold": 10,
@@ -203,7 +203,12 @@ func _recalculate_derived() -> void:
 	general["stamina_regen"] = 10.0 + int(attributes["stamina"]) * 0.25
 	general["focus"] = 40 + int(attributes["focus"]) * 1
 	general["focus_gain"] = 6.0 + int(attributes["focus"]) * 0.2
-	defense["armor"] = 14 + int(attributes["strength"]) + int(attributes["equip_load"])
+	# Combat Defense comes from CombatStatsBuilder (gear + STR). Keep display keys only.
+	if defense.has("armor") and not defense.has("defense"):
+		defense["defense"] = float(defense["armor"])
+	defense.erase("armor")
+	if not defense.has("defense"):
+		defense["defense"] = 0.0
 	defense["poise"] = 10 + int(attributes["faith"]) + int(attributes["strength"]) / 2
 	weight_max = 60.0 + float(attributes["equip_load"]) * 2.0
 	hp_max = int(general["health"])

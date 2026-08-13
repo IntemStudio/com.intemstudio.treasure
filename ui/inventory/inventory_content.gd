@@ -219,6 +219,8 @@ func _refresh_attributes() -> void:
 
 
 func _refresh_load_indicator() -> void:
+	if character_stats and inventory:
+		CombatStatsBuilder.build(character_stats, inventory)
 	if character_stats:
 		load_indicator.text = character_stats.get_weight_class_label()
 	elif inventory:

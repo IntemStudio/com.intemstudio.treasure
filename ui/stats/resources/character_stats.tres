@@ -31,7 +31,7 @@ general = {
 "focus_gain": 8.0
 }
 defense = {
-"armor": 24,
+"defense": 0.0,
 "poise": 18,
 "heat": 10,
 "cold": 10,
