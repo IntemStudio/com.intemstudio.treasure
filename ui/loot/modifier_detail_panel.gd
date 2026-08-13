@@ -1,0 +1,239 @@
+class_name ModifierDetailPanel
+extends PanelContainer
+
+## NRFW-inspired detail card for runes and gems (data we already have).
+
+@onready var name_label: Label = %NameLabel
+@onready var kind_label: Label = %KindLabel
+@onready var rarity_label: Label = %RarityLabel
+@onready var blurb_label: Label = %BlurbLabel
+@onready var body_label: RichTextLabel = %BodyLabel
+
+
+func _ready() -> void:
+	theme_type_variation = &"ItemDetailPanel"
+	clear()
+
+
+func clear() -> void:
+	if name_label:
+		name_label.text = ""
+	if kind_label:
+		kind_label.text = ""
+	if rarity_label:
+		rarity_label.text = ""
+	if blurb_label:
+		blurb_label.text = ""
+	if body_label:
+		body_label.text = ""
+
+
+func show_message(message: String) -> void:
+	clear()
+	if name_label:
+		name_label.text = message
+
+
+func set_rune(rune: RuneData) -> void:
+	if rune == null:
+		clear()
+		return
+	name_label.text = tr(rune.display_name)
+	kind_label.text = tr("Rune")
+	rarity_label.text = _rarity_text(rune.rarity)
+	blurb_label.text = tr("RUNE_BLURB") % tr(rune.skill_name)
+	var lines: PackedStringArray = []
+	lines.append(_row(tr("Type"), tr(_skill_kind_label(rune.skill_kind))))
+	lines.append(_row(tr("Cost"), str(rune.mana_cost)))
+	lines.append("")
+	lines.append("[color=#7eb8e8]%s[/color]" % tr("Attack"))
+	lines.append("  %s" % tr(rune.skill_name))
+	lines.append("  %s: %s" % [tr("Skill kind"), tr(_skill_kind_label(rune.skill_kind))])
+	lines.append("")
+	lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
+	lines.append(_row(tr("Resonance"), _format_reso_tags(rune.resonance_tags)))
+	if rune.card_number > 0:
+		lines.append(_row(tr("Shelf"), "%s #%d" % [String(rune.shelf_id), rune.card_number]))
+	body_label.text = "\n".join(lines)
+
+
+func set_gem(gem: GemData) -> void:
+	if gem == null:
+		clear()
+		return
+	name_label.text = tr(gem.display_name)
+	kind_label.text = tr("Gem")
+	rarity_label.text = _rarity_text(gem.rarity)
+	if gem.skill_name_suffix.is_empty():
+		blurb_label.text = tr("GEM_BLURB")
+	else:
+		blurb_label.text = tr("GEM_BLURB_SUFFIX") % tr(gem.skill_name_suffix).strip_edges()
+	var lines: PackedStringArray = []
+	lines.append(_row(tr("Type"), tr(_gem_type_label(String(gem.gem_type)))))
+	lines.append("")
+	lines.append("[color=#c9a227]%s[/color]" % tr("Slot effects"))
+	var effect_rows := _grouped_slot_effects(gem.slot_effects)
+	if effect_rows.is_empty():
+		lines.append("  —")
+	else:
+		for row in effect_rows:
+			lines.append("  %s: %s" % [row["slot"], row["effect"]])
+	lines.append("")
+	lines.append(_row(tr("Resonance"), _format_reso_tags(gem.resonance_tags)))
+	if gem.card_number > 0:
+		lines.append(_row(tr("Shelf"), "%s #%d" % [String(gem.shelf_id), gem.card_number]))
+	body_label.text = "\n".join(lines)
+
+
+func _row(label: String, value: String) -> String:
+	return "[color=#9a968c]%s[/color]  %s" % [label, value]
+
+
+func _grouped_slot_effects(slot_effects: Dictionary) -> Array[Dictionary]:
+	var seen_labels: Dictionary = {}
+	var order: Array[String] = []
+	var by_label: Dictionary = {}
+	var preferred := [
+		"main_hand", "off_hand", "head", "chest", "legs", "ring_1", "ring_2", "tool_1", "tool_2"
+	]
+	var keys: Array = []
+	for k in preferred:
+		if slot_effects.has(k):
+			keys.append(k)
+	for k in slot_effects.keys():
+		if not keys.has(k):
+			keys.append(k)
+	for slot_key in keys:
+		var label := tr(_slot_label(str(slot_key)))
+		var effect_key := str(slot_effects[slot_key])
+		var effect_text := _effect_label(effect_key)
+		if seen_labels.has(label) and str(seen_labels[label]) == effect_text:
+			continue
+		seen_labels[label] = effect_text
+		if not by_label.has(label):
+			order.append(label)
+			by_label[label] = effect_text
+	var rows: Array[Dictionary] = []
+	for label in order:
+		rows.append({"slot": label, "effect": by_label[label]})
+	return rows
+
+
+func _format_equip_tags(tags: Array[StringName]) -> String:
+	if tags.is_empty():
+		return "—"
+	var parts: PackedStringArray = []
+	for t in tags:
+		parts.append(tr(_tag_label(String(t))))
+	return ", ".join(parts)
+
+
+func _format_reso_tags(tags: Array[StringName]) -> String:
+	if tags.is_empty():
+		return "—"
+	var parts: PackedStringArray = []
+	for t in tags:
+		parts.append(tr(_reso_label(String(t))))
+	return ", ".join(parts)
+
+
+func _rarity_text(rarity: ItemData.ItemRarity) -> String:
+	match rarity:
+		ItemData.ItemRarity.UNCOMMON:
+			return tr("UNCOMMON")
+		ItemData.ItemRarity.RARE:
+			return tr("RARE")
+		ItemData.ItemRarity.EPIC:
+			return tr("EPIC")
+		ItemData.ItemRarity.LEGENDARY:
+			return tr("LEGENDARY")
+		_:
+			return tr("COMMON")
+
+
+func _skill_kind_label(kind: String) -> String:
+	match kind:
+		"strike":
+			return "SKILL_KIND_STRIKE"
+		"combo":
+			return "SKILL_KIND_COMBO"
+		"aoe":
+			return "SKILL_KIND_AOE"
+		"heal":
+			return "SKILL_KIND_HEAL"
+		"ward":
+			return "SKILL_KIND_WARD"
+		"thorns":
+			return "SKILL_KIND_THORNS"
+		_:
+			return kind if not kind.is_empty() else "SKILL_KIND_STRIKE"
+
+
+func _gem_type_label(gem_type: String) -> String:
+	match gem_type:
+		"element":
+			return "GEM_TYPE_ELEMENT"
+		"condition":
+			return "GEM_TYPE_CONDITION"
+		"mediator":
+			return "GEM_TYPE_MEDIATOR"
+		"explore":
+			return "GEM_TYPE_EXPLORE"
+		_:
+			return gem_type
+
+
+func _slot_label(slot: String) -> String:
+	match slot:
+		"main_hand":
+			return "SLOT_WEAPONS"
+		"off_hand":
+			return "SLOT_OFF_HANDS"
+		"head":
+			return "SLOT_HELMETS"
+		"chest":
+			return "SLOT_BODY"
+		"legs":
+			return "SLOT_PANTS"
+		"ring_1", "ring_2":
+			return "SLOT_RINGS"
+		"tool_1", "tool_2":
+			return "SLOT_TOOLS"
+		_:
+			return slot
+
+
+func _tag_label(tag: String) -> String:
+	match tag:
+		"weapon":
+			return "TAG_WEAPON"
+		"melee":
+			return "TAG_MELEE"
+		"sword":
+			return "TAG_SWORD"
+		"staff":
+			return "TAG_STAFF"
+		"magic":
+			return "TAG_MAGIC"
+		"polearm":
+			return "TAG_POLEARM"
+		"dagger":
+			return "TAG_DAGGER"
+		_:
+			return tag
+
+
+func _reso_label(tag: String) -> String:
+	var key := "RESO_%s" % tag.to_upper()
+	var translated := tr(key)
+	if translated != key:
+		return translated
+	return tag
+
+
+func _effect_label(effect: String) -> String:
+	var key := "GEM_FX_%s" % effect.to_upper()
+	var translated := tr(key)
+	if translated != key:
+		return translated
+	return effect.replace("_", " ")

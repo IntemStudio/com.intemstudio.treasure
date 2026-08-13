@@ -9,12 +9,15 @@ const CATEGORY_TAB_SCENE := preload("res://ui/inventory/components/category_tab.
 const EQUIPMENT_SLOT_SCENE := preload("res://ui/inventory/components/equipment_slot.tscn")
 const STAT_ROW_SCENE := preload("res://ui/stats/components/stat_row.tscn")
 
+const TAB_MODIFIERS := "modifiers"
+
 const CATEGORY_DEFS: Array[Dictionary] = [
-	{"category": ItemData.ItemCategory.WEAPON, "label": "WPN"},
-	{"category": ItemData.ItemCategory.ARMOR, "label": "ARM"},
-	{"category": ItemData.ItemCategory.CONSUMABLE, "label": "CON"},
-	{"category": ItemData.ItemCategory.MATERIAL, "label": "MAT"},
-	{"category": ItemData.ItemCategory.TOOL, "label": "TOL"},
+	{"id": "weapon", "category": ItemData.ItemCategory.WEAPON, "label": "WPN"},
+	{"id": "armor", "category": ItemData.ItemCategory.ARMOR, "label": "ARM"},
+	{"id": "consumable", "category": ItemData.ItemCategory.CONSUMABLE, "label": "CON"},
+	{"id": "material", "category": ItemData.ItemCategory.MATERIAL, "label": "MAT"},
+	{"id": "tool", "category": ItemData.ItemCategory.TOOL, "label": "TOL"},
+	{"id": TAB_MODIFIERS, "label": "MOD"},
 ]
 
 const SORT_MODES: Array[String] = ["time", "name", "weight", "rarity"]
@@ -27,7 +30,9 @@ var character_stats: CharacterStats
 
 @onready var category_tabs: HBoxContainer = %CategoryTabs
 @onready var item_grid: GridContainer = %ItemGrid
+@onready var bag_capacity_label: Label = %BagCapacityLabel
 @onready var detail_panel: ItemDetailPanel = %ItemDetailPanel
+@onready var modifier_detail: ModifierDetailPanel = %ModifierDetailPanel
 @onready var attribute_list: VBoxContainer = %AttributeList
 @onready var load_indicator: Label = %LoadIndicator
 @onready var character_preview: SubViewportContainer = %CharacterPreview
@@ -38,11 +43,13 @@ var _footer: FooterPrompts
 var _slots: Array[InventorySlot] = []
 var _category_tab_nodes: Array[CategoryTab] = []
 var _equipment_slots: Dictionary = {}
-var _filtered_indices: Array[int] = []
-var _selected_filtered_index: int = 0
+var _selected_grid_index: int = 0
 var _selected_equip_slot: String = ""
+var _bag_tab_id: String = "weapon"
 var _preview_root: Node3D
 var _footer_connected: bool = false
+var _rune_catalog: RuneCatalog = RuneCatalog.new()
+var _gem_catalog: GemCatalog = GemCatalog.new()
 
 
 func _ready() -> void:
@@ -69,6 +76,7 @@ func setup(ui_manager: UIManager, footer: FooterPrompts) -> void:
 func activate(stats: CharacterStats, inventory_data: InventoryData) -> void:
 	character_stats = stats
 	inventory = inventory_data
+	_bag_tab_id = _tab_id_from_category(inventory.current_category)
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_refresh_all()
@@ -82,6 +90,10 @@ func deactivate() -> void:
 
 func _is_using_gamepad() -> bool:
 	return _ui_manager.using_gamepad if _ui_manager else false
+
+
+func _is_modifier_tab() -> bool:
+	return _bag_tab_id == TAB_MODIFIERS
 
 
 func _on_input_device_changed(_using_gamepad: bool) -> void:
@@ -100,8 +112,14 @@ func _on_locale_changed(_locale: String) -> void:
 func _update_footer() -> void:
 	if not _footer:
 		return
-	var sort_key := inventory.sort_mode.to_upper() if inventory else "TIME"
 	var using_gamepad := _is_using_gamepad()
+	if _is_modifier_tab():
+		_footer.set_prompts([
+			{"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")},
+			{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")},
+		])
+		return
+	var sort_key := inventory.sort_mode.to_upper() if inventory else "TIME"
 	_footer.set_prompts([
 		{"action": "sort", "button": "L3" if using_gamepad else "S", "label": tr("SORT: %s") % tr(sort_key)},
 		{"action": "equip", "button": "A" if using_gamepad else "Enter", "label": tr("EQUIP / UNEQUIP")},
@@ -117,8 +135,8 @@ func _build_category_tabs() -> void:
 	for def in CATEGORY_DEFS:
 		var tab: CategoryTab = CATEGORY_TAB_SCENE.instantiate()
 		category_tabs.add_child(tab)
-		tab.setup(def["category"], tr(str(def["label"])))
-		tab.tab_selected.connect(_on_category_selected)
+		tab.setup(str(def["id"]), tr(str(def["label"])))
+		tab.tab_selected.connect(_on_tab_selected)
 		_category_tab_nodes.append(tab)
 
 
@@ -195,11 +213,12 @@ func _refresh_all() -> void:
 	if not inventory:
 		return
 	inventory.ensure_grid_size()
+	_selected_grid_index = clampi(_selected_grid_index, 0, InventoryData.GRID_SIZE - 1)
 	if character_stats:
 		_refresh_attributes()
 		_refresh_load_indicator()
 	_update_category_tabs()
-	_rebuild_filtered_indices()
+	_refresh_bag_capacity()
 	_refresh_grid()
 	_refresh_equipment()
 	_refresh_character_preview()
@@ -235,7 +254,7 @@ func _update_category_tabs() -> void:
 	if not inventory:
 		return
 	for tab in _category_tab_nodes:
-		tab.set_active(tab.category == inventory.current_category)
+		tab.set_active(tab.tab_id == _bag_tab_id)
 
 
 func _refresh_category_tab_labels() -> void:
@@ -245,49 +264,149 @@ func _refresh_category_tab_labels() -> void:
 		_category_tab_nodes[i].text = tr(str(CATEGORY_DEFS[i]["label"]))
 
 
-func _rebuild_filtered_indices() -> void:
-	_filtered_indices.clear()
+func _refresh_bag_capacity() -> void:
+	if bag_capacity_label == null or inventory == null:
+		return
+	if _is_modifier_tab():
+		var count := inventory.runes.size() + inventory.gems.size()
+		bag_capacity_label.text = tr("MOD_BAG_CAPACITY") % count
+		return
 	inventory.ensure_grid_size()
-	for i in range(inventory.slots.size()):
-		var item: ItemData = inventory.slots[i]
-		if item and item.category == inventory.current_category:
-			_filtered_indices.append(i)
-	_selected_filtered_index = clampi(
-		_selected_filtered_index,
-		0,
-		maxi(_filtered_indices.size() - 1, 0)
-	)
+	var used := 0
+	for item in inventory.slots:
+		if item:
+			used += 1
+	bag_capacity_label.text = tr("BAG_CAPACITY") % [used, InventoryData.GRID_SIZE]
+
+
+func _modifier_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if inventory == null:
+		return out
+	for i in range(inventory.runes.size()):
+		var ri: RuneInstance = inventory.runes[i] as RuneInstance
+		if ri == null:
+			continue
+		var data: RuneData = _rune_catalog.get_rune(ri.rune_id)
+		out.append({
+			"kind": "rune",
+			"bag_index": i,
+			"instance": ri,
+			"rune": data,
+			"display_name": tr(data.display_name) if data else ri.rune_id,
+			"rarity": data.rarity if data else ItemData.ItemRarity.COMMON,
+		})
+	for i in range(inventory.gems.size()):
+		var gi: GemInstance = inventory.gems[i] as GemInstance
+		if gi == null:
+			continue
+		var gdata: GemData = _gem_catalog.get_gem(gi.gem_id)
+		out.append({
+			"kind": "gem",
+			"bag_index": i,
+			"instance": gi,
+			"gem": gdata,
+			"display_name": tr(gdata.display_name) if gdata else gi.gem_id,
+			"rarity": gdata.rarity if gdata else ItemData.ItemRarity.COMMON,
+		})
+	return out
 
 
 func _refresh_grid() -> void:
 	inventory.ensure_grid_size()
+	if _is_modifier_tab():
+		_refresh_modifier_grid()
+		return
 	for i in range(_slots.size()):
 		var slot := _slots[i]
-		if i < _filtered_indices.size():
-			var storage_index := _filtered_indices[i]
-			var item: ItemData = inventory.slots[storage_index]
-			slot.visible = true
-			slot.setup(storage_index)
-			slot.set_item(item)
-			slot.set_selected(i == _selected_filtered_index and _selected_equip_slot == "")
+		slot.visible = true
+		slot.setup(i)
+		var item: ItemData = inventory.slots[i] if i < inventory.slots.size() else null
+		slot.set_item(item)
+		if item and item.category != inventory.current_category:
+			slot.modulate = Color(1, 1, 1, 0.38)
 		else:
-			slot.visible = i < maxi(_filtered_indices.size(), 1)
-			slot.setup(-1)
-			slot.set_item(null)
-			slot.set_selected(false)
-	if _selected_equip_slot == "":
-		detail_panel.set_item(_get_selected_item())
+			slot.modulate = Color(1, 1, 1, 1)
+		slot.set_selected(i == _selected_grid_index and _selected_equip_slot == "")
+	_refresh_detail_panel()
+
+
+func _refresh_modifier_grid() -> void:
+	var entries := _modifier_entries()
+	for i in range(_slots.size()):
+		var slot := _slots[i]
+		slot.visible = true
+		slot.setup(i)
+		slot.modulate = Color(1, 1, 1, 1)
+		if i < entries.size():
+			var entry: Dictionary = entries[i]
+			slot.set_modifier_entry(
+				str(entry.get("display_name", "")),
+				entry.get("rarity", ItemData.ItemRarity.COMMON) as ItemData.ItemRarity
+			)
+		else:
+			slot.clear_entry()
+		slot.set_selected(i == _selected_grid_index and _selected_equip_slot == "")
+	_refresh_detail_panel()
+
+
+func _refresh_detail_panel() -> void:
+	if _selected_equip_slot != "":
+		_show_item_detail(inventory.equipped.get(_selected_equip_slot) as ItemData)
+		return
+	if _is_modifier_tab():
+		var entries := _modifier_entries()
+		if _selected_grid_index < 0 or _selected_grid_index >= entries.size():
+			_show_modifier_detail(null, "")
+			return
+		var entry: Dictionary = entries[_selected_grid_index]
+		_show_modifier_detail(entry, str(entry.get("kind", "")))
+		return
+	_show_item_detail(_get_selected_item())
+
+
+func _show_item_detail(item: ItemData) -> void:
+	if detail_panel:
+		detail_panel.visible = true
+		detail_panel.set_item(item)
+	if modifier_detail:
+		modifier_detail.visible = false
+		modifier_detail.clear()
+
+
+func _show_modifier_detail(entry: Variant, kind: String) -> void:
+	if detail_panel:
+		detail_panel.visible = false
+		detail_panel.set_item(null)
+	if modifier_detail == null:
+		return
+	modifier_detail.visible = true
+	if entry == null or kind.is_empty():
+		modifier_detail.show_message(tr("Select an item"))
+		return
+	var data: Dictionary = entry as Dictionary
+	if kind == "rune":
+		modifier_detail.set_rune(data.get("rune") as RuneData)
+	elif kind == "gem":
+		modifier_detail.set_gem(data.get("gem") as GemData)
 	else:
-		detail_panel.set_item(inventory.equipped.get(_selected_equip_slot))
+		modifier_detail.clear()
 
 
 func _get_selected_grid_index() -> int:
-	if _filtered_indices.is_empty():
+	if inventory == null:
 		return -1
-	return _filtered_indices[_selected_filtered_index]
+	if _is_modifier_tab():
+		return _selected_grid_index
+	inventory.ensure_grid_size()
+	if _selected_grid_index < 0 or _selected_grid_index >= inventory.slots.size():
+		return -1
+	return _selected_grid_index
 
 
 func _get_selected_item() -> ItemData:
+	if _is_modifier_tab():
+		return null
 	var index := _get_selected_grid_index()
 	if index < 0:
 		return null
@@ -305,33 +424,62 @@ func _refresh_character_preview() -> void:
 	character_preview.visible = visible
 
 
-func _select_filtered_index(filtered_index: int) -> void:
-	if _filtered_indices.is_empty():
-		return
-	_selected_filtered_index = clampi(filtered_index, 0, _filtered_indices.size() - 1)
+func _select_grid_index(grid_index: int) -> void:
+	_selected_grid_index = clampi(grid_index, 0, InventoryData.GRID_SIZE - 1)
 	if _selected_equip_slot != "":
 		_selected_equip_slot = ""
 		_refresh_equipment()
 	_refresh_grid()
 
 
-func _on_category_selected(category: ItemData.ItemCategory) -> void:
-	inventory.current_category = category
-	_selected_filtered_index = 0
+func _on_tab_selected(tab_id: String) -> void:
+	_bag_tab_id = tab_id
+	if _is_modifier_tab():
+		_selected_grid_index = 0
+	else:
+		var category := _category_from_tab_id(tab_id)
+		inventory.current_category = category
+		_selected_grid_index = _first_index_for_category(category)
 	_refresh_all()
 
 
+func _tab_id_from_category(category: ItemData.ItemCategory) -> String:
+	for def in CATEGORY_DEFS:
+		if def.has("category") and def["category"] == category:
+			return str(def["id"])
+	return "weapon"
+
+
+func _category_from_tab_id(tab_id: String) -> ItemData.ItemCategory:
+	for def in CATEGORY_DEFS:
+		if str(def["id"]) == tab_id and def.has("category"):
+			return def["category"] as ItemData.ItemCategory
+	return ItemData.ItemCategory.WEAPON
+
+
+func _first_index_for_category(category: ItemData.ItemCategory) -> int:
+	if inventory == null:
+		return 0
+	inventory.ensure_grid_size()
+	for i in range(inventory.slots.size()):
+		var item: ItemData = inventory.slots[i]
+		if item and item.category == category:
+			return i
+	return 0
+
+
 func _on_slot_pressed(index: int) -> void:
+	if index < 0:
+		return
 	_selected_equip_slot = ""
 	_refresh_equipment()
-	var filtered_pos := _filtered_indices.find(index)
-	if filtered_pos >= 0:
-		_select_filtered_index(filtered_pos)
+	_select_grid_index(index)
 
 
 func _on_slot_activated(index: int) -> void:
 	_on_slot_pressed(index)
-	_try_equip()
+	if not _is_modifier_tab():
+		_try_equip()
 
 
 func _on_slot_discard_requested(index: int) -> void:
@@ -352,9 +500,11 @@ func _on_footer_prompt(action: String) -> void:
 		return
 	match action:
 		"sort":
-			_cycle_sort()
+			if not _is_modifier_tab():
+				_cycle_sort()
 		"equip":
-			_try_equip()
+			if not _is_modifier_tab():
+				_try_equip()
 		"discard":
 			_try_discard()
 		"close":
@@ -362,6 +512,8 @@ func _on_footer_prompt(action: String) -> void:
 
 
 func _try_equip() -> void:
+	if _is_modifier_tab():
+		return
 	if _selected_equip_slot != "":
 		_unequip_slot(_selected_equip_slot)
 		return
@@ -401,12 +553,15 @@ func _rebuild_resonance() -> void:
 	if inventory == null:
 		return
 	var service := ResonanceService.new()
-	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())
+	service.rebuild_main_hand_skills(inventory, _rune_catalog, _gem_catalog)
 	if _ui_manager:
 		_ui_manager.refresh_character_views()
 
 
 func _try_discard() -> void:
+	if _is_modifier_tab():
+		_try_discard_modifier()
+		return
 	var grid_index := _get_selected_grid_index()
 	if grid_index < 0:
 		return
@@ -415,12 +570,34 @@ func _try_discard() -> void:
 		return
 	inventory.slots[grid_index] = null
 	item_discarded.emit(item)
-	_selected_filtered_index = clampi(_selected_filtered_index, 0, maxi(_filtered_indices.size() - 2, 0))
-	_rebuild_filtered_indices()
+	_refresh_all()
+
+
+func _try_discard_modifier() -> void:
+	var entries := _modifier_entries()
+	if _selected_grid_index < 0 or _selected_grid_index >= entries.size():
+		return
+	var entry: Dictionary = entries[_selected_grid_index]
+	var kind := str(entry.get("kind", ""))
+	var bag_index: int = int(entry.get("bag_index", -1))
+	if bag_index < 0:
+		return
+	if kind == "rune":
+		if bag_index < inventory.runes.size():
+			inventory.runes.remove_at(bag_index)
+	elif kind == "gem":
+		if bag_index < inventory.gems.size():
+			inventory.gems.remove_at(bag_index)
+	else:
+		return
+	_selected_grid_index = clampi(_selected_grid_index, 0, maxi(entries.size() - 2, 0))
+	_rebuild_resonance()
 	_refresh_all()
 
 
 func _cycle_sort() -> void:
+	if _is_modifier_tab():
+		return
 	var current := SORT_MODES.find(inventory.sort_mode)
 	var next := (current + 1) % SORT_MODES.size()
 	inventory.sort_mode = SORT_MODES[next]
@@ -444,10 +621,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cycle_sort()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_category_prev"):
-		_cycle_category(-1)
+		_cycle_tab(-1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_category_next"):
-		_cycle_category(1)
+		_cycle_tab(1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_left"):
 		_move_focus(-1, 0)
@@ -474,22 +651,17 @@ func _move_bag_focus(delta_x: int, delta_y: int) -> void:
 	if delta_x > 0 and _is_bag_right_edge():
 		_focus_equipment_from_bag()
 		return
-	if _filtered_indices.is_empty():
-		return
-	_select_filtered_index(_selected_filtered_index + delta_x + delta_y * GRID_COLUMNS)
+	var next := _selected_grid_index + delta_x + delta_y * GRID_COLUMNS
+	_select_grid_index(clampi(next, 0, InventoryData.GRID_SIZE - 1))
 
 
 func _is_bag_right_edge() -> bool:
-	if _filtered_indices.is_empty():
-		return true
-	var column := _selected_filtered_index % GRID_COLUMNS
-	if column == GRID_COLUMNS - 1:
-		return true
-	return _selected_filtered_index >= _filtered_indices.size() - 1
+	var column := _selected_grid_index % GRID_COLUMNS
+	return column == GRID_COLUMNS - 1
 
 
 func _focus_equipment_from_bag() -> void:
-	var bag_row := _selected_filtered_index / GRID_COLUMNS if not _filtered_indices.is_empty() else 0
+	var bag_row := _selected_grid_index / GRID_COLUMNS
 	var equip_row := clampi(bag_row / 2, 0, EQUIP_ROWS - 1)
 	_focus_equipment_slot(InventoryData.EQUIP_SLOTS[equip_row * EQUIP_COLUMNS])
 
@@ -505,14 +677,10 @@ func _focus_bag_from_equipment() -> void:
 	var equip_row := maxi(equip_index, 0) / EQUIP_COLUMNS
 	var bag_row := equip_row * 2
 	var target := bag_row * GRID_COLUMNS + GRID_COLUMNS - 1
-	if not _filtered_indices.is_empty():
-		target = mini(target, _filtered_indices.size() - 1)
+	target = clampi(target, 0, InventoryData.GRID_SIZE - 1)
 	_selected_equip_slot = ""
 	_refresh_equipment()
-	if _filtered_indices.is_empty():
-		_refresh_grid()
-		return
-	_select_filtered_index(target)
+	_select_grid_index(target)
 
 
 func _move_equipment_focus(delta_x: int, delta_y: int) -> void:
@@ -529,13 +697,11 @@ func _move_equipment_focus(delta_x: int, delta_y: int) -> void:
 	_focus_equipment_slot(InventoryData.EQUIP_SLOTS[next_row * EQUIP_COLUMNS + next_column])
 
 
-func _cycle_category(direction: int) -> void:
+func _cycle_tab(direction: int) -> void:
 	var current_index := 0
 	for i in range(CATEGORY_DEFS.size()):
-		if CATEGORY_DEFS[i]["category"] == inventory.current_category:
+		if str(CATEGORY_DEFS[i]["id"]) == _bag_tab_id:
 			current_index = i
 			break
 	var next_index := (current_index + direction) % CATEGORY_DEFS.size()
-	inventory.current_category = CATEGORY_DEFS[next_index]["category"]
-	_selected_filtered_index = 0
-	_refresh_all()
+	_on_tab_selected(str(CATEGORY_DEFS[next_index]["id"]))

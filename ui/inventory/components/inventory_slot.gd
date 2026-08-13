@@ -7,6 +7,8 @@ signal slot_discard_requested(index: int)
 
 var slot_index: int = -1
 var _item: ItemData
+var _has_entry: bool = false
+var _entry_rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
 var _selected: bool = false
 var _hovered: bool = false
 
@@ -27,8 +29,10 @@ func setup(index: int) -> void:
 
 func set_item(item: ItemData) -> void:
 	_item = item
+	_has_entry = item != null
 	if item:
-		name_label.text = item.display_name
+		_entry_rarity = item.rarity
+		name_label.text = tr(item.display_name)
 		name_label.visible = true
 		quantity_label.visible = item.stackable and item.quantity > 1
 		quantity_label.text = str(item.quantity)
@@ -36,12 +40,47 @@ func set_item(item: ItemData) -> void:
 		name_label.visible = false
 		name_label.text = ""
 		quantity_label.visible = false
+		_entry_rarity = ItemData.ItemRarity.COMMON
+	_apply_visual_state()
+
+
+func set_modifier_entry(display_name: String, rarity: ItemData.ItemRarity) -> void:
+	_item = null
+	_has_entry = true
+	_entry_rarity = rarity
+	name_label.text = display_name
+	name_label.visible = true
+	quantity_label.visible = false
+	_apply_visual_state()
+
+
+func clear_entry() -> void:
+	_item = null
+	_has_entry = false
+	_entry_rarity = ItemData.ItemRarity.COMMON
+	name_label.visible = false
+	name_label.text = ""
+	quantity_label.visible = false
 	_apply_visual_state()
 
 
 func set_selected(is_selected: bool) -> void:
 	_selected = is_selected
 	_apply_visual_state()
+
+
+func _rarity_color() -> Color:
+	match _entry_rarity:
+		ItemData.ItemRarity.UNCOMMON:
+			return Color(0.45, 0.85, 0.55)
+		ItemData.ItemRarity.RARE:
+			return UIColors.RARE_GLOW
+		ItemData.ItemRarity.EPIC:
+			return Color(0.85, 0.55, 0.25)
+		ItemData.ItemRarity.LEGENDARY:
+			return UIColors.GOLD
+		_:
+			return Color(0.35, 0.34, 0.33)
 
 
 func _apply_visual_state() -> void:
@@ -52,10 +91,10 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"InventorySlotHover"
 	else:
 		theme_type_variation = &"InventorySlot"
-		if _item:
+		if _has_entry:
 			var style := StyleBoxFlat.new()
 			style.bg_color = Color(0.06, 0.06, 0.07, 0.7)
-			style.border_color = _item.get_rarity_color()
+			style.border_color = _rarity_color()
 			style.set_border_width_all(1)
 			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)

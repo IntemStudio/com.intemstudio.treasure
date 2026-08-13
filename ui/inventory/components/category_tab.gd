@@ -1,15 +1,16 @@
 class_name CategoryTab
 extends Button
 
-signal tab_selected(category: ItemData.ItemCategory)
+signal tab_selected(tab_id: String)
 
-var category: ItemData.ItemCategory = ItemData.ItemCategory.WEAPON
+var tab_id: String = "weapon"
 
 
-func setup(cat: ItemData.ItemCategory, label_text: String) -> void:
-	category = cat
+func setup(id: String, label_text: String) -> void:
+	tab_id = id
 	text = label_text
-	pressed.connect(_on_pressed)
+	if not pressed.is_connected(_on_pressed):
+		pressed.connect(_on_pressed)
 
 
 func set_active(active: bool) -> void:
@@ -20,4 +21,4 @@ func set_active(active: bool) -> void:
 
 
 func _on_pressed() -> void:
-	tab_selected.emit(category)
+	tab_selected.emit(tab_id)

@@ -1,0 +1,70 @@
+[gd_scene load_steps=3 format=3 uid="uid://modifier_detail_panel"]
+
+[ext_resource type="Script" path="res://ui/loot/modifier_detail_panel.gd" id="1"]
+[ext_resource type="Theme" path="res://ui/shared/themes/ui_theme.tres" id="2"]
+
+[node name="ModifierDetailPanel" type="PanelContainer"]
+theme = ExtResource("2")
+theme_type_variation = &"ItemDetailPanel"
+script = ExtResource("1")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+
+[node name="TitleBlock" type="VBoxContainer" parent="Margin/Root/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="Margin/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Rune"
+
+[node name="KindLabel" type="Label" parent="Margin/Root/Header/TitleBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_font_sizes/font_size = 14
+text = "Rune"
+
+[node name="RarityLabel" type="Label" parent="Margin/Root/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.72, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+text = "COMMON"
+vertical_alignment = 1
+
+[node name="BlurbLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.74, 0.42, 1)
+autowrap_mode = 3
+text = "Blurb"
+
+[node name="Sep" type="HSeparator" parent="Margin/Root"]
+layout_mode = 2
+
+[node name="BodyLabel" type="RichTextLabel" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = true
+theme_override_colors/default_color = Color(0.9, 0.88, 0.84, 1)
+theme_override_font_sizes/normal_font_size = 15
+text = ""
