@@ -4,7 +4,7 @@
 후속: [`docs/design/combat.md`](../design/combat.md). 방 `win` 장비: [`loot.md`](loot.md).  
 인게임 텍스트 로그: [`game-log.md`](game-log.md). 기술·공명: [`equipment.md`](equipment.md).
 
-**현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired) + 히어로 기술 게이지·마나 자동 발동. GameHud·미니맵 전투 중 유지.
+**현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired) + 히어로 기술 게이지·마나 자동 발동 + **고정 타겟**(클릭으로 변경). GameHud·미니맵 전투 중 유지.
 
 ---
 
@@ -41,7 +41,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 5. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
 6. `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud 유지**
 7. `CombatArena.start(room)` — Player 숨김, 슬롯에 액터 스폰; `CombatHud.show_combat` (배속·후퇴)
-8. 세션 `_process`로 ATB·**기술 게이지**·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지
+8. 세션 `_process`로 ATB·**기술 게이지**·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지. **타겟:** 전투 시작 시 우선순위가 같은 생존 적 중 하나를 고르고, 죽을 때까지 유지 (`target_mode=sticky`). 적을 클릭하면 히어로 포커스를 바꿈 (금색 테두리). 죽으면 다음 생존 적으로 재지정
 9. 메뉴 오픈 → `get_tree().paused` → ATB 일시정지. 미니맵 클릭은 Map 탭을 열지 않음
 10. `combat_ended` → Arena `clear` + `CombatHud.hide_combat` + `set_combat_active(false)`
 
@@ -90,6 +90,8 @@ CombatHud.bind_session(session)
 CombatHud.show_combat(state, encounter)
 CombatHud.hide_combat()
 CombatSession.cycle_speed() / get_speed_mult()
+CombatSession.set_hero_focus(unit_id) -> bool
+CombatSession.get_hero_focus_id() -> String
 signal combat_ended(result)  # "win" / "lose" / "retreat"
 signal unit_hit(unit_id, amount)
 signal action_resolved(payload)

@@ -77,7 +77,9 @@ func _spawn_from_state(state: Dictionary) -> void:
 		_actors_host.add_child(actor)
 		actor.global_position = pos
 		actor.setup(unit)
+		actor.pressed.connect(_on_actor_pressed)
 		_actors[str(unit.get("id", ""))] = actor
+	_apply_focus(state)
 
 
 func _slot_global(is_ally: bool, index: int) -> Vector2:
@@ -120,12 +122,27 @@ func _apply_state(state: Dictionary) -> void:
 		var actor: CombatantActor = _actors[id]
 		if is_instance_valid(actor):
 			actor.apply_unit(unit)
+	_apply_focus(state)
 	for id in _actors.keys():
 		if not seen.has(id):
 			var actor: CombatantActor = _actors[id]
 			if is_instance_valid(actor):
 				actor.queue_free()
 			_actors.erase(id)
+
+
+func _apply_focus(state: Dictionary) -> void:
+	var focus_id := str(state.get("hero_focus_id", ""))
+	for id in _actors.keys():
+		var actor: CombatantActor = _actors[id]
+		if is_instance_valid(actor):
+			actor.set_focused(str(id) == focus_id)
+
+
+func _on_actor_pressed(unit_id: String) -> void:
+	if _session == null:
+		return
+	_session.set_hero_focus(unit_id)
 
 
 func _clear_actors() -> void:

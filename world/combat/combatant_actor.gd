@@ -1,15 +1,21 @@
 class_name CombatantActor
 extends Node2D
 
+signal pressed(unit_id: String)
+
 const BODY_SIZE := Vector2(40, 56)
 const BAR_SIZE := Vector2(56, 8)
 const ATB_SIZE := Vector2(48, 4)
 const FLOAT_DURATION := 0.8
 const FLOAT_RISE := 48.0
+const FOCUS_PAD := 4.0
+const FOCUS_COLOR := Color(0.95, 0.78, 0.28, 1)
 
 var unit_id: String = ""
 
 var _body: ColorRect
+var _focus_frame: ColorRect
+var _hit: ColorRect
 var _name_label: Label
 var _hp_bg: ColorRect
 var _hp_fill: ColorRect
@@ -17,6 +23,7 @@ var _hp_label: Label
 var _atb_bg: ColorRect
 var _atb_fill: ColorRect
 var _float_host: Node2D
+var _clickable: bool = false
 
 
 func _ready() -> void:
@@ -46,6 +53,14 @@ func apply_unit(unit: Dictionary) -> void:
 	_atb_fill.size = Vector2(ATB_SIZE.x * atb, ATB_SIZE.y)
 	if not alive and hp <= 0:
 		modulate = Color(0.4, 0.4, 0.4, 0.55)
+	_clickable = alive and int(unit.get("side", CombatUnitDef.UnitSide.ENEMY)) == CombatUnitDef.UnitSide.ENEMY
+	_refresh_hit()
+
+
+func set_focused(focused: bool) -> void:
+	if _focus_frame == null:
+		_build()
+	_focus_frame.visible = focused
 
 
 func spawn_damage_float(amount: int) -> void:
@@ -59,6 +74,7 @@ func spawn_damage_float(amount: int) -> void:
 	label.add_theme_color_override("font_color", Color(0.96, 0.42, 0.32, 1))
 	label.add_theme_color_override("font_outline_color", Color(0.06, 0.03, 0.03, 0.92))
 	label.add_theme_constant_override("outline_size", 4)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.position = Vector2(-32.0 + randf_range(-8.0, 8.0), -BODY_SIZE.y - 8.0)
 	label.size = Vector2(64, 28)
 	_float_host.add_child(label)
@@ -137,6 +153,15 @@ func _build() -> void:
 	_atb_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_atb_fill)
 
+	_focus_frame = ColorRect.new()
+	_focus_frame.name = "FocusFrame"
+	_focus_frame.position = Vector2(-BODY_SIZE.x * 0.5 - FOCUS_PAD, -BODY_SIZE.y - FOCUS_PAD)
+	_focus_frame.size = BODY_SIZE + Vector2(FOCUS_PAD * 2.0, FOCUS_PAD * 2.0)
+	_focus_frame.color = FOCUS_COLOR
+	_focus_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_focus_frame.visible = false
+	add_child(_focus_frame)
+
 	_body = ColorRect.new()
 	_body.name = "Body"
 	_body.position = Vector2(-BODY_SIZE.x * 0.5, -BODY_SIZE.y)
@@ -144,6 +169,33 @@ func _build() -> void:
 	_body.color = Color(0.7, 0.3, 0.3, 1)
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_body)
+
+	_hit = ColorRect.new()
+	_hit.name = "Hit"
+	_hit.position = Vector2(-44, -BODY_SIZE.y - 36)
+	_hit.size = Vector2(88, BODY_SIZE.y + 36)
+	_hit.color = Color(0, 0, 0, 0)
+	_hit.mouse_filter = Control.MOUSE_FILTER_STOP
+	_hit.gui_input.connect(_on_hit_gui_input)
+	add_child(_hit)
+	_refresh_hit()
+
+
+func _refresh_hit() -> void:
+	if _hit == null:
+		return
+	_hit.mouse_filter = Control.MOUSE_FILTER_STOP if _clickable else Control.MOUSE_FILTER_IGNORE
+	_hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if _clickable else Control.CURSOR_ARROW
+
+
+func _on_hit_gui_input(event: InputEvent) -> void:
+	if not _clickable:
+		return
+	if event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
+			pressed.emit(unit_id)
+			get_viewport().set_input_as_handled()
 
 
 func _unit_name(unit: Dictionary) -> String:

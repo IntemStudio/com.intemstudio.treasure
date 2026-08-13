@@ -33,7 +33,8 @@ extends Resource
 @export var magic_hp_refills_each_fight: bool = true
 @export var magic_hp_before_hp: bool = true
 
-@export var target_mode: String = "random_living"
+## sticky: keep current living focus until it dies. random_living: re-roll every attack.
+@export var target_mode: String = "sticky"
 @export var counter_resets_atb: bool = true
 @export var counter_can_trigger_on_evade: bool = true
 @export var counter_can_be_countered: bool = true

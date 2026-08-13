@@ -87,6 +87,7 @@ func start(
 			combatants.append(unit)
 			idx += 1
 
+	_assign_initial_focus()
 	state_changed.emit()
 
 
@@ -121,6 +122,7 @@ func _make_combatant(
 		"body_color": body_color,
 		"face_left": face_left,
 		"is_hero": false,
+		"focus_id": "",
 		"target_priority": 0,
 		"stamina": stamina_max,
 		"stamina_max": stamina_max,
@@ -285,12 +287,59 @@ func _try_attack(attacker: Dictionary) -> void:
 	_resolve_hit(attacker, target, false)
 
 
+func set_hero_focus(unit_id: String) -> bool:
+	if not active or _ended:
+		return false
+	var hero := get_hero()
+	if hero.is_empty() or not hero["alive"]:
+		return false
+	var target := _find_living_on_side(unit_id, CombatUnitDef.UnitSide.ENEMY)
+	if target.is_empty():
+		return false
+	if str(hero.get("focus_id", "")) == unit_id:
+		return true
+	hero["focus_id"] = unit_id
+	state_changed.emit()
+	return true
+
+
+func get_hero_focus_id() -> String:
+	var hero := get_hero()
+	if hero.is_empty():
+		return ""
+	return str(hero.get("focus_id", ""))
+
+
 func _pick_target(attacker: Dictionary) -> Dictionary:
-	var enemy_side: CombatUnitDef.UnitSide = (
-		CombatUnitDef.UnitSide.ENEMY
-		if attacker["side"] == CombatUnitDef.UnitSide.ALLY
-		else CombatUnitDef.UnitSide.ALLY
-	)
+	var enemy_side := _enemy_side_of(attacker)
+	if _is_sticky_targeting():
+		var focused := _find_living_on_side(str(attacker.get("focus_id", "")), enemy_side)
+		if not focused.is_empty():
+			return focused
+	var picked := _select_new_target(enemy_side)
+	attacker["focus_id"] = str(picked.get("id", ""))
+	return picked
+
+
+func _assign_initial_focus() -> void:
+	for unit in combatants:
+		if not unit["alive"]:
+			continue
+		var picked := _select_new_target(_enemy_side_of(unit))
+		unit["focus_id"] = str(picked.get("id", ""))
+
+
+func _reassign_focus_from(dead_id: String) -> void:
+	if dead_id.is_empty():
+		return
+	for unit in combatants:
+		if str(unit.get("focus_id", "")) != dead_id:
+			continue
+		var picked := _select_new_target(_enemy_side_of(unit))
+		unit["focus_id"] = str(picked.get("id", ""))
+
+
+func _select_new_target(enemy_side: CombatUnitDef.UnitSide) -> Dictionary:
 	var candidates: Array[Dictionary] = []
 	var best_priority := 999999
 	for unit in combatants:
@@ -306,6 +355,28 @@ func _pick_target(attacker: Dictionary) -> Dictionary:
 	if candidates.is_empty():
 		return {}
 	return candidates[randi() % candidates.size()]
+
+
+func _find_living_on_side(unit_id: String, side: CombatUnitDef.UnitSide) -> Dictionary:
+	if unit_id.is_empty():
+		return {}
+	for unit in combatants:
+		if str(unit.get("id", "")) != unit_id:
+			continue
+		if unit["alive"] and unit["side"] == side:
+			return unit
+		return {}
+	return {}
+
+
+func _enemy_side_of(attacker: Dictionary) -> CombatUnitDef.UnitSide:
+	if attacker["side"] == CombatUnitDef.UnitSide.ALLY:
+		return CombatUnitDef.UnitSide.ENEMY
+	return CombatUnitDef.UnitSide.ALLY
+
+
+func _is_sticky_targeting() -> bool:
+	return rules == null or str(rules.target_mode) != "random_living"
 
 
 func _resolve_hit(attacker: Dictionary, defender: Dictionary, is_counter: bool) -> void:
@@ -454,6 +525,7 @@ func _apply_damage(unit: Dictionary, amount: int) -> int:
 		if unit["side"] == CombatUnitDef.UnitSide.ENEMY:
 			pending_xp += int(unit.get("xp_reward", 0))
 		_emit_action("death", {}, unit)
+		_reassign_focus_from(str(unit["id"]))
 	return amount
 
 
@@ -563,12 +635,14 @@ func get_state() -> Dictionary:
 			"mana_max": unit.get("mana_max", 0),
 			"skill_atb": unit.get("skill_atb", 0.0),
 			"last_skill_index": unit.get("last_skill_index", -1),
+			"focus_id": str(unit.get("focus_id", "")),
 		})
 	var skill_full := rules.skill_atb_full if rules else 1.0
 	return {
 		"active": active,
 		"can_retreat": can_retreat,
 		"pending_xp": pending_xp,
+		"hero_focus_id": get_hero_focus_id(),
 		"units": units,
 		"enemy_level": encounter.enemy_level if encounter else 1,
 		"round_index": encounter.round_index if encounter else 1,
