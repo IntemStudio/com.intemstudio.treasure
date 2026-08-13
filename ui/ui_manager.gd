@@ -4,6 +4,7 @@ extends Node
 const MENU_SHELL_PATH := "res://ui/shell/menu_shell.tscn"
 const DEV_OVERLAY_SCENE := preload("res://ui/dev/dev_overlay.tscn")
 const GAME_HUD_SCENE := preload("res://ui/hud/game_hud.tscn")
+const LOOT_CHOICE_SCENE := preload("res://ui/loot/loot_choice_overlay.tscn")
 
 enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3 }
 
@@ -25,6 +26,8 @@ var challenge_board_open: bool = false
 var _shell: CanvasLayer
 var _hud: GameHud
 var _dev_overlay: CanvasLayer
+var _loot_choice_layer: CanvasLayer
+var _loot_choice: LootChoiceOverlay
 var _active_tab: int = -1
 var _last_tab: int = Tab.STATS
 var _room_changed_connected: bool = false
@@ -70,6 +73,14 @@ func _ready() -> void:
 	_dev_overlay = DEV_OVERLAY_SCENE.instantiate()
 	add_child(_dev_overlay)
 	_dev_overlay.setup(self)
+
+	_loot_choice_layer = CanvasLayer.new()
+	_loot_choice_layer.layer = 20
+	_loot_choice_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_loot_choice_layer)
+	_loot_choice = LOOT_CHOICE_SCENE.instantiate() as LootChoiceOverlay
+	_loot_choice_layer.add_child(_loot_choice)
+	_loot_choice.setup(self)
 
 	popup_visibility_changed.connect(_on_popup_visibility_changed)
 
@@ -305,6 +316,14 @@ func push_log(payload: Dictionary) -> void:
 func show_loot_toast(result: Dictionary) -> void:
 	if _hud and _hud.has_method("show_loot_toast"):
 		_hud.show_loot_toast(result)
+
+
+func show_loot_choice(offers: Array, reward_type: int, on_done: Callable) -> void:
+	if _loot_choice == null:
+		if on_done.is_valid():
+			on_done.call({})
+		return
+	_loot_choice.open(offers, reward_type, on_done)
 
 
 func clear_log() -> void:

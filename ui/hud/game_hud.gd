@@ -88,6 +88,7 @@ func show_loot_toast(result: Dictionary) -> void:
 		return
 	var granted: Array = result.get("granted", [])
 	var skipped := int(result.get("skipped", 0))
+	var granted_name := str(result.get("granted_name", "")).strip_edges()
 	var parts: PackedStringArray = PackedStringArray()
 	if not granted.is_empty():
 		var names: PackedStringArray = PackedStringArray()
@@ -97,6 +98,8 @@ func show_loot_toast(result: Dictionary) -> void:
 				var n := data.display_name if not data.display_name.is_empty() else data.id
 				names.append(tr(n))
 		parts.append(tr("LOOT_GOT") % ", ".join(names))
+	elif not granted_name.is_empty():
+		parts.append(tr("LOOT_GOT") % tr(granted_name))
 	if skipped > 0:
 		parts.append(tr("LOOT_INVENTORY_FULL"))
 	if parts.is_empty():

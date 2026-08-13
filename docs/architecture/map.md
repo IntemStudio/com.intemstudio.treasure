@@ -63,6 +63,7 @@ Dungeon (Node2D)
 | `grid_pos` / `room_type` / `neighbors` | 격자·타입(`START`/`NORMAL`/`BOSS`)·사방 링크 |
 | `visited` | `set_current` 시 true. 안개·맵 이동 |
 | `cleared` | 전투 승리 시 true. 재입장 조우 스킵 ([`combat.md`](combat.md)) |
+| `reward_type` | `NONE`/`WEAPON`/`ARMOR`/`RUNE`/`GEM`. 생성 시 NORMAL·BOSS에 균등. 승리 후 3택1 풀 ([`loot.md`](loot.md)) |
 
 `type_letter()`: `S` / `N` / `B`.
 

@@ -197,8 +197,10 @@ func _on_combat_ended(result: String) -> void:
 
 
 func _apply_win(pending_xp: int, hero_hp: int, hero_mana: int) -> void:
-	if _active_room:
-		_active_room.cleared = true
+	var room := _active_room
+	var was_boss := room != null and room.room_type == RoomData.RoomType.BOSS
+	if room:
+		room.cleared = true
 	if ui_manager and ui_manager.character_stats:
 		ui_manager.character_stats.hp = clampi(
 			hero_hp, 1, ui_manager.character_stats.hp_max
@@ -208,40 +210,94 @@ func _apply_win(pending_xp: int, hero_hp: int, hero_mana: int) -> void:
 		)
 		if pending_xp > 0:
 			ui_manager.character_stats.add_xp(pending_xp)
-	_grant_loot()
 	if ui_manager:
 		ui_manager.refresh_character_views()
-	if _active_room and _active_room.room_type == RoomData.RoomType.BOSS:
-		if ui_manager:
+	_begin_loot_choice(room, was_boss)
+
+
+func _begin_loot_choice(room: RoomData, was_boss: bool) -> void:
+	if ui_manager == null or ui_manager.inventory_data == null or room == null:
+		if was_boss and ui_manager:
 			ui_manager.return_to_village()
-
-
-func _grant_loot() -> void:
-	if ui_manager == null or ui_manager.inventory_data == null:
 		return
-	var room := _active_room
+	if room.reward_type == RoomData.RewardType.NONE:
+		if was_boss:
+			ui_manager.return_to_village()
+		return
 	var seed_value := 0
 	if floor_map:
 		seed_value = floor_map.seed_value
-	var cell := Vector2i.ZERO
-	var room_type := RoomData.RoomType.NORMAL
-	if room:
-		cell = room.grid_pos
-		room_type = room.room_type
 	var catalog := ItemCatalog.new()
-	var result: Dictionary = LootService.grant(
-		ui_manager.inventory_data,
+	var rune_catalog := RuneCatalog.new()
+	var gem_catalog := GemCatalog.new()
+	var offers: Array[Dictionary] = LootService.roll_offers(
+		room.reward_type,
 		catalog,
-		LootService.default_table(),
+		rune_catalog,
+		gem_catalog,
 		{
-			"room_type": room_type,
 			"seed": seed_value,
-			"cell": cell,
+			"cell": room.grid_pos,
 		}
 	)
-	if ui_manager.has_method("show_loot_toast"):
-		ui_manager.show_loot_toast(result)
-	_push_loot_log(result)
+	if offers.is_empty():
+		if was_boss:
+			ui_manager.return_to_village()
+		return
+	ui_manager.show_loot_choice(
+		offers,
+		room.reward_type,
+		func(offer: Dictionary) -> void:
+			_finish_loot_choice(offer, was_boss)
+	)
+
+
+func _finish_loot_choice(offer: Dictionary, was_boss: bool) -> void:
+	if ui_manager == null:
+		return
+	if offer.is_empty():
+		if was_boss:
+			ui_manager.return_to_village()
+		return
+	var result: Dictionary = LootService.take_offer(ui_manager.inventory_data, offer)
+	if bool(result.get("ok", false)):
+		_push_loot_choice_log(result)
+		if ui_manager.has_method("show_loot_toast"):
+			ui_manager.show_loot_toast({
+				"granted": result.get("granted", []),
+				"skipped": 0,
+				"granted_name": str(result.get("granted_name", "")),
+			})
+	elif int(result.get("skipped", 0)) > 0:
+		_push_loot_log({"granted": [], "skipped": 1})
+		if ui_manager.has_method("show_loot_toast"):
+			ui_manager.show_loot_toast({"granted": [], "skipped": 1})
+	ui_manager.refresh_character_views()
+	if was_boss:
+		ui_manager.return_to_village()
+
+
+func _push_loot_choice_log(result: Dictionary) -> void:
+	if ui_manager == null:
+		return
+	var name := str(result.get("granted_name", "")).strip_edges()
+	var granted: Array = result.get("granted", []) as Array
+	if name.is_empty() and not granted.is_empty():
+		var first = granted[0]
+		if first is ItemData:
+			name = (first as ItemData).display_name
+	if name.is_empty():
+		return
+	ui_manager.push_log({
+		"category": "loot",
+		"kind": "loot.grant",
+		"actor_name": name,
+	})
+
+
+func _grant_loot() -> void:
+	# Kept for compatibility; win path uses loot choice overlay.
+	pass
 
 
 func _push_loot_log(result: Dictionary) -> void:

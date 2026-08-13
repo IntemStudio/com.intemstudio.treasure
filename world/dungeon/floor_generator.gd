@@ -42,6 +42,7 @@ static func generate(seed_value: int, room_count: int) -> Dictionary:
 
 	_link_neighbors(rooms)
 	_assign_boss(rooms)
+	_assign_reward_types(rooms, seed_value)
 	return rooms
 
 
@@ -78,3 +79,19 @@ static func _assign_boss(rooms: Dictionary) -> void:
 				best_pos = neighbor_pos
 	if best_pos != start_pos and rooms.has(best_pos):
 		(rooms[best_pos] as RoomData).room_type = RoomData.RoomType.BOSS
+
+
+static func _assign_reward_types(rooms: Dictionary, seed_value: int) -> void:
+	var types: Array[int] = [
+		RoomData.RewardType.WEAPON,
+		RoomData.RewardType.ARMOR,
+		RoomData.RewardType.RUNE,
+		RoomData.RewardType.GEM,
+	]
+	for pos in rooms.keys():
+		var room: RoomData = rooms[pos]
+		if room.room_type == RoomData.RoomType.START:
+			room.reward_type = RoomData.RewardType.NONE
+			continue
+		var h: int = hash([seed_value, pos.x, pos.y, "reward"])
+		room.reward_type = types[posmod(h, types.size())] as RoomData.RewardType
