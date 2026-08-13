@@ -65,8 +65,8 @@ GameHud (CanvasLayer)
 | 지역 | `UIManager.location_id` → `set_location` |
 | 버전 | `AppVersion.MAJOR/MINOR/PATCH` (세이브 `version`과 별개) |
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
-| 기술 | `equipped.main_hand.skills` (최대 4, 빈 이름 → Empty) |
-| 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food` |
+| 기술 | `equipped.main_hand.skills` (최대 4, 빈 이름 → Empty). 이름 텍스트만 |
+| 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. 이름 텍스트만 (아이콘 없음) |
 
 `UIManager.apply_save_game` / 메뉴 닫힘 / 전투 승패 후 `refresh_character_views` 시 `GameHud.refresh`.  
 `popup_visibility_changed(true)` → HUD 숨김. `set_combat_active`는 HUD를 숨기지 않는다.  

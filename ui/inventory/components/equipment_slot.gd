@@ -4,9 +4,9 @@ extends PanelContainer
 signal slot_pressed(slot_id: String)
 signal slot_activated(slot_id: String)
 
-@onready var slot_icon: TextureRect = $Row/SlotIcon
-@onready var item_icon: TextureRect = $Row/ItemIcon
-@onready var empty_label: Label = $Row/EmptyLabel
+@onready var slot_icon: TextureRect = $Content/SlotIcon
+@onready var name_label: Label = $Content/Name
+@onready var empty_label: Label = $Content/EmptyLabel
 
 var slot_id: String = ""
 var _selected: bool = false
@@ -34,12 +34,14 @@ func setup(id: String, slot_texture: Texture2D = null) -> void:
 
 func set_item(item: ItemData) -> void:
 	if item:
-		item_icon.texture = item.icon if item.icon else load("res://icon.svg")
-		item_icon.visible = true
+		name_label.text = item.display_name
+		name_label.visible = true
 		empty_label.visible = false
 	else:
-		item_icon.visible = false
+		name_label.visible = false
+		name_label.text = ""
 		empty_label.visible = true
+	_apply_visual_state()
 
 
 func set_selected(is_selected: bool) -> void:
@@ -54,6 +56,12 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"EquipmentSlotHover"
 	else:
 		theme_type_variation = &"EquipmentSlot"
+	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
+	name_label.add_theme_color_override("font_color", color)
+	empty_label.add_theme_color_override(
+		"font_color",
+		UIColors.GOLD if _selected else Color(0.55, 0.53, 0.5, 1)
+	)
 
 
 func _on_gui_input(event: InputEvent) -> void:

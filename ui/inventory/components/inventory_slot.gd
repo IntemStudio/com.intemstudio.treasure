@@ -10,9 +10,8 @@ var _item: ItemData
 var _selected: bool = false
 var _hovered: bool = false
 
-@onready var icon_rect: TextureRect = $Content/Icon
+@onready var name_label: Label = $Content/Name
 @onready var quantity_label: Label = $Content/Quantity
-@onready var selection_frame: NinePatchRect = $Content/SelectionFrame
 
 
 func _ready() -> void:
@@ -29,19 +28,19 @@ func setup(index: int) -> void:
 func set_item(item: ItemData) -> void:
 	_item = item
 	if item:
-		icon_rect.texture = item.icon if item.icon else load("res://icon.svg")
-		icon_rect.visible = true
+		name_label.text = item.display_name
+		name_label.visible = true
 		quantity_label.visible = item.stackable and item.quantity > 1
 		quantity_label.text = str(item.quantity)
 	else:
-		icon_rect.visible = false
+		name_label.visible = false
+		name_label.text = ""
 		quantity_label.visible = false
 	_apply_visual_state()
 
 
 func set_selected(is_selected: bool) -> void:
 	_selected = is_selected
-	selection_frame.visible = is_selected
 	_apply_visual_state()
 
 
@@ -60,6 +59,9 @@ func _apply_visual_state() -> void:
 			style.set_border_width_all(1)
 			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)
+	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
+	name_label.add_theme_color_override("font_color", color)
+	quantity_label.add_theme_color_override("font_color", color)
 
 
 func _on_gui_input(event: InputEvent) -> void:

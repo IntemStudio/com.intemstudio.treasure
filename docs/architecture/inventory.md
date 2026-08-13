@@ -2,6 +2,8 @@
 
 인벤토리 탭 본문 스펙. 전체화면 크롬(Overlay / TopBar / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다.
 
+후속(룬·보석·소켓·공명·카드 등록): [`docs/design/equipment.md`](../design/equipment.md).
+
 ---
 
 ## 위치
@@ -24,9 +26,9 @@
 | 영역 | 내용 |
 |------|------|
 | TopBar (셸) | 재화, `[인벤토리][맵][스탯][설정]`, 이름·레벨·XP·HP |
-| Left | 카테고리 `WPN`/`ARM`/`CON`/`MAT`/`TOL` (`tr` → 무기/방어구/소모품/재료/도구) + 5×6 그리드 (`GRID_SIZE` 30). Body 1/3 |
+| Left | 카테고리 `WPN`/`ARM`/`CON`/`MAT`/`TOL` (`tr` → 무기/방어구/소모품/재료/도구) + 5×6 그리드 (`GRID_SIZE` 30, 슬롯 80×80, 아이콘 대신 `display_name`). Body 1/3 |
 | Center | 선택 아이템 상세 (`ItemDetailPanel`). Body 1/3 |
-| Right | 장비 슬롯, 3D 프리뷰(160×160), 속성 요약, 무게 등급. Body 1/3 |
+| Right | 장비 슬롯(80×80, 가방과 동일, 이름 텍스트), 3D 프리뷰(160×160), 속성 요약, 무게 등급. Body 1/3 |
 | Footer (셸) | SORT / EQUIP·UNEQUIP / DISCARD / CLOSE |
 
 ---
@@ -80,6 +82,8 @@ ui/inventory/components/
 - **정렬 사이클:** `time` → `name` → `weight` → `rarity`  
 - **장비 슬롯:** `InventoryData.EQUIP_SLOTS`  
 - **푸터 액션:** `sort`, `equip`, `discard`, `close`  
-- **입력:** 카테고리 `1`/`3`·LT/RT, 그리드 이동, Equip / Discard / Sort, Esc → `request_close`
+- **그리드 슬롯:** 이름 텍스트(`HudSlot`과 동일). 선택 시 `UIColors.GOLD` + `SELECT_BORDER` (스탯 `AttributeRowSelected` / 설정 행과 동일)  
+- **입력:** 카테고리 `1`/`3`·LT/RT, 그리드 이동, Equip / Discard / Sort, Esc → `request_close`  
+- **포커스:** 가방 오른쪽 끝에서 `→` → 착용 슬롯. 착용 슬롯 왼쪽 끝에서 `←` → 가방. 착용 슬롯 안에서는 3×3 이동
 
 셸 탭 전환은 Q/E·LB/RB (`ui_nav_*_tab`) → TopBar. Map은 순환 탭에 포함됩니다 (`TopBar.CYCLEABLE_TABS`).

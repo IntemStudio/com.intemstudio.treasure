@@ -59,7 +59,7 @@ func _set_skills(main_hand: ItemData) -> void:
 		var slot := _skill_slots[i]
 		if i < skills.size() and skills[i] is Dictionary:
 			var entry: Dictionary = skills[i]
-			slot.set_skill(str(entry.get("name", "")), main_hand.icon if main_hand else null)
+			slot.set_skill(str(entry.get("name", "")))
 		else:
 			slot.clear()
 

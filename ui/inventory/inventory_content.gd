@@ -18,6 +18,9 @@ const CATEGORY_DEFS: Array[Dictionary] = [
 ]
 
 const SORT_MODES: Array[String] = ["time", "name", "weight", "rarity"]
+const GRID_COLUMNS := 5
+const EQUIP_COLUMNS := 3
+const EQUIP_ROWS := 3
 
 var inventory: InventoryData
 var character_stats: CharacterStats
@@ -266,7 +269,7 @@ func _refresh_grid() -> void:
 			slot.visible = true
 			slot.setup(storage_index)
 			slot.set_item(item)
-			slot.set_selected(i == _selected_filtered_index)
+			slot.set_selected(i == _selected_filtered_index and _selected_equip_slot == "")
 		else:
 			slot.visible = i < maxi(_filtered_indices.size(), 1)
 			slot.setup(-1)
@@ -274,6 +277,8 @@ func _refresh_grid() -> void:
 			slot.set_selected(false)
 	if _selected_equip_slot == "":
 		detail_panel.set_item(_get_selected_item())
+	else:
+		detail_panel.set_item(inventory.equipped.get(_selected_equip_slot))
 
 
 func _get_selected_grid_index() -> int:
@@ -335,9 +340,7 @@ func _on_slot_discard_requested(index: int) -> void:
 
 
 func _on_equipment_pressed(slot_id: String) -> void:
-	_selected_equip_slot = slot_id
-	_refresh_equipment()
-	detail_panel.set_item(inventory.equipped.get(slot_id))
+	_focus_equipment_slot(slot_id)
 
 
 func _on_equipment_activated(slot_id: String) -> void:
@@ -359,6 +362,9 @@ func _on_footer_prompt(action: String) -> void:
 
 
 func _try_equip() -> void:
+	if _selected_equip_slot != "":
+		_unequip_slot(_selected_equip_slot)
+		return
 	var item := _get_selected_item()
 	if not item:
 		return
@@ -386,7 +392,6 @@ func _unequip_slot(slot_id: String) -> void:
 	if empty_index >= 0:
 		inventory.slots[empty_index] = item
 	item_equipped.emit(item, slot_id)
-	_selected_equip_slot = ""
 	_refresh_all()
 
 
@@ -434,21 +439,83 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cycle_category(1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_left"):
-		if not _filtered_indices.is_empty():
-			_select_filtered_index(_selected_filtered_index - 1)
+		_move_focus(-1, 0)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_right"):
-		if not _filtered_indices.is_empty():
-			_select_filtered_index(_selected_filtered_index + 1)
+		_move_focus(1, 0)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_up"):
-		if not _filtered_indices.is_empty():
-			_select_filtered_index(_selected_filtered_index - 5)
+		_move_focus(0, -1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
-		if not _filtered_indices.is_empty():
-			_select_filtered_index(_selected_filtered_index + 5)
+		_move_focus(0, 1)
 		get_viewport().set_input_as_handled()
+
+
+func _move_focus(delta_x: int, delta_y: int) -> void:
+	if _selected_equip_slot != "":
+		_move_equipment_focus(delta_x, delta_y)
+	else:
+		_move_bag_focus(delta_x, delta_y)
+
+
+func _move_bag_focus(delta_x: int, delta_y: int) -> void:
+	if delta_x > 0 and _is_bag_right_edge():
+		_focus_equipment_from_bag()
+		return
+	if _filtered_indices.is_empty():
+		return
+	_select_filtered_index(_selected_filtered_index + delta_x + delta_y * GRID_COLUMNS)
+
+
+func _is_bag_right_edge() -> bool:
+	if _filtered_indices.is_empty():
+		return true
+	var column := _selected_filtered_index % GRID_COLUMNS
+	if column == GRID_COLUMNS - 1:
+		return true
+	return _selected_filtered_index >= _filtered_indices.size() - 1
+
+
+func _focus_equipment_from_bag() -> void:
+	var bag_row := _selected_filtered_index / GRID_COLUMNS if not _filtered_indices.is_empty() else 0
+	var equip_row := clampi(bag_row / 2, 0, EQUIP_ROWS - 1)
+	_focus_equipment_slot(InventoryData.EQUIP_SLOTS[equip_row * EQUIP_COLUMNS])
+
+
+func _focus_equipment_slot(slot_id: String) -> void:
+	_selected_equip_slot = slot_id
+	_refresh_equipment()
+	_refresh_grid()
+
+
+func _focus_bag_from_equipment() -> void:
+	var equip_index := InventoryData.EQUIP_SLOTS.find(_selected_equip_slot)
+	var equip_row := maxi(equip_index, 0) / EQUIP_COLUMNS
+	var bag_row := equip_row * 2
+	var target := bag_row * GRID_COLUMNS + GRID_COLUMNS - 1
+	if not _filtered_indices.is_empty():
+		target = mini(target, _filtered_indices.size() - 1)
+	_selected_equip_slot = ""
+	_refresh_equipment()
+	if _filtered_indices.is_empty():
+		_refresh_grid()
+		return
+	_select_filtered_index(target)
+
+
+func _move_equipment_focus(delta_x: int, delta_y: int) -> void:
+	var index := InventoryData.EQUIP_SLOTS.find(_selected_equip_slot)
+	if index < 0:
+		index = 0
+	var column := index % EQUIP_COLUMNS
+	var row := index / EQUIP_COLUMNS
+	if delta_x < 0 and column == 0:
+		_focus_bag_from_equipment()
+		return
+	var next_column := clampi(column + delta_x, 0, EQUIP_COLUMNS - 1)
+	var next_row := clampi(row + delta_y, 0, EQUIP_ROWS - 1)
+	_focus_equipment_slot(InventoryData.EQUIP_SLOTS[next_row * EQUIP_COLUMNS + next_column])
 
 
 func _cycle_category(direction: int) -> void:
