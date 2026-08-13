@@ -17,6 +17,7 @@ var using_gamepad: bool = false
 var floor_map: FloorMap
 var room_host: RoomHost
 var encounter_director: EncounterDirector
+var game_log: GameLog
 var in_combat: bool = false
 var hub_mode: bool = false
 var challenge_board_open: bool = false
@@ -28,6 +29,7 @@ var _active_tab: int = -1
 var _last_tab: int = Tab.STATS
 var _room_changed_connected: bool = false
 var _menu_open: bool = false
+var _log_session: CombatSession
 
 
 func _ready() -> void:
@@ -49,6 +51,8 @@ func _ready() -> void:
 
 	_hud = GAME_HUD_SCENE.instantiate()
 	add_child(_hud)
+	game_log = GameLog.new()
+	_hud.bind_game_log(game_log)
 	_hud.setup(character_stats, inventory_data, location_id)
 	_hud.map_open_requested.connect(_on_hud_map_open_requested)
 
@@ -147,10 +151,13 @@ func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
 
 
 func bind_combat(p_director: EncounterDirector) -> void:
+	_disconnect_combat_log()
 	encounter_director = p_director
+	_connect_combat_log()
 
 
 func unbind_dungeon() -> void:
+	_disconnect_combat_log()
 	if floor_map and _room_changed_connected and floor_map.room_changed.is_connected(_on_floor_room_changed):
 		floor_map.room_changed.disconnect(_on_floor_room_changed)
 	_room_changed_connected = false
@@ -159,6 +166,7 @@ func unbind_dungeon() -> void:
 	floor_map = null
 	room_host = null
 	encounter_director = null
+	clear_log()
 	set_combat_active(false)
 
 
@@ -275,6 +283,77 @@ func refresh_character_views() -> void:
 		_hud.refresh(character_stats, inventory_data)
 	if _shell and _shell.visible and _active_tab >= 0:
 		_shell.open_tab(_active_tab, character_stats, inventory_data)
+
+
+func push_log(payload: Dictionary) -> void:
+	if game_log:
+		game_log.push(payload)
+
+
+func clear_log() -> void:
+	if game_log:
+		game_log.clear()
+
+
+func _connect_combat_log() -> void:
+	if encounter_director == null:
+		return
+	if not encounter_director.combat_started.is_connected(_on_log_combat_started):
+		encounter_director.combat_started.connect(_on_log_combat_started)
+	if not encounter_director.combat_finished.is_connected(_on_log_combat_finished):
+		encounter_director.combat_finished.connect(_on_log_combat_finished)
+	_connect_session_log()
+
+
+func _connect_session_log() -> void:
+	if encounter_director == null or encounter_director.session == null:
+		return
+	var session := encounter_director.session
+	if _log_session != null and _log_session != session:
+		if _log_session.action_resolved.is_connected(_on_action_resolved):
+			_log_session.action_resolved.disconnect(_on_action_resolved)
+	_log_session = session
+	if not session.action_resolved.is_connected(_on_action_resolved):
+		session.action_resolved.connect(_on_action_resolved)
+
+
+func _disconnect_combat_log() -> void:
+	if encounter_director:
+		if encounter_director.combat_started.is_connected(_on_log_combat_started):
+			encounter_director.combat_started.disconnect(_on_log_combat_started)
+		if encounter_director.combat_finished.is_connected(_on_log_combat_finished):
+			encounter_director.combat_finished.disconnect(_on_log_combat_finished)
+	if _log_session and _log_session.action_resolved.is_connected(_on_action_resolved):
+		_log_session.action_resolved.disconnect(_on_action_resolved)
+	_log_session = null
+
+
+func _on_log_combat_started() -> void:
+	_connect_session_log()
+	var names: PackedStringArray = PackedStringArray()
+	if encounter_director and encounter_director.session and encounter_director.session.encounter:
+		for def in encounter_director.session.encounter.enemies:
+			if def == null:
+				continue
+			var n := def.display_name if not def.display_name.is_empty() else def.id
+			names.append(n)
+	push_log({
+		"category": "combat",
+		"kind": "combat.start",
+		"actor_name": ", ".join(names),
+	})
+
+
+func _on_log_combat_finished(result: String) -> void:
+	push_log({
+		"category": "combat",
+		"kind": "combat.end",
+		"result": result,
+	})
+
+
+func _on_action_resolved(payload: Dictionary) -> void:
+	push_log(payload)
 
 
 func _on_popup_visibility_changed(is_open: bool) -> void:

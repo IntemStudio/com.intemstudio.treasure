@@ -4,6 +4,7 @@ extends Node
 signal combat_ended(result: String)
 signal state_changed
 signal unit_hit(unit_id: String, amount: int)
+signal action_resolved(payload: Dictionary)
 
 const RESULT_WIN := "win"
 const RESULT_LOSE := "lose"
@@ -221,6 +222,10 @@ func _resolve_hit(attacker: Dictionary, defender: Dictionary, is_counter: bool) 
 		_spend_stamina(defender, rules.stamina_cost_evade)
 		# amount 0 = miss (arena may skip float)
 		unit_hit.emit(str(defender["id"]), 0)
+		var evade_flags := PackedStringArray()
+		if is_counter:
+			evade_flags.append("counter")
+		_emit_action("evade", attacker, defender, 0, evade_flags)
 		if not is_counter and rules.counter_can_trigger_on_evade:
 			_try_counter(defender, attacker)
 		return
@@ -228,14 +233,24 @@ func _resolve_hit(attacker: Dictionary, defender: Dictionary, is_counter: bool) 
 	var raw := float(randi_range(atk_stats.damage_min, maxi(atk_stats.damage_min, atk_stats.damage_max)))
 	var defense := def_stats.defense if def_stats else 0.0
 	var after_def := rules.apply_defense(raw, defense, false)
+	var is_crit := false
 	if randf() < atk_stats.crit_chance:
 		after_def *= atk_stats.crit_damage
+		is_crit = true
 	if atk_stats.magic_damage > 0.0:
 		after_def += rules.apply_defense(atk_stats.magic_damage, defense, true)
 	var dmg := rules.finalize_damage(after_def)
 	var dealt := _apply_damage(defender, dmg)
 	if dealt > 0:
-		_on_landed_hit(attacker, defender, dealt)
+		var heal_amt := _apply_vampirism(attacker, dealt)
+		var flags := PackedStringArray()
+		if is_crit:
+			flags.append("crit")
+		if is_counter:
+			flags.append("counter")
+		_emit_action("hit", attacker, defender, dealt, flags, {"heal_amount": heal_amt})
+		_apply_retaliation(attacker, defender)
+		_gain_stamina_on_hit(defender)
 
 	if not is_counter and atk_stats.damage_all > 0.0:
 		_apply_damage_all(attacker, defender, atk_stats.damage_all)
@@ -250,20 +265,23 @@ func _apply_damage_all(attacker: Dictionary, primary: Dictionary, amount: float)
 	var atk_stats: CombatStats = attacker["stats"]
 	if atk_stats == null:
 		return
+	var splash_flags := PackedStringArray(["damage_all"])
 	for unit in combatants:
 		if not unit["alive"] or unit == primary:
 			continue
 		if unit["side"] == attacker["side"]:
 			continue
 		if _roll_evasion(unit):
+			_emit_action("evade", attacker, unit, 0, splash_flags)
 			continue
 		var def_stats: CombatStats = unit["stats"]
 		var defense := def_stats.defense if def_stats else 0.0
 		var after := rules.apply_defense(amount, defense, false)
 		var dmg := rules.finalize_damage(after)
 		var dealt := _apply_damage(unit, dmg)
-		if dealt > 0 and atk_stats.vampirism > 0.0:
-			_heal(attacker, int(floor(float(dealt) * atk_stats.vampirism)))
+		if dealt > 0:
+			var heal_amt := _apply_vampirism(attacker, dealt)
+			_emit_action("hit", attacker, unit, dealt, splash_flags, {"heal_amount": heal_amt})
 
 
 func _roll_evasion(defender: Dictionary) -> bool:
@@ -276,15 +294,24 @@ func _roll_evasion(defender: Dictionary) -> bool:
 	return randf() < chance
 
 
-func _on_landed_hit(attacker: Dictionary, defender: Dictionary, dealt: int) -> void:
+func _apply_vampirism(attacker: Dictionary, dealt: int) -> int:
+	var atk_stats: CombatStats = attacker["stats"]
+	if atk_stats == null or atk_stats.vampirism <= 0.0 or dealt <= 0:
+		return 0
+	var heal_amt := int(floor(float(dealt) * atk_stats.vampirism))
+	_heal(attacker, heal_amt)
+	return heal_amt
+
+
+func _apply_retaliation(attacker: Dictionary, defender: Dictionary) -> void:
 	var atk_stats: CombatStats = attacker["stats"]
 	var def_stats: CombatStats = defender["stats"]
-	if atk_stats and atk_stats.vampirism > 0.0 and dealt > 0:
-		_heal(attacker, int(floor(float(dealt) * atk_stats.vampirism)))
-	if def_stats and def_stats.retaliation > 0.0 and attacker["alive"]:
-		var after := rules.apply_defense(def_stats.retaliation, atk_stats.defense if atk_stats else 0.0, false)
-		_apply_damage(attacker, rules.finalize_damage(after))
-	_gain_stamina_on_hit(defender)
+	if def_stats == null or def_stats.retaliation <= 0.0 or not attacker["alive"]:
+		return
+	var after := rules.apply_defense(def_stats.retaliation, atk_stats.defense if atk_stats else 0.0, false)
+	var ret_dealt := _apply_damage(attacker, rules.finalize_damage(after))
+	if ret_dealt > 0:
+		_emit_action("hit", defender, attacker, ret_dealt, PackedStringArray(["retaliation"]))
 
 
 func _try_counter(defender: Dictionary, attacker: Dictionary) -> void:
@@ -329,6 +356,7 @@ func _apply_damage(unit: Dictionary, amount: int) -> int:
 		unit["hp"] = 0
 		if unit["side"] == CombatUnitDef.UnitSide.ENEMY:
 			pending_xp += int(unit.get("xp_reward", 0))
+		_emit_action("death", {}, unit)
 	return amount
 
 
@@ -340,10 +368,13 @@ func _heal(unit: Dictionary, amount: int) -> void:
 
 func _spend_stamina(unit: Dictionary, cost: float) -> bool:
 	var stam := float(unit.get("stamina", 0.0))
+	var was_tired := float(unit.get("tired_t", 0.0)) > 0.0
 	# Always attempt the action; depleting stamina applies Tired.
 	unit["stamina"] = maxf(0.0, stam - cost)
 	if float(unit["stamina"]) <= 0.0:
 		unit["tired_t"] = rules.tired_duration_sec
+		if not was_tired:
+			_emit_action("tired", unit, {})
 	return true
 
 
@@ -435,3 +466,35 @@ func get_state() -> Dictionary:
 		"speed_mult": get_speed_mult(),
 		"speed_index": speed_index,
 	}
+
+
+func _unit_log_name(unit: Dictionary) -> String:
+	if unit.is_empty():
+		return ""
+	var raw := str(unit.get("display_name", "")).strip_edges()
+	if raw.is_empty():
+		return str(unit.get("id", ""))
+	return raw
+
+
+func _emit_action(
+	kind: String,
+	actor: Dictionary = {},
+	target: Dictionary = {},
+	amount: int = 0,
+	flags: PackedStringArray = PackedStringArray(),
+	extras: Dictionary = {}
+) -> void:
+	action_resolved.emit({
+		"category": "combat",
+		"kind": kind,
+		"actor_id": str(actor.get("id", "")) if not actor.is_empty() else "",
+		"actor_name": _unit_log_name(actor) if not actor.is_empty() else str(extras.get("actor_name", "")),
+		"target_id": str(target.get("id", "")) if not target.is_empty() else "",
+		"target_name": _unit_log_name(target) if not target.is_empty() else str(extras.get("target_name", "")),
+		"amount": amount,
+		"heal_amount": int(extras.get("heal_amount", 0)),
+		"flags": flags,
+		"skill_name": str(extras.get("skill_name", "")),
+		"result": str(extras.get("result", "")),
+	})

@@ -213,6 +213,19 @@ UI_TEST_HINT_5,"Click: Select    Double-click: Equip    Right-click: Discard","�
 UI_TEST_HINT_6,Esc/B: Close popup,Esc/B: 팝업 닫기
 COMBAT_RETREAT,Retreat,후퇴
 COMBAT_SPEED,Speed %s,배속 %s
+LOG_HIT,%s → %s  %d,%s → %s  %d
+LOG_SKILL,%s [%s] → %s  %d,%s [%s] → %s  %d
+LOG_EVADE,%s evaded,%s 회피
+LOG_DEATH,%s defeated,%s 처치
+LOG_TIRED,%s exhausted,%s 탈진
+LOG_WIN,Victory,승리
+LOG_LOSE,Defeat,패배
+LOG_RETREAT,Retreated,후퇴
+LOG_COMBAT_START,— %s —,— %s —
+LOG_CRIT_SUFFIX, (crit), (크리)
+LOG_VAMP_SUFFIX, +%d, +%d
+LOG_COUNTER_SUFFIX, (counter), (반격)
+LOG_RETALIATION_SUFFIX, (retaliation), (보복)
 Slime,Slime,슬라임
 Brute,Brute,브루트
 Skeleton,Skeleton,해골

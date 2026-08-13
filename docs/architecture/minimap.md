@@ -29,7 +29,8 @@ GameHud / Root
 ├── TopRight (VBox)
 │   ├── WorldInfo
 │   └── MiniMap
-└── ActionBar
+├── ActionBar
+└── GameLogView
 ```
 
 ---

@@ -1,7 +1,8 @@
 # 자동 전투
 
 던전 **현재 방**에서 시작하는 **탑다운 ATB 자동 전투**.  
-후속: [`docs/design/combat.md`](../design/combat.md).
+후속: [`docs/design/combat.md`](../design/combat.md).  
+인게임 텍스트 로그: [`game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
 
 **현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired). GameHud·미니맵 전투 중 유지.
 
@@ -26,7 +27,8 @@
 
 CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.  
 유닛은 방 월드 `Node2D`. 머리 위: 이름 · HP 바 + `현재/최대` · ATB.  
-피격 시 `unit_hit` → `CombatantActor` 플로팅 데미지.
+피격 시 `unit_hit` → `CombatantActor` 플로팅 데미지.  
+이산 행동 `action_resolved` → 게임 로그 ([`game-log.md`](game-log.md)).
 
 ---
 
@@ -88,6 +90,7 @@ CombatHud.hide_combat()
 CombatSession.cycle_speed() / get_speed_mult()
 signal combat_ended(result)  # "win" / "lose" / "retreat"
 signal unit_hit(unit_id, amount)
+signal action_resolved(payload)
 ```
 
 맵 텔레포트·미니맵 클릭: 전투 중 거부. WASD: `is_world_input_blocked()`.

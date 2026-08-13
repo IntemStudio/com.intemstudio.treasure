@@ -9,11 +9,13 @@ const DEFAULT_LOCATION := "LOCATION_TEST"
 @onready var world_info: WorldInfo = %WorldInfo
 @onready var action_bar: ActionBar = %ActionBar
 @onready var mini_map: MiniMap = %MiniMap
+@onready var game_log_view: GameLogView = %GameLogView
 
 var _stats: CharacterStats
 var _inventory: InventoryData
 var _location_id: String = DEFAULT_LOCATION
 var _pending_floor_map: FloorMap
+var _pending_game_log: GameLog
 
 
 func _ready() -> void:
@@ -24,6 +26,9 @@ func _ready() -> void:
 	if _pending_floor_map != null:
 		mini_map.set_floor_map(_pending_floor_map)
 		_pending_floor_map = null
+	if _pending_game_log != null and game_log_view:
+		game_log_view.bind_log(_pending_game_log)
+		_pending_game_log = null
 
 
 func setup(stats: CharacterStats, inventory: InventoryData, location_id: String = DEFAULT_LOCATION) -> void:
@@ -64,6 +69,13 @@ func unbind_floor_map() -> void:
 	_pending_floor_map = null
 	if mini_map:
 		mini_map.clear_floor_map()
+
+
+func bind_game_log(log: GameLog) -> void:
+	if game_log_view:
+		game_log_view.bind_log(log)
+	else:
+		_pending_game_log = log
 
 
 func _on_minimap_open_requested() -> void:
