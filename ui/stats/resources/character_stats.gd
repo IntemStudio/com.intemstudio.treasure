@@ -22,10 +22,10 @@ const ATTRIBUTE_LABELS: Dictionary = {
 }
 
 @export var character_name: String = "Kirin"
-@export var level: int = 3
-@export var xp: int = 108
+@export var level: int = 1
+@export var xp: int = 0
 ## Derived from LevelProgression CSV; keep in sync via sync_xp_to_next().
-@export var xp_to_next: int = 225
+@export var xp_to_next: int = 50
 @export var hp: int = 38
 @export var hp_max: int = 64
 @export var mana: int = 50
@@ -142,8 +142,34 @@ func recalculate_derived() -> void:
 	_recalculate_derived()
 
 
+func apply_new_game_start() -> void:
+	level = MIN_LEVEL
+	xp = 0
+	recalculate_derived()
+
+
 func sync_xp_to_next() -> void:
 	xp_to_next = LevelProgression.xp_to_next_for(level)
+
+
+## Grant XP from combat; level up while remaining XP fills the next bar.
+func add_xp(amount: int) -> int:
+	if amount <= 0 or LevelProgression.is_max_level(level):
+		return 0
+	var gained := 0
+	xp += amount
+	gained += amount
+	sync_xp_to_next()
+	while xp >= xp_to_next and xp_to_next > 0 and not LevelProgression.is_max_level(level):
+		xp -= xp_to_next
+		level += 1
+		attribute_points += ATTR_POINTS_PER_LEVEL
+		sync_xp_to_next()
+		recalculate_derived()
+	if LevelProgression.is_max_level(level):
+		xp = 0
+		xp_to_next = 0
+	return gained
 
 
 ## Debug / cheat: +1 level, reset XP bar, grant attribute points.

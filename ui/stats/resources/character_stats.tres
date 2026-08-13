@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1")
 character_name = "Kirin"
-level = 3
-xp = 108
-xp_to_next = 225
+level = 1
+xp = 0
+xp_to_next = 50
 hp = 38
 hp_max = 64
 mana = 50

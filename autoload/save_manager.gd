@@ -100,7 +100,7 @@ func new_game(slot: int) -> SaveGame:
 	var save := SaveGame.new()
 	save.version = SAVE_VERSION
 	save.character = load(CHARACTER_TEMPLATE_PATH).duplicate(true)
-	save.character.recalculate_derived()
+	save.character.apply_new_game_start()
 	save.inventory = ItemBootstrap.create_sample_inventory()
 	save.meta = {
 		"slot": slot,
