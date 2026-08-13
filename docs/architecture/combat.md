@@ -3,7 +3,7 @@
 던전 **현재 방**에서 시작하는 **탑다운 ATB 자동 전투**.  
 후속: [`docs/design/combat.md`](../design/combat.md).
 
-**현황:** v2 방 안 전장 (평타·방어 공식·플로팅 데미지·승패/후퇴). GameHud·미니맵 전투 중 유지.
+**현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired). GameHud·미니맵 전투 중 유지.
 
 ---
 
@@ -15,7 +15,8 @@
 | 최종 스탯 | [`data/combat/combat_stats.gd`](../../data/combat/combat_stats.gd) |
 | 합산 | [`data/combat/combat_stats_builder.gd`](../../data/combat/combat_stats_builder.gd) |
 | 유닛 | [`data/combat/combat_unit_def.gd`](../../data/combat/combat_unit_def.gd) · [`units/`](../../data/combat/units/) |
-| 인카운터 | [`data/combat/encounter_def.gd`](../../data/combat/encounter_def.gd) · [`encounters/`](../../data/combat/encounters/) |
+| 인카운터 | [`data/combat/encounter_def.gd`](../../data/combat/encounter_def.gd) · [`encounters/{region}/`](../../data/combat/encounters/) |
+| 지역 테이블 | [`data/combat/region_encounters.gd`](../../data/combat/region_encounters.gd) |
 | 세션 | [`world/combat/combat_session.gd`](../../world/combat/combat_session.gd) |
 | 아레나 | [`world/combat/combat_arena.gd`](../../world/combat/combat_arena.gd) |
 | 액터 | [`world/combat/combatant_actor.tscn`](../../world/combat/combatant_actor.tscn) |
@@ -31,23 +32,34 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 
 ## 흐름
 
-1. `dungeon.gd` `_ready` — 세션·아레나·Hud·디렉터 생성, `bind_dungeon` / `bind_combat`
-2. `RoomHost.enter_room` → `FloorMap.room_changed`
-3. `EncounterDirector.on_room_entered` — `START`/`cleared`면 skip
-4. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
-5. `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud 유지**
-6. `CombatArena.start(room)` — Player 숨김, 슬롯에 액터 스폰; `CombatHud.show_combat` (배속·후퇴)
-7. 세션 `_process`로 ATB·평타·방어 공식 (`speed_mult`)
-8. 메뉴 오픈 → `get_tree().paused` → ATB 일시정지. 미니맵 클릭은 Map 탭을 열지 않음
-9. `combat_ended` → Arena `clear` + `CombatHud.hide_combat` + `set_combat_active(false)`
+1. `dungeon.gd` `_ready` — `pending_run.dungeon_id`로 세션·아레나·Hud·디렉터 생성, `bind_dungeon` / `bind_combat`
+2. `EncounterDirector.setup(..., dungeon_id)` — `RegionEncounters.load_pair`로 지역 normal/boss 캐시
+3. `RoomHost.enter_room` → `FloorMap.room_changed`
+4. `EncounterDirector.on_room_entered` — `START`/`cleared`면 skip
+5. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
+6. `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud 유지**
+7. `CombatArena.start(room)` — Player 숨김, 슬롯에 액터 스폰; `CombatHud.show_combat` (배속·후퇴)
+8. 세션 `_process`로 ATB·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지
+9. 메뉴 오픈 → `get_tree().paused` → ATB 일시정지. 미니맵 클릭은 Map 탭을 열지 않음
+10. `combat_ended` → Arena `clear` + `CombatHud.hide_combat` + `set_combat_active(false)`
 
+### 히트 순서
+
+1. 회피 (Tired면 `tired_evasion_mult`). 성공 시 스태미나 소모, `unit_hit(..., 0)` (플로팅 생략)
+2. 본타 → Defense → Crit 배율 → `magic_damage`(방어 무시 추가)
+3. Magic HP를 HP보다 먼저 깎음
+4. `damage_all` → 다른 생존 적 (회피만, 반격 없음)
+5. Vampirism · Retaliation · Counter (`CombatRules` 플래그)
+6. 틱: `regen_per_sec`, 스태미나 재생. 공격/반격/회피 비용. 0이면 Tired
+
+히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).
 | 결과 | 처리 |
 |------|------|
-| `win` | `RoomData.cleared = true`, 남은 HP 반영, `CharacterStats.add_xp`, HUD 갱신 |
-| `lose` | `UIManager.return_to_title()` |
+| `win` | `RoomData.cleared = true`, 남은 HP 반영, XP. **보스**면 `return_to_village()` |
+| `lose` | `UIManager.return_to_village()` (슬롯 저장, 메타 유지) |
 | `retreat` | 입장 시 HP 복구, `RoomHost.enter_room(ZERO)` (입구) |
 
-HP/XP는 메타 `character`에 남는다. 층·`cleared`는 세이브하지 않음 ([`save-load.md`](save-load.md)).
+HP/XP는 메타 `character`에 남는다. 층·`cleared`는 세이브하지 않음 ([`save-load.md`](save-load.md)). 허브: [`village.md`](village.md).
 
 ---
 
@@ -57,13 +69,15 @@ HP/XP는 메타 `character`에 남는다. 층·`cleared`는 세이브하지 않�
 UIManager.bind_combat(director)
 UIManager.set_combat_active(bool)     # GameHud 유지
 UIManager.is_combat_active() -> bool
-EncounterDirector.setup(ui, floor_map, room_host, session, arena, hud)
+EncounterDirector.setup(ui, floor_map, room_host, session, arena, hud, dungeon_id="")
+EncounterDirector.set_dungeon_id(id)
 EncounterDirector.on_room_entered(room)
 EncounterDirector.start(room, override?) -> bool
 EncounterDirector.is_active() -> bool
 EncounterDirector.request_retreat()
 EncounterDirector.force_start_current() -> bool
 EncounterDirector.force_result(result)
+RegionEncounters.normalize_region(id) / load_pair(id)
 CombatArena.setup(player)
 CombatArena.bind_session(session)
 CombatArena.start(room_node, state, encounter)
@@ -80,14 +94,19 @@ signal unit_hit(unit_id, amount)
 
 ---
 
-## v1 인카운터
+## 지역 인카운터
 
-| 방 | 리소스 |
-|----|--------|
-| NORMAL | `encounters/normal_slimes.tres` (슬라임 ×2, 후퇴 가능) |
-| BOSS | `encounters/boss_brute.tres` (후퇴 불가) |
+게시판 `dungeon_id` → [`RegionEncounters`](../../data/combat/region_encounters.gd) → `encounters/{region}/normal.tres` · `boss.tres`.  
+에디터 단독 실행·알 수 없는 id → `cemetery`. 구 `normal_slimes` / `boss_brute`는 폴백·디버그용.
 
-방 슬롯: `basic_room` `AllySlot0` / `EnemySlot0..2`.
+| 지역 | NORMAL | BOSS |
+|------|--------|------|
+| cemetery | Skeleton + Watcher | Bone Guardian |
+| grove | Ratwolf + Spider | Nest Mother |
+| mansion | Ghoul + Vampire | Vampire Lord |
+| battlefield | Ghost + Goblin | War Specter |
+
+방 슬롯: `basic_room` `AllySlot0` / `EnemySlot0..2`. 유닛 표시명 `tr(display_name)`.
 
 ---
 

@@ -5,8 +5,9 @@ signal combat_started
 signal combat_finished(result: String)
 
 const RULES_PATH := "res://data/combat/combat_rules.tres"
-const NORMAL_ENCOUNTER_PATH := "res://data/combat/encounters/normal_slimes.tres"
-const BOSS_ENCOUNTER_PATH := "res://data/combat/encounters/boss_brute.tres"
+const FALLBACK_NORMAL_PATH := "res://data/combat/encounters/normal_slimes.tres"
+const FALLBACK_BOSS_PATH := "res://data/combat/encounters/boss_brute.tres"
+const RegionEncountersScript := preload("res://data/combat/region_encounters.gd")
 
 var session: CombatSession
 var arena: CombatArena
@@ -14,6 +15,7 @@ var hud: CombatHud
 var ui_manager: UIManager
 var floor_map: FloorMap
 var room_host: RoomHost
+var dungeon_id: String = "cemetery"
 
 var _rules: CombatRules
 var _normal_encounter: EncounterDef
@@ -28,7 +30,8 @@ func setup(
 	p_room_host: RoomHost,
 	p_session: CombatSession,
 	p_arena: CombatArena,
-	p_hud: CombatHud
+	p_hud: CombatHud,
+	p_dungeon_id: String = ""
 ) -> void:
 	ui_manager = p_ui_manager
 	floor_map = p_floor_map
@@ -39,8 +42,7 @@ func setup(
 	_rules = load(RULES_PATH) as CombatRules
 	if _rules == null:
 		_rules = CombatRules.new()
-	_normal_encounter = load(NORMAL_ENCOUNTER_PATH) as EncounterDef
-	_boss_encounter = load(BOSS_ENCOUNTER_PATH) as EncounterDef
+	set_dungeon_id(p_dungeon_id)
 	if session:
 		session.setup(_rules)
 		if not session.combat_ended.is_connected(_on_combat_ended):
@@ -50,6 +52,17 @@ func setup(
 		if hud:
 			hud.bind_session(session)
 			hud.set_retreat_callback(Callable(self, "request_retreat"))
+
+
+func set_dungeon_id(p_dungeon_id: String) -> void:
+	dungeon_id = RegionEncountersScript.normalize_region(p_dungeon_id)
+	var pair: Dictionary = RegionEncountersScript.load_pair(dungeon_id)
+	_normal_encounter = pair.get("normal") as EncounterDef
+	_boss_encounter = pair.get("boss") as EncounterDef
+	if _normal_encounter == null:
+		_normal_encounter = load(FALLBACK_NORMAL_PATH) as EncounterDef
+	if _boss_encounter == null:
+		_boss_encounter = load(FALLBACK_BOSS_PATH) as EncounterDef
 
 
 func is_active() -> bool:

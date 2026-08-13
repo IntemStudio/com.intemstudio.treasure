@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatUnitDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/combat/combat_unit_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/units/goblin_stats.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "goblin"
+display_name = "Goblin"
+side = 1
+archetype = 2
+body_color = Color(0.4, 0.5, 0.28, 1)
+face_left = true
+stats = ExtResource("2")
+level = 1
+xp_reward = 22
+target_priority = 0

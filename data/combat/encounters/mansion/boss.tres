@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EncounterDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/combat/encounter_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/units/vampire_lord.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "mansion_boss"
+enemy_level = 2
+round_index = 1
+enemies = [ExtResource("2")]
+can_retreat = false
+ally_origin = Vector2(280, 420)
+enemy_origin = Vector2(1100, 420)

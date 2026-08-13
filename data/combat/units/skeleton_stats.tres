@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CombatStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/combat/combat_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+damage_min = 6
+damage_max = 10
+max_hp = 42
+defense = 5.0
+attack_speed = 0.0

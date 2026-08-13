@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatUnitDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/combat/combat_unit_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/units/ghoul_stats.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "ghoul"
+display_name = "Ghoul"
+side = 1
+archetype = 2
+body_color = Color(0.45, 0.55, 0.4, 1)
+face_left = true
+stats = ExtResource("2")
+level = 1
+xp_reward = 24
+target_priority = 0

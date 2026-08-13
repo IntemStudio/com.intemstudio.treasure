@@ -215,6 +215,18 @@ COMBAT_RETREAT,Retreat,후퇴
 COMBAT_SPEED,Speed %s,배속 %s
 Slime,Slime,슬라임
 Brute,Brute,브루트
+Skeleton,Skeleton,해골
+Watcher,Watcher,감시자
+Bone Guardian,Bone Guardian,뼈 수호자
+Ratwolf,Ratwolf,랫울프
+Spider,Spider,거미
+Nest Mother,Nest Mother,둥지 어미
+Ghoul,Ghoul,구울
+Vampire,Vampire,뱀파이어
+Vampire Lord,Vampire Lord,뱀파이어 군주
+Ghost,Ghost,유령
+Goblin,Goblin,고블린
+War Specter,War Specter,전쟁 망령
 DEV_FORCE_ENCOUNTER,Force Encounter,강제 조우
 DEV_FORCE_WIN,Force Win,강제 승리
 DEV_FORCE_LOSE,Force Lose,강제 패배

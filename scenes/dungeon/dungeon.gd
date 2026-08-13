@@ -2,6 +2,7 @@ extends Node2D
 
 const ROOM_COUNT := 12
 const COMBAT_HUD_SCENE := preload("res://ui/combat/combat_hud.tscn")
+const RegionEncountersScript := preload("res://data/combat/region_encounters.gd")
 
 @onready var floor_map: FloorMap = $FloorMap
 @onready var room_host: RoomHost = $RoomHost
@@ -35,9 +36,11 @@ func _ready() -> void:
 	var run := SaveManager.take_pending_run()
 	var seed_value: int
 	var room_count: int
+	var dungeon_id: String = str(RegionEncountersScript.DEFAULT_REGION)
 	if not run.is_empty():
 		seed_value = int(run.get("seed", randi()))
 		room_count = int(run.get("room_count", ROOM_COUNT))
+		dungeon_id = str(run.get("dungeon_id", RegionEncountersScript.DEFAULT_REGION))
 	else:
 		# Editor direct-run fallback (no village challenge).
 		seed_value = randi()
@@ -48,7 +51,13 @@ func _ready() -> void:
 	ui_manager.bind_combat(encounter_director)
 
 	encounter_director.setup(
-		ui_manager, floor_map, room_host, combat_session, combat_arena, combat_hud
+		ui_manager,
+		floor_map,
+		room_host,
+		combat_session,
+		combat_arena,
+		combat_hud,
+		dungeon_id
 	)
 	if not floor_map.room_changed.is_connected(_on_room_changed):
 		floor_map.room_changed.connect(_on_room_changed)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatUnitDef" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/combat/combat_unit_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/units/bone_guardian_stats.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "bone_guardian"
+display_name = "Bone Guardian"
+side = 1
+archetype = 4
+body_color = Color(0.85, 0.82, 0.7, 1)
+face_left = true
+stats = ExtResource("2")
+level = 2
+xp_reward = 90
+target_priority = 0
