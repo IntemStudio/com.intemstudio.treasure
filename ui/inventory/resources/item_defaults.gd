@@ -154,7 +154,8 @@ static func create_field_pike() -> ItemData:
 		16, 4, "strength", 18.4, 12,
 		[&"weapon", &"polearm", &"melee"],
 		[&"weapon", &"element"],
-		[_affix("damage_all", 2.0, "+2 Damage to All")]
+		[_affix("damage_all", 2.0, "+2 Damage to All")],
+		true
 	)
 
 
@@ -362,7 +363,8 @@ static func _weapon(
 	required_value: int,
 	rune_tags: Array[StringName],
 	gem_tags: Array[StringName],
-	affixes: Array
+	affixes: Array,
+	two_handed: bool = false
 ) -> ItemData:
 	var item := ItemData.new()
 	item.id = id
@@ -379,6 +381,7 @@ static func _weapon(
 	item.required_value = required_value
 	item.weight = weight
 	item.equip_slot = equip_slot
+	item.two_handed = two_handed
 	item.compatible_rune_tags = rune_tags
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)

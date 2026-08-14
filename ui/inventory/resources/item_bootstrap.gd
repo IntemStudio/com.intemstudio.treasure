@@ -37,6 +37,7 @@ static func create_claymore() -> ItemData:
 	item.durability_max = 100
 	item.weight = 29.6
 	item.equip_slot = "main_hand"
+	item.two_handed = true
 	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
 	item.compatible_gem_tags = [&"weapon", &"element", &"condition"]
 	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)

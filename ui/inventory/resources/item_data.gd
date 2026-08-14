@@ -38,6 +38,7 @@ enum ItemRarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 @export var quantity: int = 1
 
 @export var equip_slot: String = ""
+@export var two_handed: bool = false
 
 @export var socket_layout: SocketLayout
 @export var compatible_rune_tags: Array[StringName] = []
@@ -51,6 +52,13 @@ func ensure_socket_layout() -> void:
 	if socket_layout != null:
 		return
 	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+
+
+func is_two_handed() -> bool:
+	if two_handed:
+		return true
+	var t := item_type.to_lower()
+	return t.contains("two handed") or t.contains("two-handed")
 
 
 func get_rarity_color() -> Color:

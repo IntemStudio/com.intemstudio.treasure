@@ -11,6 +11,8 @@ signal slot_activated(slot_id: String)
 var slot_id: String = ""
 var _selected: bool = false
 var _hovered: bool = false
+var _blocked: bool = false
+var _item: ItemData
 
 
 func _ready() -> void:
@@ -23,7 +25,7 @@ func _ready() -> void:
 
 
 func _on_locale_changed(_locale: String) -> void:
-	empty_label.text = tr("Empty")
+	_refresh_labels()
 
 
 func setup(id: String, slot_texture: Texture2D = null) -> void:
@@ -33,15 +35,27 @@ func setup(id: String, slot_texture: Texture2D = null) -> void:
 
 
 func set_item(item: ItemData) -> void:
-	if item:
-		name_label.text = tr(item.display_name)
+	_item = item
+	_refresh_labels()
+	_apply_visual_state()
+
+
+func set_blocked(blocked: bool) -> void:
+	_blocked = blocked
+	_refresh_labels()
+	_apply_visual_state()
+
+
+func _refresh_labels() -> void:
+	if _item:
+		name_label.text = tr(_item.display_name)
 		name_label.visible = true
 		empty_label.visible = false
 	else:
 		name_label.visible = false
 		name_label.text = ""
 		empty_label.visible = true
-	_apply_visual_state()
+		empty_label.text = tr("Two-handed") if _blocked else tr("Empty")
 
 
 func set_selected(is_selected: bool) -> void:
@@ -60,7 +74,7 @@ func _apply_visual_state() -> void:
 	name_label.add_theme_color_override("font_color", color)
 	empty_label.add_theme_color_override(
 		"font_color",
-		UIColors.GOLD if _selected else Color(0.55, 0.53, 0.5, 1)
+		UIColors.GOLD if _selected else (UIColors.TEXT_MUTED if _blocked else Color(0.55, 0.53, 0.5, 1))
 	)
 
 

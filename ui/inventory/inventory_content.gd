@@ -417,6 +417,8 @@ func _refresh_equipment() -> void:
 	for slot_id in _equipment_slots.keys():
 		var slot: EquipmentSlot = _equipment_slots[slot_id]
 		slot.set_item(inventory.equipped.get(slot_id))
+		var blocked := slot_id == "off_hand" and inventory.is_two_handed_equipped()
+		slot.set_blocked(blocked)
 		slot.set_selected(slot_id == _selected_equip_slot)
 
 
@@ -528,9 +530,8 @@ func _try_equip() -> void:
 	if slot_id == "":
 		return
 	var grid_index := _get_selected_grid_index()
-	var previous: ItemData = inventory.equipped.get(slot_id)
-	inventory.equipped[slot_id] = item
-	inventory.slots[grid_index] = previous
+	if not inventory.equip_from_bag(grid_index):
+		return
 	item_equipped.emit(item, slot_id)
 	_rebuild_resonance()
 	_refresh_all()

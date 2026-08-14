@@ -57,6 +57,95 @@ func find_empty_slot() -> int:
 	return -1
 
 
+func is_two_handed_equipped() -> bool:
+	var main: ItemData = equipped.get("main_hand") as ItemData
+	return main != null and main.is_two_handed()
+
+
+func can_equip_from_bag(grid_index: int) -> bool:
+	ensure_grid_size()
+	if grid_index < 0 or grid_index >= slots.size():
+		return false
+	var item: ItemData = slots[grid_index]
+	if item == null:
+		return false
+	var slot := get_slot_for_equip(item)
+	if slot.is_empty():
+		return false
+	if item.is_two_handed():
+		return _two_hand_bag_space_ok(grid_index)
+	if slot == "off_hand" and is_two_handed_equipped():
+		return _off_hand_replaces_two_hand_ok(grid_index)
+	return true
+
+
+func equip_from_bag(grid_index: int) -> bool:
+	if not can_equip_from_bag(grid_index):
+		return false
+	var item: ItemData = slots[grid_index]
+	if item.is_two_handed():
+		var returning: Array[ItemData] = []
+		var main: ItemData = equipped.get("main_hand") as ItemData
+		var off: ItemData = equipped.get("off_hand") as ItemData
+		if main:
+			returning.append(main)
+		if off:
+			returning.append(off)
+		slots[grid_index] = null
+		equipped["main_hand"] = item
+		equipped["off_hand"] = null
+		for returned in returning:
+			var idx := find_empty_slot()
+			if idx < 0:
+				return false
+			slots[idx] = returned
+		return true
+	var slot := get_slot_for_equip(item)
+	if slot == "off_hand" and is_two_handed_equipped():
+		return _equip_off_hand_over_two_hand(grid_index, item)
+	var previous: ItemData = equipped.get(slot) as ItemData
+	equipped[slot] = item
+	slots[grid_index] = previous
+	return true
+
+
+func _two_hand_bag_space_ok(grid_index: int) -> bool:
+	var returning := 0
+	if equipped.get("main_hand") != null:
+		returning += 1
+	if equipped.get("off_hand") != null:
+		returning += 1
+	return _bag_empty_count(grid_index) >= returning
+
+
+func _off_hand_replaces_two_hand_ok(grid_index: int) -> bool:
+	if equipped.get("off_hand") == null:
+		return true
+	return _bag_empty_count(grid_index) >= 2
+
+
+func _equip_off_hand_over_two_hand(grid_index: int, item: ItemData) -> bool:
+	var main: ItemData = equipped.get("main_hand") as ItemData
+	var off: ItemData = equipped.get("off_hand") as ItemData
+	slots[grid_index] = main
+	equipped["main_hand"] = null
+	equipped["off_hand"] = item
+	if off:
+		var idx := find_empty_slot()
+		if idx < 0:
+			return false
+		slots[idx] = off
+	return true
+
+
+func _bag_empty_count(grid_index: int) -> int:
+	var empty := 0
+	for i in range(slots.size()):
+		if slots[i] == null or i == grid_index:
+			empty += 1
+	return empty
+
+
 func get_slot_for_equip(item: ItemData) -> String:
 	if item == null:
 		return ""

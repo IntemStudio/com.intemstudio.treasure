@@ -28,3 +28,4 @@ durability = 100
 durability_max = 100
 weight = 29.6
 equip_slot = "main_hand"
+two_handed = true
