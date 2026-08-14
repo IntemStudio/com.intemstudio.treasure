@@ -1,6 +1,7 @@
 # 마을 허브 / 도전 게시판
 
 **미구현 후속:** 이어하기 던전 복귀 · 후퇴=원정 포기 · 여관/상점. **현황(구조):** [`docs/architecture/village.md`](../architecture/village.md).  
+상점 가격: [`shop.md`](shop.md).  
 다키스트 던전 1의 햄릿(허브) + Embark(원정 출발)를 참고한 루프.  
 런 파일: [`save-load.md`](save-load.md) v2. 층 생성: [`map.md`](map.md). 전투 종료: [`combat.md`](combat.md).
 
@@ -241,7 +242,7 @@ Dungeon.gd: consume RunParams → floor_map.generate(seed, room_count)
 ## v2 — 햄릿 확장
 
 - 여관: 유료 또는 무료 HP/마나 회복 (입장 시 자동 풀회복을 여관으로 옮길지 구현 직전)
-- 상점: 인벤과 별도 NPC. 메뉴 인벤은 유지
+- 상점: 인벤과 별도 NPC. 메뉴 인벤은 유지. 구매·판매가는 [`shop.md`](shop.md) `ShopPricing`
 - 보급(횃불·식량): 전투 스태미나/피로와 같이 검토 — 새 스탯이 아니라 Stamina 상한/재생 ([`stats.md`](stats.md))
 - 파티 편성: 전투 [`combat.md`](combat.md) 다수 아군 이후
 - 길이별 적 레벨·방당 랜덤 조우
@@ -263,6 +264,7 @@ Dungeon.gd: consume RunParams → floor_map.generate(seed, room_count)
 | [`game-log.md`](game-log.md) | `return_to_village` 시 로그 `clear`. v1 제단 문구는 로그 필수 아님 |
 | [`settings.md`](../architecture/settings.md) | v1 나가기 타이틀 유지. v1.1 던전→마을 |
 | [`equipment.md`](equipment.md) | 제단 구현됨. 책장 격자·여관은 후속. 던전에서 카드 등록하지 않음 |
+| [`shop.md`](shop.md) | v2 상점이 `ShopPricing`을 호출. 인벤 탭에 거래 없음 |
 
 ---
 

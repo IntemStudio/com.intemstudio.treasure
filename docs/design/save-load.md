@@ -49,10 +49,13 @@ SaveSerializer.run_equipment_snapshot(inventory)
 
 `load_run`은 읽기만. 프로필·마을이 던전 씬으로 보내지 않는다.
 
+아이템 인스턴스 `rarity`는 메타에 저장한다. 로드 시 `apply_rarity`로 소켓을 재구성. `cost` / `gain`은 저장하지 않는다 ([`shop.md`](shop.md)).
+
 ---
 
 ## 비목표 (당분간)
 
 - 클라우드 동기화, 멀티플레이어
 - `ItemData` 전체 JSON 덤프, `character_stats.tres`에 직접 세이브
+- 아이템 JSON에 `cost` / `gain` (가격은 [`shop.md`](shop.md)가 재계산)
 - 암호화 (필요 시 v1.1 HMAC 이후)

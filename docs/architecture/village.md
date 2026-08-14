@@ -1,7 +1,7 @@
 # 마을 허브 / 도전 게시판
 
 프로필 선택 후 **마을**이 플레이 허브. 도전 게시판에서 확정한 뒤에만 던전 맵을 생성한다. 게시판 옆에 **등록 제단**.  
-후속(이어하기 던전 복귀·여관): [`docs/design/village.md`](../design/village.md). 제단 데이터: [`equipment.md`](equipment.md).
+후속(이어하기 던전 복귀·여관·상점): [`docs/design/village.md`](../design/village.md). 제단 데이터: [`equipment.md`](equipment.md). 상점 가격: [`docs/design/shop.md`](../design/shop.md).
 
 ---
 
