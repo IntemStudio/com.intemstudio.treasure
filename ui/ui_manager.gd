@@ -6,7 +6,7 @@ const DEV_OVERLAY_SCENE := preload("res://ui/dev/dev_overlay.tscn")
 const GAME_HUD_SCENE := preload("res://ui/hud/game_hud.tscn")
 const LOOT_CHOICE_SCENE := preload("res://ui/loot/loot_choice_overlay.tscn")
 
-enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3 }
+enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5 }
 
 signal input_device_changed(using_gamepad: bool)
 signal popup_visibility_changed(is_open: bool)
@@ -58,6 +58,7 @@ func _ready() -> void:
 	_hud.bind_game_log(game_log)
 	_hud.setup(character_stats, inventory_data, location_id)
 	_hud.map_open_requested.connect(_on_hud_map_open_requested)
+	_hud.menu_tab_requested.connect(open_tab)
 
 	var menu_shell_scene := load(MENU_SHELL_PATH) as PackedScene
 	if menu_shell_scene == null:
@@ -137,6 +138,8 @@ func set_hub_mode(enabled: bool) -> void:
 			refresh_character_views()
 	if _shell and _shell.has_method("set_hub_mode"):
 		_shell.set_hub_mode(enabled)
+	if _hud:
+		_hud.set_hub_mode(enabled)
 
 
 func set_challenge_board_open(open: bool) -> void:
@@ -149,6 +152,8 @@ func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
 	hub_mode = false
 	if _shell and _shell.has_method("set_hub_mode"):
 		_shell.set_hub_mode(false)
+	if _hud:
+		_hud.set_hub_mode(false)
 	unbind_dungeon()
 	floor_map = p_floor_map
 	room_host = p_room_host
@@ -239,20 +244,32 @@ func _on_floor_room_changed(pos: Vector2i) -> void:
 func open_tab(tab: int) -> void:
 	if challenge_board_open:
 		return
-	if hub_mode and tab == Tab.MAP:
-		return
 	if (
 		tab != Tab.INVENTORY
 		and tab != Tab.MAP
 		and tab != Tab.STATS
 		and tab != Tab.SETTINGS
+		and tab != Tab.BOARD
+		and tab != Tab.SHELF
 	):
 		return
+	if hub_mode and tab == Tab.MAP:
+		return
 	_active_tab = tab
-	_last_tab = tab
+	if tab != Tab.BOARD and tab != Tab.SHELF:
+		_last_tab = tab
 	_shell.open_tab(tab, character_stats, inventory_data)
 	_menu_open = true
 	popup_visibility_changed.emit(true)
+
+
+func get_active_tab() -> int:
+	return _active_tab
+
+
+func refresh_bookshelf() -> void:
+	if _shell and _shell.has_method("refresh_bookshelf"):
+		_shell.refresh_bookshelf()
 
 
 func _on_hud_map_open_requested() -> void:
@@ -279,9 +296,12 @@ func _on_tab_changed(tab: int) -> void:
 		or tab == Tab.INVENTORY
 		or tab == Tab.MAP
 		or tab == Tab.SETTINGS
+		or tab == Tab.BOARD
+		or tab == Tab.SHELF
 	):
 		_active_tab = tab
-		_last_tab = tab
+		if tab != Tab.BOARD and tab != Tab.SHELF:
+			_last_tab = tab
 
 
 func apply_save_game(sg: SaveGame) -> void:

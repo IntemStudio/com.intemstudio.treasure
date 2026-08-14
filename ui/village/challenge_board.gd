@@ -2,21 +2,19 @@ class_name ChallengeBoard
 extends Control
 
 signal closed
+signal request_close
 signal challenge_confirmed(params: Dictionary)
 
 enum FocusColumn { REGION = 0, LENGTH = 1 }
 
 const DUNGEON_SCENE := "res://scenes/dungeon/dungeon.tscn"
-const FOOTER_SCENE := preload("res://ui/shared/footer_prompts.tscn")
 
-@onready var title_label: Label = %TitleLabel
 @onready var region_section_label: Label = %RegionSectionLabel
 @onready var length_section_label: Label = %LengthSectionLabel
 @onready var region_list: VBoxContainer = %RegionList
 @onready var length_list: VBoxContainer = %LengthList
 @onready var detail_title: Label = %DetailTitle
 @onready var detail_body: Label = %DetailBody
-@onready var footer_host: Control = %FooterHost
 
 var _ui_manager: UIManager
 var _footer: FooterPrompts
@@ -34,54 +32,50 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_DISABLED
 	_build_region_list()
 	_build_length_list()
-	_ensure_footer()
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 	_refresh_texts()
 
 
-func setup(ui_manager: UIManager) -> void:
+func setup(ui_manager: UIManager, footer: FooterPrompts = null) -> void:
 	_ui_manager = ui_manager
+	if footer:
+		_footer = footer
+	if _footer and not _footer_connected:
+		_footer.prompt_activated.connect(_on_footer_prompt)
+		_footer_connected = true
 
 
-func open() -> void:
+func activate(_stats: CharacterStats = null, _inventory: InventoryData = null) -> void:
 	_active = true
 	visible = true
-	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
-	get_tree().paused = true
+	process_mode = Node.PROCESS_MODE_INHERIT
 	_focus_column = FocusColumn.REGION
 	_region_index = 0
 	_length_index = 1
 	_refresh_texts()
 	_apply_focus()
 	_sync_footer()
-	if _ui_manager:
-		_ui_manager.set_challenge_board_open(true)
+
+
+func deactivate() -> void:
+	_active = false
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func open() -> void:
+	activate()
 
 
 func close() -> void:
 	if not _active:
 		return
-	_active = false
-	visible = false
-	process_mode = Node.PROCESS_MODE_DISABLED
-	get_tree().paused = false
-	if _ui_manager:
-		_ui_manager.set_challenge_board_open(false)
+	request_close.emit()
 	closed.emit()
 
 
 func is_open() -> bool:
 	return _active
-
-
-func _ensure_footer() -> void:
-	if footer_host == null:
-		return
-	if _footer != null:
-		return
-	_footer = FOOTER_SCENE.instantiate() as FooterPrompts
-	footer_host.add_child(_footer)
-	_footer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
 func _make_list_button(label_key: String) -> Button:
@@ -127,9 +121,6 @@ func _build_length_list() -> void:
 
 
 func _refresh_texts() -> void:
-	if title_label:
-		title_label.text = tr("Challenge")
-		title_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
 	if region_section_label:
 		region_section_label.text = tr("Region")
 		region_section_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
@@ -171,20 +162,11 @@ func _refresh_detail() -> void:
 
 func _style_button(button: Button, selected: bool, column_active: bool) -> void:
 	var focused := selected and column_active
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_width_left = 3
-	style.border_color = UIColors.SELECT_BORDER if focused else Color(0, 0, 0, 0)
-	style.content_margin_left = 16
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	style.content_margin_right = 4
-	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
-		button.add_theme_stylebox_override(state_name, style)
-	var color := UIColors.GOLD if selected else UIColors.TEXT_MUTED
-	button.add_theme_color_override("font_color", color)
-	button.add_theme_color_override("font_hover_color", UIColors.GOLD)
-	button.add_theme_color_override("font_focus_color", color)
+	UISelectStyle.apply_button(button, focused, UIColors.TEXT_MUTED, true)
+	# Selected row stays gold even when the other column owns the left bar.
+	if selected and not focused:
+		button.add_theme_color_override("font_color", UIColors.GOLD)
+		button.add_theme_color_override("font_focus_color", UIColors.GOLD)
 
 
 func _apply_focus() -> void:
@@ -213,19 +195,17 @@ func _apply_focus() -> void:
 
 
 func _sync_footer() -> void:
-	_ensure_footer()
 	if _footer == null:
 		return
 	_footer.set_prompts([
 		{"button": "Esc", "label": tr("Back"), "action": "back"},
 		{"button": "Enter", "label": tr("Challenge"), "action": "challenge"},
 	])
-	if not _footer_connected:
-		_footer.prompt_activated.connect(_on_footer_prompt)
-		_footer_connected = true
 
 
 func _on_footer_prompt(action: String) -> void:
+	if not visible:
+		return
 	match action:
 		"back":
 			close()
@@ -272,12 +252,7 @@ func _confirm_challenge() -> void:
 			run.merge(SaveSerializer.run_equipment_snapshot(_ui_manager.inventory_data), true)
 		SaveManager.save_run(SaveManager.current_slot, run)
 	challenge_confirmed.emit(params)
-	_active = false
-	visible = false
-	process_mode = Node.PROCESS_MODE_DISABLED
-	get_tree().paused = false
-	if _ui_manager:
-		_ui_manager.set_challenge_board_open(false)
+	request_close.emit()
 	get_tree().change_scene_to_file.call_deferred(DUNGEON_SCENE)
 
 

@@ -62,11 +62,11 @@ func get_run_path(slot: int) -> String:
 
 
 func get_card_meta() -> Dictionary:
-	return CardRegistrationService.ensure_meta(_card_meta)
+	return CardRegistrationService.ensure_meta_seeded(_card_meta)
 
 
 func set_card_meta(meta: Dictionary) -> void:
-	_card_meta = CardRegistrationService.ensure_meta(meta)
+	_card_meta = CardRegistrationService.ensure_meta_seeded(meta)
 
 
 func has_save(slot: int) -> bool:
@@ -123,7 +123,6 @@ func new_game(slot: int) -> SaveGame:
 		"created_at": _now_iso(),
 		"updated_at": _now_iso(),
 		"play_time_sec": 0,
-		"character_name": save.character.character_name,
 		"level": save.character.level,
 	}
 	current_slot = slot
@@ -160,18 +159,17 @@ func save_game(slot: int, character: CharacterStats, inventory: InventoryData) -
 		"created_at": created_at,
 		"updated_at": _now_iso(),
 		"play_time_sec": int(play_time_sec),
-		"character_name": character.character_name,
 		"level": character.level,
 	}
 	meta = CardRegistrationService.ensure_meta(meta)
-	for key in ["registered_cards", "unlocked_shelves", "card_pity", "discovered_cards"]:
+	for key in ["registered_cards", "unlocked_shelves", "card_pity", "open_cards"]:
 		if _card_meta.has(key):
 			meta[key] = (_card_meta[key] as Variant)
 			if meta[key] is Array:
 				meta[key] = (meta[key] as Array).duplicate(true)
 			elif meta[key] is Dictionary:
 				meta[key] = (meta[key] as Dictionary).duplicate(true)
-	_card_meta = CardRegistrationService.ensure_meta(meta)
+	_card_meta = CardRegistrationService.ensure_meta_seeded(meta)
 	var data := SaveSerializer.to_dict(character, inventory, meta, SAVE_VERSION)
 	var err := _write_atomic(get_slot_path(slot), data)
 	var ok := err == OK
@@ -216,7 +214,7 @@ func load_game(slot: int) -> SaveGame:
 	current_slot = slot
 	play_time_sec = float((save.meta as Dictionary).get("play_time_sec", 0))
 	_slot_created_at[slot] = str(save.meta.get("created_at", _now_iso()))
-	_card_meta = CardRegistrationService.ensure_meta(save.meta)
+	_card_meta = CardRegistrationService.ensure_meta_seeded(save.meta)
 	load_completed.emit(slot, true)
 	return save
 
@@ -246,6 +244,19 @@ func clear_run(slot: int) -> Error:
 	var path := get_run_path(slot)
 	if FileAccess.file_exists(path):
 		return DirAccess.remove_absolute(path)
+	return OK
+
+
+## Disk-only: removes slot_N.json. Leaves current_slot / in-memory state alone.
+func clear_meta(slot: int) -> Error:
+	if not _is_valid_slot(slot):
+		return ERR_INVALID_PARAMETER
+	var path := get_slot_path(slot)
+	if FileAccess.file_exists(path):
+		var err := DirAccess.remove_absolute(path)
+		if err != OK:
+			return err
+	_slot_created_at.erase(slot)
 	return OK
 
 

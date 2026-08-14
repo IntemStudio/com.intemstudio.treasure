@@ -68,7 +68,7 @@ func _ready() -> void:
 		floor_map.room_changed.connect(_on_room_changed)
 
 	room_host.enter_room(Vector2i.ZERO)
-	_persist_run_progress()
+	persist_run_progress()
 	if camera:
 		camera.make_current()
 
@@ -101,11 +101,12 @@ func _on_room_changed(pos: Vector2i) -> void:
 	var room := floor_map.get_room(pos)
 	if encounter_director:
 		encounter_director.on_room_entered(room)
-	_persist_run_progress()
+	persist_run_progress()
 
 
-func _persist_run_progress() -> void:
-	if SaveManager.current_slot < 0:
+func persist_run_progress(slot: int = -1) -> void:
+	var target := slot if slot >= 0 else SaveManager.current_slot
+	if target < 0:
 		return
 	_run_state["current"] = {"x": floor_map.get_current().x, "y": floor_map.get_current().y}
 	var visited: Array = []
@@ -123,4 +124,4 @@ func _persist_run_progress() -> void:
 	_run_state["cleared"] = cleared
 	if ui_manager and ui_manager.inventory_data:
 		_run_state.merge(SaveSerializer.run_equipment_snapshot(ui_manager.inventory_data), true)
-	SaveManager.save_run(SaveManager.current_slot, _run_state)
+	SaveManager.save_run(target, _run_state)

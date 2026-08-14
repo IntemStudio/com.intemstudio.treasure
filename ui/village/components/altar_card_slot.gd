@@ -9,6 +9,9 @@ var _selected: bool = false
 var _hovered: bool = false
 var _rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
 var _has_entry: bool = false
+var _registered: bool = false
+var _owned: bool = false
+var _shelf_state: int = -1  # CardRegistrationService.CellState or -1 for altar mode
 
 @onready var kind_label: Label = %KindLabel
 @onready var name_label: Label = %NameLabel
@@ -29,6 +32,9 @@ func setup(index: int) -> void:
 
 func clear() -> void:
 	_has_entry = false
+	_registered = false
+	_owned = false
+	_shelf_state = -1
 	if kind_label:
 		kind_label.text = ""
 		kind_label.visible = false
@@ -42,51 +48,87 @@ func clear() -> void:
 
 func set_card(
 	display_name: String,
-	kind: String,
 	rarity: ItemData.ItemRarity,
-	equipped: bool
+	equipped: bool,
+	registered: bool = false,
+	owned: bool = true
 ) -> void:
 	_has_entry = true
+	_shelf_state = -1
 	_rarity = rarity
+	_registered = registered
+	_owned = owned
 	if kind_label:
-		kind_label.visible = true
-		match kind:
-			"rune":
-				kind_label.text = tr("Rune")
-			"gem":
-				kind_label.text = tr("Gem")
-			"weapon":
-				kind_label.text = tr("Weapon")
-			"armor":
-				kind_label.text = tr("Armor")
-			_:
-				kind_label.text = tr(kind)
+		kind_label.visible = false
 	if name_label:
 		name_label.visible = true
 		name_label.text = display_name
 	if equipped_label:
-		equipped_label.visible = equipped
-		equipped_label.text = tr("Equipped")
+		if registered:
+			equipped_label.visible = true
+			equipped_label.text = tr("Registered")
+		elif equipped:
+			equipped_label.visible = true
+			equipped_label.text = tr("Equipped")
+		else:
+			equipped_label.visible = false
+	_apply_visual_state()
+
+
+func set_shelf_cell(
+	state: int,
+	display_name: String = "",
+	rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
+) -> void:
+	_shelf_state = state
+	_rarity = rarity
+	_registered = state == CardRegistrationService.CellState.REGISTERED
+	_owned = (
+		state == CardRegistrationService.CellState.OPEN
+		or state == CardRegistrationService.CellState.REGISTERED
+	)
+	match state:
+		CardRegistrationService.CellState.EMPTY:
+			clear()
+			return
+		CardRegistrationService.CellState.SHELF_LOCKED:
+			_has_entry = true
+			if name_label:
+				name_label.visible = true
+				name_label.text = "—"
+			if equipped_label:
+				equipped_label.visible = true
+				equipped_label.text = tr("SHELF_LOCKED")
+		CardRegistrationService.CellState.FOG:
+			_has_entry = true
+			if name_label:
+				name_label.visible = true
+				name_label.text = "?"
+			if equipped_label:
+				equipped_label.visible = false
+		CardRegistrationService.CellState.OPEN:
+			_has_entry = true
+			if name_label:
+				name_label.visible = true
+				name_label.text = display_name if not display_name.is_empty() else "?"
+			if equipped_label:
+				equipped_label.visible = false
+		CardRegistrationService.CellState.REGISTERED:
+			_has_entry = true
+			if name_label:
+				name_label.visible = true
+				name_label.text = display_name if not display_name.is_empty() else "?"
+			if equipped_label:
+				equipped_label.visible = true
+				equipped_label.text = tr("Registered")
+	if kind_label:
+		kind_label.visible = false
 	_apply_visual_state()
 
 
 func set_selected(is_selected: bool) -> void:
 	_selected = is_selected
 	_apply_visual_state()
-
-
-func _rarity_color() -> Color:
-	match _rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
-		ItemData.ItemRarity.RARE:
-			return UIColors.RARE_GLOW
-		ItemData.ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
-		ItemData.ItemRarity.LEGENDARY:
-			return UIColors.GOLD
-		_:
-			return Color(0.35, 0.34, 0.33)
 
 
 func _apply_visual_state() -> void:
@@ -99,28 +141,34 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"InventorySlot"
 		if _has_entry:
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.06, 0.06, 0.07, 0.7)
-			style.border_color = _rarity_color()
+			style.bg_color = UIColors.SLOT_BG
+			if _shelf_state == CardRegistrationService.CellState.SHELF_LOCKED:
+				style.border_color = UIColors.MAP_LOCKED
+			elif _shelf_state == CardRegistrationService.CellState.FOG:
+				style.border_color = UIColors.SLOT_BG_SOLID
+			elif _registered:
+				style.border_color = UIColors.GOLD
+			elif not _owned:
+				style.border_color = UIColors.SLOT_BG_SOLID
+			else:
+				style.border_color = ItemData.color_for_rarity(_rarity)
 			style.set_border_width_all(2 if _selected else 1)
 			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
+	if (
+		_shelf_state == CardRegistrationService.CellState.SHELF_LOCKED
+		or _shelf_state == CardRegistrationService.CellState.FOG
+	):
+		color = UIColors.TEXT_MUTED
+	elif not _owned and not _registered and not _selected:
+		color = UIColors.TEXT_MUTED
 	if name_label:
 		name_label.add_theme_color_override("font_color", color)
-	if kind_label:
-		var kind_color := Color(0.55, 0.75, 0.95)
-		var kind_text := kind_label.text
-		if kind_text == tr("Gem") or kind_text == tr("Armor"):
-			kind_color = Color(0.85, 0.65, 0.45)
-		elif kind_text == tr("Weapon"):
-			kind_color = Color(0.75, 0.55, 0.85)
-		if _selected:
-			kind_color = UIColors.GOLD
-		kind_label.add_theme_color_override("font_color", kind_color)
 	if equipped_label:
 		equipped_label.add_theme_color_override(
 			"font_color",
-			Color(0.95, 0.75, 0.35) if not _selected else UIColors.GOLD
+			UIColors.GOLD if _selected else UIColors.TEXT_LORE
 		)
 
 

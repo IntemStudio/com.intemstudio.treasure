@@ -1,9 +1,9 @@
 # 장비 · 룬 · 보석 · 공명 — 후속 설계
 
 **현황(구조):** [`docs/architecture/equipment.md`](../architecture/equipment.md).  
-이 문서는 **미구현** 로드맵만 다룬다 (희귀도 경제, 책장 격자, 특수 방). 인벤 소켓 UI는 구현됨.
+이 문서는 **미구현** 로드맵만 다룬다 (희귀도 경제, 특수 방). 인벤 소켓 UI는 구현됨. 서가: [`bookshelf.md`](bookshelf.md) (`shelf.v3`).
 
-관련: [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (기술 4칸) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비) · [`shop.md`](shop.md) (골드 가격. `eq.economy`와 분리).
+관련: [`world.md`](world.md) (단독 사냥꾼·룬·보석·등록=이름 남기기) · [`bookshelf.md`](bookshelf.md) (서가·open_cards) · [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (기술 4칸) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비) · [`shop.md`](shop.md) (골드 가격. `eq.economy`와 분리).
 
 ---
 
@@ -17,10 +17,10 @@
 
 | # | 결정 |
 |---|------|
-| 1 | 룬·보석은 `InventoryData.runes` / `gems`에 둔다. `ItemCategory`와 5×6 장비 격자는 유지. |
+| 1 | 룬·보석은 `InventoryData.runes` / `gems`에 둔다. `ItemCategory`와 분리. 장비는 탭별 `bags` 5×5. |
 | 2 | `ItemData`는 기존 필드 유지. `socket_layout`, 호환 태그, `intrinsic_effects`만 추가. `AttackData` / `SkillData` / `AffixData` 승격은 이 시스템의 전제가 아니다. |
 | 3 | 룬은 `main_hand`만. `off_hand`는 보석·접두사. HUD 4칸 소스는 `equipped.main_hand.skills`. |
-| 4 | 던전은 획득·장착·보관만. 카드 등록은 마을 제단만. |
+| 4 | 던전은 획득·장착·보관만. 카드 등록(봉인)은 마을 서가만. |
 | 5 | 기술 게이지·마나([`stats.md`](stats.md) v1.3)를 룬 발동보다 먼저. 런 JSON([`save-load.md`](save-load.md) v2)을 소켓 디스크 저장보다 먼저. |
 | 6 | 접두사만 `CombatStats` 수치. 보석은 기술 플래그·조건·원소 행동. `CombatStatsBuilder.AFFIX_FIELDS`를 보석이 더하지 않는다. |
 
@@ -39,7 +39,10 @@ NRFW에서 가져올 것은 **희귀도 = 슬롯 구성**이다. Focus 바, 패�
 | **eq.gems** | `GemData`, `ResonanceService` | 구현됨 | eq.runes |
 | **선행 B** | `slot_N_run.json` | 구현됨 (기본) — [`save-load.md`](save-load.md) v2 | — |
 | **eq.persist** | 런에 소켓·룬·보석 인스턴스 | 구현됨 | 선행 B |
-| **eq.register** | 마을 제단, 책장, 메타 카드 | 제단 구현됨 — 책장 격자 UI는 후속 | 메타 JSON은 v1 슬롯으로 가능 |
+| **eq.register** | 마을 서가 봉인, 메타 카드 | shelf.v3에 합침 | 메타 JSON은 v1 슬롯으로 가능 |
+| **shelf.v1** | `unlocked_shelves` 룻 · 제단 분리 | 대체됨 | |
+| **shelf.v2** | 희귀도 단 · E1 · open_cards | 대체 → shelf.v3 | |
+| **shelf.v3** | 룬/보석 판 · 시드 `#1` · 희귀도/E1 없음 | 구현됨 — [`bookshelf.md`](bookshelf.md) | eq.register |
 | **인벤 소켓 UI** | 장비↔MOD 양방향 꽂기/빼기 | 구현됨 → [`architecture/equipment.md`](../architecture/equipment.md) | eq.runes / eq.gems |
 | **eq.economy** | 희귀도별 슬롯·인챈트 소비 튜닝 (골드 아님 — [`shop.md`](shop.md)) | 설계만 | eq.gems |
 | **map v2** | 룬 제단·보석 광맥 등 `room_type` | 설계만 — [`map.md`](map.md) | — |
@@ -67,7 +70,7 @@ ATB 자동 전투
 | 역할 | 현재 |
 |------|------|
 | `ItemData` | `id`, `category`, `rarity`, `equip_slot`, `two_handed`, `attack`/`attack_bonus`, `defense`/`defense_bonus`, `scales_with`(String), `affixes`/`skills`(`Array[Dictionary]`) |
-| `InventoryData` | `slots` 30칸, `EQUIP_SLOTS`, 재화, 퀵 아이템/음식 |
+| `InventoryData` | 탭별 `bags` 25칸, `runes`/`gems` 합산 25, `EQUIP_SLOTS`, 재화, 퀵 아이템/음식 |
 | `ItemCatalog` | 템플릿 `id` → 인스턴스 복제. 세이브는 `id` + 오버라이드 |
 | `CombatStatsBuilder` | 속성 + 장착 방어 + `affixes` 합산의 **유일 경로** |
 | HUD 기술 | `equipped.main_hand.skills` 최대 4, `{button, name, mana_cost, …}` 자동 발동 |
@@ -290,8 +293,8 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 ```text
 던전: 획득 → 장착 또는 InventoryData.runes/gems 보관
-마을 제단: 확인창 → 개체 제거 → 장비 유지 → skills/공명 갱신
-         → 책장 기록 → 인접 후보 갱신
+마을 서가: 확인창 → 개체 제거 → 장비 유지 → skills/공명 갱신
+         → registered_cards + 인접 open_cards
 ```
 
 등록 결과:
@@ -302,33 +305,34 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 보조 보석 등록: 추가 효과만 제거
 ```
 
-확인창에 넣을 것: 장착 여부, 기술 영향, 비활성화될 효과, 카드 번호·책장, 등록 보상, 인접 발견, 복제품/설계도. 해당 개체는 되돌릴 수 없다.
+확인창에 넣을 것: 장착 여부, 기술 영향, 비활성화될 효과, 카드 번호·서가. 해당 개체는 되돌릴 수 없다. 동 id 재봉인 불가.
 
-제단은 도전 게시판·MenuShell 탭이 아닌 **마을 전용 전체화면**. UI는 구현됨. 책장 격자·인접 해금 표시는 후속. [`village.md`](village.md).
+봉인은 `VillageShell` **서가** 탭 (룬|보석). 상세: [`bookshelf.md`](bookshelf.md) (`shelf.v3`).
 
 ---
 
 ## 책장과 세이브
 
-책장은 전투 보드·타일 카드가 아니다. 마을에서 보는 메타 도감. [`combat.md`](combat.md) 타일/카드 비목표를 유지한다.
+책장은 전투 보드·타일 카드가 아니다. 마을에서 보는 메타 도감. **shelf.v3:** [`bookshelf.md`](bookshelf.md).
 
 ```text
-런 slot_N_run.json (선행 B 이후)
+런 slot_N_run.json
   장착 장비, socketed uid, runes[], gems[], 공명 스냅샷, 방, 시드
 
 메타 slot_N.json
-  등록 카드, 책장 해금, 발견 정보, 천장, 설계도
+  registered_cards, open_cards, unlocked_shelves, card_pity
 ```
 
 전멸은 런만 지우고 등록 카드는 남긴다.
 
 ```text
-책장 해금: 해당 희귀도 룬·보석이 보상 풀에 등장 가능
-카드 발견: 위치·정보 공개
-카드 등록: 개체 소모 + 영구 기록
+open_cards: UI 공개 + 드랍 풀 (시작 각 판 #1)
+unlocked_shelves: shelf_rune, shelf_gem (상시)
+card 등록: 개체 소모 + 영구 기록 + 인접 OPEN
 ```
 
-일반 등록은 일반 책장 인접만 연다. 상위 책장을 해금하지 않는다. 인접 계산은 `ShelfDefinition`(또는 도메인 서비스). UI에 격자 연산을 넣지 않는다. 필수 카드는 천장/보장으로 영구 봉인되지 않게 한다.
+인접 계산은 `CardRegistrationService` / `ShelfDefinition`. UI에 격자 연산을 넣지 않는다.
+
 
 ---
 
@@ -336,20 +340,20 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 현재 `room_type`: `START` / `NORMAL` / `BOSS`. 특수 방은 map v2.
 
-방 `win` 지급은 [`loot.md`](loot.md). v1은 장비만 (`ItemCatalog` 복제). 룬·보석 가중치는 loot v1.1 — 소켓·가방(eq.runes / eq.gems)이 먼저. 보상 UI는 호환·공명·등록 영향을 **표시**하고, 판정은 `ResonanceService`와 카탈로그가 한다.
+방 `win` 지급은 [`loot.md`](loot.md). 룬·보석 풀 = `open_cards`.
 
 ---
 
 ## 구현 순서
 
-1~7과 인벤 소켓 UI는 구현됨 ([`architecture/equipment.md`](../architecture/equipment.md)). 남은 것은 8과 특수 방.
+1~7c와 shelf.v3·인벤 소켓 UI는 구현됨 ([`architecture/equipment.md`](../architecture/equipment.md)). 남은 것은 eq.economy와 특수 방.
 
 1. **현황 확인** — `ItemData`, `EQUIP_SLOTS`, 빌더, HUD `skills`, 세이브 `id`+오버라이드.  
-2. **선행 A** — stats v1.3. 부트스트랩 무기 `skills` 이름으로 게이지·마나·스킵을 검증. 룬 없음.  
+2. **선행 A** — stats v1.3.  
 3. **eq.sockets** — `SocketLayout` + 인벤에 칸만 표시.  
-4. **eq.runes** — `RuneData`, `runes[]`, 주무기 소켓 → `skills`에 `name`/`rune_id`. 호환 태그. 자동 발동은 선행 A 경로.  
-5. **eq.gems** — `GemData`, `ResonanceService`, UI에 4상태. 빌더와 수치 중복 없는지 검증.  
-6. **eq.register** — 마을 제단, 메타 카드. 책장 격자 UI는 후속.  
+4. **eq.runes** — `RuneData`, `runes[]`, 주무기 소켓 → `skills`.  
+5. **eq.gems** — `GemData`, `ResonanceService`.  
+6. **eq.register → shelf.v3** — 룬/보석 판 · `open_cards` · 시드 `#1` — [`bookshelf.md`](bookshelf.md).  
 7. **선행 B → eq.persist** — 런 JSON에 `runes`/`gems`/socketed.  
 7b. **인벤 소켓 UI** — 장비↔MOD 꽂기/빼기.  
 8. **eq.economy** — 희귀도별 칸, 인챈트 시 가방으로 반환 UX. 슬롯 수 ≠ 전투력.
@@ -365,9 +369,9 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 - 비호환 룬이 `main_hand`에 들어가지 않는가. `off_hand`에 룬 칸이 없는가.
 - 공명 시 강화 기술이 같은 칸에 적용되는가. 보조 제거 후에도 기본/공명이 남는가.
 - 보석이 `AFFIX_FIELDS`를 더하지 않는가. 합산이 빌더 밖에 없는가.
-- 룬 등록 시 장비가 남고 해당 `skills`만 비는가. NRFW식 장비 파괴가 없는가.
+- 룬 봉인 시 장비가 남고 해당 `skills`만 비는가. NRFW식 장비 파괴가 없는가.
 - 등록 uid를 다시 장착할 수 없는가. 전멸이 메타 카드를 지우지 않는가.
-- 일반 책장 등록이 상위 책장을 열지 않는가.
+- 인접 OPEN이 동 판(룬↔보석 교차 없음)만인가.
 - 고정 시드에서 보상·발견이 재현되는가.
 - 인벤에서 호환 룬만 주무기 소켓에 들어가고, 빼면 `skills`가 되돌아가는가.
 - 양손 장착 시 주·보조가 가방으로 가고, 가방이 가득하면 장착이 거부되는가.
@@ -381,13 +385,14 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 | [`architecture/inventory.md`](../architecture/inventory.md) | 가방 UI·소켓 행·양손·ATK/DEF 비교. 데이터는 [`architecture/equipment.md`](../architecture/equipment.md) |
 | [`architecture/equipment.md`](../architecture/equipment.md) | 구현 현황 |
 | [`stats.md`](stats.md) | 접두사 = 스탯, 기술 = 행동. 룬은 v1.3 게이지의 데이터 소스. 보석은 `AFFIX_FIELDS`에 가산하지 않음 |
-| [`combat.md`](combat.md) | 세션은 `ResonanceResult`만 소비. 마을 책장은 전투 타일/카드가 아님 |
+| [`combat.md`](combat.md) | 세션은 `ResonanceResult`만 소비. 마을 서가는 전투 타일/카드가 아님 |
 | [`hud.md`](hud.md) | 기술 4칸·자동 발동 유지. 전투 중 룬 버튼 없음 |
 | [`save-load.md`](save-load.md) | 등록 카드는 메타. 소켓·룬·보석 인스턴스는 메타 인벤 + 런 스냅샷. 던전 이어하기는 후속 |
-| [`village.md`](village.md) | 제단 구현됨. 책장 격자·여관·상점은 후속. 게시판과 별개 |
+| [`village.md`](village.md) | HubNav 소문·서가. 여관·상점은 후속 |
+| [`bookshelf.md`](bookshelf.md) | shelf.v3 룬/보석 판·봉인·open_cards |
 | [`shop.md`](shop.md) | 골드 가격. `eq.economy`(소켓·인챈트)와 분리 |
 | [`map.md`](map.md) | `START`/`NORMAL`/`BOSS` 유지. 특수 방은 v2 |
-| [`loot.md`](loot.md) | 방 `win` 3택1. 룬·보석은 loot v1.1 |
+| [`loot.md`](loot.md) | 방 `win` 3택1. 룬·보석 풀 = `open_cards` |
 
 ---
 
@@ -396,9 +401,9 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 - `EquipmentDefinition`으로 `ItemData`를 대체
 - `ItemCategory.RUNE` / `GEM`으로 장비 격자에 섞기
 - `off_hand` 룬, HUD 4칸을 주+보조 합산으로 바꾸기
-- 던전 제단에서 카드 등록
+- 던전에서 카드 등록
 - 등록 시 장비 파괴 (NRFW 추출)
 - Focus 바, 수동 룬 버튼, 패링·구르기 입력
 - 보석이 접두사와 같은 키로 수치 합산
-- 전투 보드·타일 카드, 일반 등록으로 상위 책장 해금
+- 전투 보드·타일 카드
 - 루프 히어로 캠프 특성 — 여관/Insight 이후 ([`stats.md`](stats.md))

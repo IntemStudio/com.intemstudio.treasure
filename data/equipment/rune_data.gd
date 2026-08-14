@@ -3,8 +3,7 @@ extends Resource
 
 @export var rune_id: StringName
 @export var display_name: String = ""
-@export var rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
-@export var shelf_id: StringName = &"shelf_common"
+@export var shelf_id: StringName = &"shelf_rune"
 @export var card_number: int = 0
 @export var required_equipment_tags: Array[StringName] = []
 @export var skill_name: String = ""

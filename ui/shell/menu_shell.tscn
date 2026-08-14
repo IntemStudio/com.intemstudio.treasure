@@ -16,34 +16,85 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.02, 0.02, 0.03, 0.72)
+color = Color(0.114, 0.125, 0.129, 0.72)
 
-[node name="Root" type="MarginContainer" parent="Overlay"]
+[node name="Safe" type="MarginContainer" parent="Overlay"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 40
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 80
 
-[node name="Main" type="VBoxContainer" parent="Overlay/Root"]
+[node name="Center" type="CenterContainer" parent="Overlay/Safe"]
 layout_mode = 2
-theme_override_constants/separation = 20
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="TopBar" parent="Overlay/Root/Main" instance=ExtResource("2")]
+[node name="Sheet" type="PanelContainer" parent="Overlay/Safe/Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1440, 800)
+layout_mode = 2
+
+[node name="Main" type="Control" parent="Overlay/Safe/Center/Sheet"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="BodyHost" type="Control" parent="Overlay/Root/Main"]
+[node name="TopBand" type="PanelContainer" parent="Overlay/Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 72.0
+grow_horizontal = 2
+
+[node name="TopBar" parent="Overlay/Safe/Center/Sheet/Main/TopBand" instance=ExtResource("2")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-clip_contents = true
 
-[node name="Footer" parent="Overlay/Root/Main" instance=ExtResource("3")]
+[node name="BottomBand" type="PanelContainer" parent="Overlay/Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -72.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Footer" parent="Overlay/Safe/Center/Sheet/Main/BottomBand" instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_vertical = 3
+alignment = 1
+
+[node name="MidBand" type="MarginContainer" parent="Overlay/Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="BodyHost" type="Control" parent="Overlay/Safe/Center/Sheet/Main/MidBand"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+clip_contents = true

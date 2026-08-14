@@ -1,11 +1,12 @@
 # 장비 · 룬 · 보석 · 공명
 
 주무기 소켓에 룬·보석을 두고 `ResonanceService`가 `skills`를 채운다. 전투는 그 결과만 소비한다.  
-후속(희귀도 경제·책장 격자·특수 방): [`docs/design/equipment.md`](../design/equipment.md).
+후속(희귀도 경제·특수 방): [`docs/design/equipment.md`](../design/equipment.md).  
+서가: [`docs/design/bookshelf.md`](../design/bookshelf.md) (`shelf.v3`).
 
-**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 소켓에 꽂고 뺄 수 있다. 양손 무기는 `off_hand`를 비우고, 보조를 끼면 양손을 해제한다.
+**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 소켓에 꽂고 뺄 수 있다. 마을 **서가** 탭 룬|보석. 룻은 `open_cards` (시작 각 판 `#1`만. 봉인 시 인접 OPEN). 룬·보석 희귀도 없음. `RuneCatalog` / `GemCatalog`는 서가당 템플릿 25개(card_number 1–25, 5×5).
 
-관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md) · [`docs/design/shop.md`](../design/shop.md).
+관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md) · [`shop.md`](shop.md) (`cost`/`gain`은 오버라이드. `eq.economy` ≠ 골드).
 
 ---
 
@@ -18,12 +19,14 @@
 | 보석 | [`gem_data.gd`](../../data/equipment/gem_data.gd) · [`gem_instance.gd`](../../data/equipment/gem_instance.gd) · [`gem_catalog.gd`](../../data/equipment/gem_catalog.gd) |
 | 공명 | [`resonance_service.gd`](../../data/equipment/resonance_service.gd) · [`resonance_result.gd`](../../data/equipment/resonance_result.gd) |
 | 등록 | [`card_registration_service.gd`](../../data/equipment/card_registration_service.gd) |
-| 제단 | [`ui/village/registration_altar.tscn`](../../ui/village/registration_altar.tscn) |
+| 서가 정의 | [`shelf_definition.gd`](../../data/equipment/shelf_definition.gd) |
+| 서가 UI | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) (도감+봉인) |
+| 검증 | [`verify_bookshelf.gd`](../../data/equipment/verify_bookshelf.gd) |
 | 가방 | [`InventoryData.runes`](../../ui/inventory/resources/inventory_data.gd) / `gems` |
 | 장비 필드 | [`ItemData.socket_layout`](../../ui/inventory/resources/item_data.gd) · `two_handed` · `socketed` · 호환 태그 |
 | 샘플 | [`item_bootstrap.gd`](../../ui/inventory/resources/item_bootstrap.gd) · 카탈로그 기본 장비는 [`item_defaults.gd`](../../ui/inventory/resources/item_defaults.gd) |
 
-`ItemCategory`에 `RUNE`/`GEM` 없음. 5×6 격자는 `ItemData`만.
+`ItemCategory`에 `RUNE`/`GEM` 없음. 장비 가방은 탭별 `bags` 5×5 (`ItemData`만). `MOD`는 `runes[]`/`gems[]` 합산 25.
 
 ---
 
@@ -68,13 +71,15 @@ CombatSession 기술 게이지 + 마나 자동 발동
 
 ---
 
-## 카드 등록
+## 카드 등록 · 서가 (shelf.v3)
 
-마을 제단만. 게시판·MenuShell 탭이 아님.
+`VillageShell` **[서가]** → `UIManager.open_tab(SHELF)` Sheet. 내부 탭 **룬 | 보석**. 제단 단독 UI 없음. 오른쪽 상세는 인벤과 같은 `ModifierDetailPanel` (OPEN·REGISTERED만 능력; FOG는 힌트만). 봉인 상태 문구는 `DetailStatus`.
 
-1. 후보 = 미등록 `runes[]` / `gems[]` 셀 격자
-2. 확인 → 개체 제거, **장비는 유지**, `skills`/공명 재계산
-3. `meta.registered_cards`에 기록 (`slot_N.json`)
+1. 격자 = 5×5, 1칸 1템플릿. 상태: FOG / OPEN / REGISTERED / EMPTY  
+2. 보유·미소켓 uid → 봉인 → `registered_cards`, self+인접 `open_cards` (동 판만)  
+3. 룻 풀 = `(shelf_id, card_number) ∈ open_cards` (시작 각 판 `#1`)  
+4. 동 id 재봉인 불가. 희귀도 단·E1 없음  
+5. legacy `shelf_common|uncommon|rare` → open 리셋 후 `#1` 시드  
 
 전멸·보스 귀환이 등록 카드를 지우지 않는다.
 
@@ -85,7 +90,7 @@ CombatSession 기술 게이지 + 마나 자동 발동
 | 파일 | 내용 |
 |------|------|
 | `slot_N.json` inventory | `runes[]` · `gems[]` · 장비 `socketed` |
-| `slot_N.json` meta | `registered_cards` · `unlocked_shelves` · `card_pity` |
+| `slot_N.json` meta | `registered_cards` · `open_cards` · `unlocked_shelves`(`shelf_rune`,`shelf_gem`) · `card_pity`(미사용) |
 | `slot_N_run.json` | 탐험 + `SaveSerializer.run_equipment_snapshot` (런 중 스냅샷) |
 
 마을 복귀 시 런 파일만 삭제 ([`save-load.md`](save-load.md)).
@@ -95,23 +100,14 @@ CombatSession 기술 게이지 + 마나 자동 발동
 ## API
 
 ```
-SocketLayout.for_rarity(equip_slot, rarity) -> SocketLayout
-InventoryData.socket_rune(equip_slot, rune_uid, index) -> bool
-InventoryData.socket_gem(equip_slot, gem_uid, kind, index) -> bool
-InventoryData.socket_rune_on_item(item, rune_uid, index) -> bool
-InventoryData.socket_gem_on_item(item, gem_uid, kind, index) -> bool
-InventoryData.unsocket(item, kind, index) -> bool
-InventoryData.find_socket(uid) -> Dictionary
-InventoryData.is_uid_socketed(uid) -> bool
-InventoryData.list_socket_rows(item) -> Array[Dictionary]
-InventoryData.equip_from_bag(grid_index) -> bool
-InventoryData.can_equip_from_bag(grid_index) -> bool
-InventoryData.equipped_in_same_slot(item) -> ItemData
-ItemData.is_two_handed() -> bool
-ItemData.apply_rarity(rarity) -> void
-ResonanceService.evaluate(...) -> ResonanceResult
-ResonanceService.rebuild_main_hand_skills(inventory, rune_cat, gem_cat) -> ResonanceResult
-CardRegistrationService.list_registerable(inventory) -> Array
+CardRegistrationService.ensure_meta_seeded(meta, rune_cat?, gem_cat?) -> Dictionary
+CardRegistrationService.is_open / is_discovered(meta, shelf_id, card_number) -> bool
+CardRegistrationService.is_shelf_unlocked(meta, shelf_id) -> bool
+CardRegistrationService.cell_state(...) -> CellState
+CardRegistrationService.loot_pool_ids(meta, kind, catalog) -> Array[String]
+CardRegistrationService.open_all_on_shelf(meta, shelf_id) -> Dictionary  # 전 칸 open (DevOverlay)
+CardRegistrationService.first_owned_uid(inventory, kind, id) -> String  # 미소켓만
 CardRegistrationService.register(inventory, meta, kind, uid, ...) -> {ok, meta}
-SaveSerializer.run_equipment_snapshot(inventory) -> {runes, gems, socketed}
 ```
+
+`godot --headless --path . -s res://data/equipment/verify_bookshelf.gd`
