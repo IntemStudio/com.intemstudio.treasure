@@ -16,7 +16,7 @@
 | 롤·지급 | [`data/loot/loot_service.gd`](../../data/loot/loot_service.gd) `roll_offers` / `take_offer` |
 | 훅 | [`encounter_director.gd`](../../world/combat/encounter_director.gd) `_begin_loot_choice` |
 | UI | [`ui/loot/loot_choice_overlay.tscn`](../../ui/loot/loot_choice_overlay.tscn) · `UIManager.show_loot_choice` |
-| 카드 | [`loot_offer_card.tscn`](../../ui/loot/loot_offer_card.tscn) — 후보 3장에 상세를 그대로 표시 |
+| 카드 | [`loot_offer_card.tscn`](../../ui/loot/loot_offer_card.tscn) — 후보 3장에 상세를 그대로 표시. 장비는 같은 슬롯 착용분과 ATK/DEF 비교 |
 | 상세 | 장비 `ItemDetailPanel` · 룬/보석 [`modifier_detail_panel.tscn`](../../ui/loot/modifier_detail_panel.tscn) |
 | 토스트 | GameHud `granted` 또는 `granted_name` |
 | 로그 | `loot.grant` / `loot.skip` |
@@ -54,4 +54,5 @@ RNG: 타입 `hash([seed, cell, "reward"])`, 후보 `hash([seed, cell, "offers"])
 LootService.roll_offers(reward_type, catalog, rune_cat, gem_cat, ctx) -> Array[Dictionary]
 LootService.take_offer(inventory, offer) -> { ok, granted_name, skipped, granted }
 UIManager.show_loot_choice(offers, reward_type, on_done)
+InventoryData.equipped_in_same_slot(item) -> ItemData  # 카드 ATK/DEF 비교
 ```

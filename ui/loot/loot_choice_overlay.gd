@@ -111,11 +111,17 @@ func _rebuild_cards() -> void:
 		var card: LootOfferCard = OFFER_CARD_SCENE.instantiate()
 		cards_host.add_child(card)
 		card.setup(i)
-		card.set_offer(_offers[i])
+		card.set_offer(_offers[i], _compare_item_for_offer(_offers[i]))
 		card.card_pressed.connect(_on_card_pressed)
 		card.card_activated.connect(_on_card_activated)
 		_cards.append(card)
 	_apply_focus()
+
+
+func _compare_item_for_offer(offer: Dictionary) -> ItemData:
+	if _ui_manager == null or _ui_manager.inventory_data == null:
+		return null
+	return _ui_manager.inventory_data.equipped_in_same_slot(offer.get("item") as ItemData)
 
 
 func _on_card_pressed(i: int) -> void:

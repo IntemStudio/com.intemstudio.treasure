@@ -368,7 +368,8 @@ func _refresh_detail_panel() -> void:
 func _show_item_detail(item: ItemData) -> void:
 	if detail_panel:
 		detail_panel.visible = true
-		detail_panel.set_item(item)
+		var compare_with: ItemData = inventory.equipped_in_same_slot(item) if inventory else null
+		detail_panel.set_item(item, compare_with)
 	if modifier_detail:
 		modifier_detail.visible = false
 		modifier_detail.clear()

@@ -49,7 +49,7 @@ func clear_offer() -> void:
 	_apply_visual_state()
 
 
-func set_offer(offer: Dictionary) -> void:
+func set_offer(offer: Dictionary, compare_with: ItemData = null) -> void:
 	_has_offer = true
 	_rarity = _offer_rarity(offer)
 	_ensure_panels()
@@ -60,7 +60,7 @@ func set_offer(offer: Dictionary) -> void:
 			_modifier_detail.clear()
 		if _item_detail:
 			_item_detail.visible = true
-			_item_detail.set_item(offer.get("item") as ItemData)
+			_item_detail.set_item(offer.get("item") as ItemData, compare_with)
 			_ignore_mouse_tree(_item_detail)
 	elif kind == "rune":
 		if _item_detail:

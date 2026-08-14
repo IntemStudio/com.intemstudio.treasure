@@ -163,6 +163,16 @@ func get_slot_for_equip(item: ItemData) -> String:
 			return ""
 
 
+func equipped_in_same_slot(item: ItemData) -> ItemData:
+	var slot := get_slot_for_equip(item)
+	if slot.is_empty():
+		return null
+	var current: ItemData = equipped.get(slot) as ItemData
+	if current == null or current == item:
+		return null
+	return current
+
+
 func _pair_slot_fallback(preferred: String) -> String:
 	var pair := ""
 	match preferred:
