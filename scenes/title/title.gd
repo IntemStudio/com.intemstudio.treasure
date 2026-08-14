@@ -4,14 +4,15 @@ const SETTINGS_CONTENT_PATH := "res://ui/settings/settings_content.tscn"
 const FOOTER_SCENE := preload("res://ui/shared/footer_prompts.tscn")
 const PROFILE_SELECT_SCENE := preload("res://scenes/title/profile_select.tscn")
 
+@onready var background: ColorRect = $Background
 @onready var start_button: Button = %StartButton
 @onready var settings_button: Button = %SettingsButton
 @onready var quit_button: Button = %QuitButton
 @onready var brand_label: Label = %BrandLabel
 @onready var menu_anchor: MarginContainer = %MenuAnchor
 @onready var settings_host: CanvasLayer = $SettingsHost
-@onready var settings_body_host: Control = $SettingsHost/SettingsRoot/SettingsColumn/SettingsBodyHost
-@onready var settings_footer_host: Control = $SettingsHost/SettingsRoot/SettingsColumn/SettingsFooterHost
+@onready var settings_body_host: Control = %SettingsBodyHost
+@onready var settings_footer_host: Control = %SettingsFooterHost
 @onready var profile_host: Control = %ProfileHost
 
 var _settings_content: Control
@@ -27,6 +28,8 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 
+	background.color = UIColors.TEXT_INVERSE
+	brand_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
 	_setup_settings_host()
 	_setup_profile_select()
 	_refresh_texts()
@@ -39,6 +42,17 @@ func _setup_settings_host() -> void:
 	if settings_body_host == null or settings_footer_host == null:
 		push_error("Title: Settings hosts missing")
 		return
+	var sheet := get_node_or_null("%Sheet") as PanelContainer
+	if sheet:
+		UIPopupLayout.apply_sheet_panel(sheet)
+	UIPopupLayout.apply_sheet_bands(
+		get_node_or_null("%TopBand") as Control,
+		get_node_or_null("%MidBand") as Control,
+		get_node_or_null("%BottomBand") as Control
+	)
+	var title_label := get_node_or_null("SettingsHost/Safe/Center/Sheet/SettingsColumn/TopBand/TitleLabel") as Label
+	if title_label:
+		title_label.text = tr("Settings")
 	var settings_scene := load(SETTINGS_CONTENT_PATH) as PackedScene
 	if settings_scene == null:
 		push_error("Title: failed to load settings content")
@@ -69,32 +83,8 @@ func _setup_profile_select() -> void:
 
 
 func _style_menu_buttons() -> void:
-	# Text layout uses normal/hover/pressed styleboxes — not focus.
-	# Focus is only drawn as an overlay, so padding must live on StyleBoxEmpty.
-	var padded := StyleBoxEmpty.new()
-	padded.content_margin_left = 16
-	padded.content_margin_top = 4
-	padded.content_margin_bottom = 4
-	padded.content_margin_right = 4
 	for button in _menu_buttons:
-		button.flat = true
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.focus_mode = Control.FOCUS_ALL
-		for state_name in ["normal", "hover", "pressed", "disabled"]:
-			button.add_theme_stylebox_override(state_name, padded)
-		var focus_style := StyleBoxFlat.new()
-		focus_style.bg_color = Color(0, 0, 0, 0)
-		focus_style.border_color = UIColors.SELECT_BORDER
-		focus_style.border_width_left = 3
-		# Match layout margins so focus overlay aligns with text padding
-		focus_style.content_margin_left = 16
-		focus_style.content_margin_top = 4
-		focus_style.content_margin_bottom = 4
-		focus_style.content_margin_right = 4
-		button.add_theme_stylebox_override("focus", focus_style)
-		button.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
-		button.add_theme_color_override("font_hover_color", UIColors.GOLD)
-		button.add_theme_color_override("font_focus_color", UIColors.GOLD)
+		UISelectStyle.apply_button_focus_bar(button, UIColors.TEXT_MAIN)
 		button.add_theme_font_size_override("font_size", 22)
 
 

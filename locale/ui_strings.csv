@@ -4,6 +4,7 @@ Map,Map,맵
 Stats,Stats,스탯
 Settings,Settings,설정
 LEVEL-UP,LEVEL-UP,레벨 상승
+Hero,Hero,영웅
 INSIGHT,INSIGHT,정보
 BACK,BACK,뒤로
 SORT: %s,SORT: %s,분류: %s
@@ -106,7 +107,7 @@ Save,Save,저장
 Load,Load,불러오기
 Delete,Delete,삭제
 Slot %d: Empty,Slot %d: Empty,슬롯 %d: 비어 있음
-Slot %d: %s — Level %d,Slot %d: %s — Level %d,슬롯 %d: %s — 레벨 %d
+Slot %d: Level %d,Slot %d: Level %d,슬롯 %d: 레벨 %d
 Slot %d: Corrupt,Slot %d: Corrupt,슬롯 %d: 손상됨
 Slot %d: Incompatible,Slot %d: Incompatible,슬롯 %d: 호환되지 않음
 New game saved to slot %d,New game saved to slot %d,슬롯 %d에 새 게임 저장됨
@@ -126,6 +127,13 @@ DEV_GRANT,Grant,획득
 Open Save Folder,Open Save Folder,세이브 폴더 열기
 Opened save folder,Opened save folder,세이브 폴더를 열었습니다
 Failed to open save folder,Failed to open save folder,세이브 폴더를 열지 못했습니다
+DEV_LAYER_META,Meta,메타
+DEV_LAYER_RUN,Run,런
+DEV_LAYER_ALL,All,모두
+DEV_NO_SLOT,No save slot,세이브 슬롯 없음
+DEV_NO_RUN,No run data,런 데이터 없음
+DEV_SAVED_LAYER,Saved: %s,저장됨: %s
+DEV_DELETED_LAYER,Deleted: %s,삭제됨: %s
 Force Level Up,Force Level Up,강제 레벨업
 Force Level Down,Force Level Down,강제 레벨다운
 Level %d  (%d / %d XP),Level %d  (%d / %d XP),레벨 %d  (%d / %d XP)
@@ -139,6 +147,8 @@ EXP,EXP,경험치
 MP,MP,마나
 HP,HP,체력
 Experience,Experience,경험치
+Gold,Gold,골드
+Silver,Silver,은화
 ` / Esc: Close,` / Esc: Close,` / Esc: 닫기
 LOCATION_TEST,Test Grounds,시험장
 LOCATION_UNKNOWN,Unknown,알 수 없음
@@ -160,10 +170,10 @@ REGION_DESC_BATTLEFIELD,"Scarred ground and wreckage. Ghosts and raiders linger.
 CHALLENGE_SHORT,Short,짧음
 CHALLENGE_NORMAL,Normal,보통
 CHALLENGE_LONG,Long,긴
-CHALLENGE_DESC_SHORT,"8 rooms. Reward ×1. A brief delve.","방 8개. 보상 ×1. 짧은 탐험."
-CHALLENGE_DESC_NORMAL,"12 rooms. Reward ×1.5. A standard expedition.","방 12개. 보상 ×1.5. 보통 원정."
-CHALLENGE_DESC_LONG,"16 rooms. Reward ×2. A long and dangerous run.","방 16개. 보상 ×2. 길고 위험한 원정."
-BOARD_LABEL,Board,게시판
+CHALLENGE_DESC_SHORT,"8 rooms. A brief delve for buried runes and gems.","방 8개. 파묻힌 룬·보석을 찾는 짧은 수색."
+CHALLENGE_DESC_NORMAL,"12 rooms. A standard delve into forgotten ground.","방 12개. 잊힌 땅을 도는 보통 수색."
+CHALLENGE_DESC_LONG,"16 rooms. A long, dangerous delve.","방 16개. 길고 위험한 수색."
+BOARD_LABEL,Rumors,소문
 MAP_NO_DUNGEON,No dungeon loaded,던전이 없습니다
 ROOM_TYPE_START,Start,시작
 ROOM_TYPE_NORMAL,Room,방
@@ -250,6 +260,10 @@ DEV_FORCE_ENCOUNTER,Force Encounter,강제 조우
 DEV_FORCE_WIN,Force Win,강제 승리
 DEV_FORCE_LOSE,Force Lose,강제 패배
 DEV_FORCE_RETREAT,Force Retreat,강제 후퇴
+DEV_UNLOCK_ALL_RUNES,Unlock All Runes,모든 룬 해금
+DEV_UNLOCK_ALL_GEMS,Unlock All Gems,모든 보석 해금
+DEV_UNLOCKED_ALL_RUNES,All rune cards opened,모든 룬 칸 해금
+DEV_UNLOCKED_ALL_GEMS,All gem cards opened,모든 보석 칸 해금
 DEV_NO_COMBAT,No active combat,활성 전투 없음
 DEV_COMBAT_ACTIVE,Combat already active,이미 전투 중
 DEV_ENCOUNTER_STARTED,Encounter started,조우 시작
@@ -266,12 +280,12 @@ SOCKET_PICK_SLOT,Choose equipment,장비를 고르세요
 Core Gem,Core Gem,핵심 보석
 Aux Gem,Aux Gem,보조 보석
 Altar,Altar,제단
-Register Card,Register Card,카드 등록
-REGISTER,REGISTER,등록
+Register Card,Leave a Name,이름 남기기
+REGISTER,SEAL,봉인
 No runes or gems to register,No runes or gems to register,등록할 룬·보석이 없습니다
-Confirm register rune,Register this rune as a card? It cannot be equipped again.,이 룬을 카드로 등록하시겠습니까? 다시 장착할 수 없습니다.
-Confirm register gem,Register this gem as a card? It cannot be equipped again.,이 보석을 카드로 등록하시겠습니까? 다시 장착할 수 없습니다.
-Registered cards,Registered cards,등록된 카드
+Confirm register rune,"Seal this rune at the altar? You leave its name — it cannot be equipped again.","이 룬을 제단에 봉인하시겠습니까? 이름만 남고 다시 장착할 수 없습니다."
+Confirm register gem,"Seal this gem at the altar? You leave its name — it cannot be equipped again.","이 보석을 제단에 봉인하시겠습니까? 이름만 남고 다시 장착할 수 없습니다."
+Registered cards,Names left,남긴 이름
 Resonance,Resonance,공명
 BASE_SKILL_ONLY,Base skill only,기본 기술만
 RESONANT,Resonant,공명
@@ -281,10 +295,23 @@ ALTAR_LABEL,Altar,제단
 Select a rune or gem,Select a rune or gem,룬 또는 보석을 선택하세요
 Rune,Rune,룬
 Gem,Gem,보석
+Registered,Sealed,봉인됨
+Not owned,Not owned,보유하지 않음
+Select a rune,Select a rune,룬을 선택하세요
+Select a gem,Select a gem,보석을 선택하세요
 Equipped,Equipped,장착 중
+INV_EQUIPPED_TITLE,Equipped,착용 장비
 Currently equipped,Currently equipped,현재 장착됨
 In storage,In storage,보관 중
-Shelf,Shelf,책장
+Shelf,Shelf,서가
+SHELF_LABEL,Bookshelf,서가
+SHELF_RUNE,Runes,룬
+SHELF_GEM,Gems,보석
+SHELF_HINT,"Seal runes and gems you own. Neighbors open for future delves.","보유한 룬·보석을 봉인하세요. 이웃 칸이 열려 다음 수색에 나옵니다."
+SHELF_LOCKED,Locked,잠김
+SHELF_LOCKED_HINT,"This shelf is not open yet.","아직 열리지 않은 서가입니다."
+SHELF_FOG,Unknown rune or gem,알 수 없는 룬·보석
+SHELF_EMPTY,Empty place,빈 칸
 Skill,Skill,기술
 Mana cost,Mana cost,마나 비용
 Type,Type,유형
@@ -350,11 +377,12 @@ Tool,Tool,도구
 +12 Magic HP,+12 Magic HP,+12 마법 체력
 +5 Magic Damage,+5 Magic Damage,+5 마법 피해
 -4% Evasion,-4% Evasion,-4% 회피
-Flurry Verse,Flurry Verse,질주 시
-Tide Verse,Tide Verse,밀물 시
-Hymn Verse,Hymn Verse,찬가 시
-Ward Verse,Ward Verse,수호 시
-Thorn Verse,Thorn Verse,가시 시
+Rune of Flurry,Rune of Flurry,질주의 룬
+Rune of the Tide,Rune of the Tide,밀물의 룬
+Rune of Hymns,Rune of Hymns,찬가의 룬
+Rune of Warding,Rune of Warding,수호의 룬
+Rune of Thorns,Rune of Thorns,가시의 룬
+
 Flurry,Flurry,질주
 Tide Crash,Tide Crash,밀물 강타
 Hymn,Hymn,찬가
@@ -375,9 +403,10 @@ Flurry of Storm,Flurry of Storm,질주의 폭풍
 Hymn of Sanctum,Hymn of Sanctum,찬가의 성소
 Ward Pulse of Sanctum,Ward Pulse of Sanctum,수호 파동의 성소
 Thorn Guard Rooted,Thorn Guard Rooted,가시 태세 뿌리
-Counter Verse,Counter Verse,반격 시
-Pierce Verse,Pierce Verse,관통 시
-Erupt Verse,Erupt Verse,분출 시
+Rune of Countering,Rune of Countering,반격의 룬
+Rune of Piercing,Rune of Piercing,관통의 룬
+Rune of Eruption,Rune of Eruption,분출의 룬
+
 Counter Stance,Counter Stance,반격 태세
 Piercing Strike,Piercing Strike,관통 일격
 Erupt Slash,Erupt Slash,분출 베기
@@ -441,6 +470,20 @@ SKILL_KIND_AOE,Area,범위
 SKILL_KIND_HEAL,Heal,치유
 SKILL_KIND_WARD,Ward,수호
 SKILL_KIND_THORNS,Thorns,가시
+SKILL_KIND_BUFF,Buff,강화
+SKILL_KIND_CONVERT,Convert,변환
+SKILL_KIND_DEBUFF,Debuff,약화
+SKILL_KIND_COUNTER,Counter,반격
+SKILL_KIND_STRIKE_DESC,A direct strike against your current target.,현재 대상에게 가하는 직접 일격입니다.
+SKILL_KIND_COMBO_DESC,A rapid chain of hits in succession.,연속으로 이어지는 빠른 타격입니다.
+SKILL_KIND_AOE_DESC,Hits multiple foes around the target.,대상 주변의 여러 적에게 피해를 줍니다.
+SKILL_KIND_HEAL_DESC,Restores your Life.,자신의 생명력을 회복합니다.
+SKILL_KIND_WARD_DESC,Raises a defensive ward.,방어용 수호막을 펼칩니다.
+SKILL_KIND_THORNS_DESC,Damages attackers who strike you.,자신을 공격한 적에게 피해를 되돌려 줍니다.
+SKILL_KIND_BUFF_DESC,Temporarily strengthens your attacks.,잠시 동안 공격력을 강화합니다.
+SKILL_KIND_CONVERT_DESC,Converts resources into combat power.,자원을 전투 위력으로 바꿉니다.
+SKILL_KIND_DEBUFF_DESC,Weakens the target.,대상의 능력을 약화시킵니다.
+SKILL_KIND_COUNTER_DESC,Answers incoming attacks with a riposte.,들어오는 공격에 반격으로 응수합니다.
 GEM_TYPE_ELEMENT,Element,원소
 GEM_TYPE_CONDITION,Condition,상태
 GEM_TYPE_MEDIATOR,Mediator,매개
@@ -452,6 +495,9 @@ SLOT_BODY,Body,갑옷
 SLOT_PANTS,Pants,다리
 SLOT_RINGS,Rings,반지
 SLOT_TOOLS,Tools,도구
+EQUIP_SLOT_MAIN_HAND,Main Hand,주 무기
+EQUIP_SLOT_OFF_HAND,Off-Hand,보조 무기
+EQUIP_SLOT_LEGS,Pants,바지
 TAG_WEAPON,Weapons,무기
 TAG_MELEE,Melee,근접
 TAG_SWORD,Sword,검
@@ -459,6 +505,7 @@ TAG_STAFF,Staff,지팡이
 TAG_MAGIC,Magic,마법
 TAG_POLEARM,Polearm,장병기
 TAG_DAGGER,Dagger,단검
+TAG_RANGED,Ranged,원거리
 RESO_BLOOD,Blood,피
 RESO_COUNTER,Counter,반격
 RESO_WIND,Wind,바람
@@ -478,9 +525,22 @@ RESO_THORN,Thorn,가시
 RESO_ASH,Ash,재
 RESO_FLURRY,Flurry,질주
 RESO_FLAME,Flame,불꽃
+RESO_STORM,Storm,폭풍
+RESO_SURGE,Surge,서지
+RESO_CRUSH,Crush,분쇄
+RESO_PULSE,Pulse,맥동
+RESO_CHANNEL,Channel,채널
+RESO_SMASH,Smash,강타
+RESO_VOLLEY,Volley,일제
+RESO_MARK,Mark,표식
+RESO_STEEL,Steel,강철
+RESO_SIPHON,Siphon,흡수
+RESO_SHATTER,Shatter,파쇄
+RESO_SPARK,Spark,불꽃
+RESO_SANCTUM,Sanctum,성소
 GEM_FX_LIFESTEAL_ON_SKILL,Lifesteal on skill,기술 시 흡혈
 GEM_FX_PIERCE_FLAG,Pierce attacks,관통 공격
-GEM_FX_EVADE_REACTION,Evade reaction,회피 반응
+GEM_FX_ON_EVADE_THORN,Thorns on evade,회피 시 가시
 GEM_FX_FIRE_INFUSION,Fire infusion,화염 주입
 GEM_FX_VOLCANO_FIND,Volcano finds,화산 탐색
 GEM_FX_CHAIN_HIT,Chain hit,연쇄 타격
@@ -499,6 +559,109 @@ GEM_FX_ASH_ON_SKILL,Ash on skill,기술 시 재
 GEM_FX_ASH_SHROUD,Ash shroud,재의 장막
 GEM_FX_BLOOD_HOLD,Blood hold,피 유지
 GEM_FX_MANOR_FIND,Manor finds,장원 탐색
+GEM_FX_ELECTRIC_ON_SKILL,Electric on skill,기술 시 전격
+GEM_FX_MANA_ON_HIT_TAKEN,Mana when hit,피격 시 마나
+GEM_FX_SKILL_GAUGE_NUDGE,Skill gauge nudge,기술 게이지 가속
+GEM_FX_HEAT_ON_SKILL,Heat on skill,기술 시 열
+GEM_FX_HEAL_AMP_ON_SKILL,Heal amplify,치유 증폭
+GEM_FX_RETALIATION_HEAT,Heat retaliation,열 보복
+GEM_FX_COLD_ON_SKILL,Cold on skill,기술 시 냉기
+GEM_FX_SHATTER_WINDOW,Shatter window,파쇄 창
+GEM_FX_COLD_SHELL,Cold shell,냉기 갑피
+GEM_FX_PLAGUE_ON_HIT_TAKEN,Plague when hit,피격 시 역병
+GEM_FX_FINISHER_PLAGUE,Finisher plague,처형 역병
+GEM_FX_RETALIATION_ON_SKILL,Retaliation on skill,기술 시 보복
+GEM_FX_THORNS_AURA,Thorns aura,가시 오라
+GEM_FX_REFLECT_FLAG,Reflect,반사
+GEM_FX_DAMAGE_ALL_ON_SKILL,Damage to all on skill,기술 시 전타
+GEM_FX_ECHO_HOLD,Echo hold,메아리 유지
+GEM_FX_OPENING_STRIKE,Opening strike,개전 일격
+GEM_FX_DAWN_HOLD,Dawn hold,여명 유지
+GEM_FX_HEAL_ON_COUNTER,Heal on counter,반격 시 회복
+GEM_FX_COUNTER_WARD,Counter ward,반격 수호
+GEM_FX_SLOW_ON_SKILL,Slow on skill,기술 시 둔화
+GEM_FX_MIRE_STANCE,Mire stance,수렁 태세
+GEM_FX_SWAMP_FIND,Swamp finds,늪 탐색
+GEM_FX_MARK_ON_SKILL,Mark on skill,기술 시 표식
+GEM_FX_MARKED_CRIT_FLAG,Crit vs marked,표식 대상 치명
+GEM_FX_GHOST_HP_ON_SKILL,Ghost HP on skill,기술 시 유령 체력
+GEM_FX_PHANTOM_SHELL,Phantom shell,환영 갑피
+GEM_FX_MANA_ON_KILL,Mana on kill,처치 시 마나
+GEM_FX_STILL_HOLD,Still hold,고요 유지
+GEM_FX_EXECUTE_BELOW,Execute below,저체력 처형
+GEM_FX_WIDOW_HOLD,Widow hold,과부 유지
+GEM_FX_STUN_ON_SKILL,Stun on skill,기술 시 기절
+GEM_FX_ROOTED_STANCE,Rooted stance,뿌리 태세
+GEM_FX_EXTRA_HIT_ON_SKILL,Extra hit on skill,기술 추가 타격
+GEM_FX_FANG_HOLD,Fang hold,송곳니 유지
+GEM_FX_NAME_FIND,Name finds,이름 탐색
+GEM_FX_SEAL_ECHO,Seal echo,봉인 메아리
+Rune of Surging,Rune of Surging,서지의 룬
+Rune of Chains,Rune of Chains,연쇄의 룬
+Rune of Plague,Rune of Plague,역병의 룬
+Rune of Crushing,Rune of Crushing,분쇄의 룬
+Rune of the Swirl,Rune of the Swirl,소용돌이의 룬
+Rune of Vitality,Rune of Vitality,생기의 룬
+Rune of Channeling,Rune of Channeling,채널의 룬
+Rune of Smashing,Rune of Smashing,강타의 룬
+Rune of Volleys,Rune of Volleys,일제의 룬
+Rune of the Mark,Rune of the Mark,표식의 룬
+Rune of Riposte,Rune of Riposte,응수의 룬
+Rune of Siphoning,Rune of Siphoning,흡수의 룬
+Rune of Shattering,Rune of Shattering,파쇄의 룬
+Rune of Sparks,Rune of Sparks,불꽃의 룬
+Rune of the Grave,Rune of the Grave,묘의 룬
+Rune of the Sanctum,Rune of the Sanctum,성소의 룬
+Rune of Ash,Rune of Ash,재의 룬
+
+Damage Surge,Damage Surge,피해 서지
+Arc Bolt,Arc Bolt,아크 볼트
+Plague Sweep,Plague Sweep,역병 휩쓸기
+Plague Crush,Plague Crush,역병 분쇄
+Venom Cloud,Venom Cloud,독운
+Vital Pulse,Vital Pulse,생명 맥동
+Blood Channel,Blood Channel,피의 채널
+Balance Smash,Balance Smash,균형 강타
+Multi Shot,Multi Shot,연속 사격
+Hunter's Mark,Hunter's Mark,사냥꾼의 표식
+Perfect Riposte,Perfect Riposte,완벽한 응수
+Life Siphon,Life Siphon,생명 흡수
+Frost Shatter,Frost Shatter,서리 파쇄
+Static Edge,Static Edge,정전 칼날
+Grave Toll,Grave Toll,묘의 종
+Sanctum Seal,Sanctum Seal,성소의 봉인
+Ash Rain,Ash Rain,재비
+Quartz Needle,Quartz Needle,수정 바늘
+Ruby Heart,Ruby Heart,루비 심장
+Sapphire Vein,Sapphire Vein,사파이어 광맥
+Amethyst Blight,Amethyst Blight,자수정 역병
+Iron Thorn,Iron Thorn,철가시
+Echo Prism,Echo Prism,메아리 프리즘
+Dawnflake,Dawnflake,여명 조각
+Buckler Seed,Buckler Seed,버클러 씨앗
+Mire Opal,Mire Opal,수렁 오팔
+Cinder Eye,Cinder Eye,잿불의 눈
+Phantom Glass,Phantom Glass,환영 유리
+Stillwater,Stillwater,고요한 물
+Widow's Tear,Widow's Tear,과부의 눈물
+Lodestone,Lodestone,자철석
+Gilded Fang,Gilded Fang,금빛 송곳니
+Nameglass,Nameglass,이름유리
+ of Spark, of Spark,의 스파크
+ of Heat, of Heat,의 열
+ of Ice, of Ice,의 얼음
+ of Blight, of Blight,의 역병
+ of Thorns, of Thorns,의 가시
+ Echoing, Echoing, 메아리
+ of Dawn, of Dawn,의 여명
+ Guarded, Guarded, 수호
+ of Mire, of Mire,의 수렁
+ Marked, Marked, 표식
+ Phantom, Phantom, 환영
+ Still, Still, 고요
+ of the Widow, of the Widow,의 과부
+ Anchored, Anchored, 정박
+ Fanged, Fanged, 송곳니
 BAG_CAPACITY,%d / %d,%d / %d
 MOD,MOD,룬·보석
 MOD_BAG_CAPACITY,Rune/Gem %d,룬·보석 %d

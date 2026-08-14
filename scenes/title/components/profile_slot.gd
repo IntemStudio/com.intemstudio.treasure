@@ -201,12 +201,12 @@ func _apply_panel_style() -> void:
 
 func _apply_box_style(panel: PanelContainer, selected: bool, margin_top: int, margin_bottom: int) -> void:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.06, 0.07, 0.85)
+	style.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.85)
 	if selected:
 		style.border_color = UIColors.SELECT_BORDER
 		style.set_border_width_all(2)
 	else:
-		style.border_color = Color(0.35, 0.35, 0.38, 1)
+		style.border_color = UIColors.SLOT_BORDER
 		style.set_border_width_all(1)
 	style.set_corner_radius_all(2)
 	style.content_margin_left = 12
@@ -308,7 +308,7 @@ func _refresh_visual() -> void:
 func _set_delete_box_active(active: bool) -> void:
 	# Keep the panel in layout so the profile card Y does not jump.
 	delete_panel.visible = true
-	delete_panel.modulate = Color.WHITE if active else Color(1, 1, 1, 0)
+	delete_panel.modulate = Color.WHITE if active else UIColors.CLEAR
 	delete_panel.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
 	delete_button.mouse_filter = Control.MOUSE_FILTER_STOP if active else Control.MOUSE_FILTER_IGNORE
 	delete_button.focus_mode = Control.FOCUS_CLICK if active else Control.FOCUS_NONE
@@ -317,23 +317,26 @@ func _set_delete_box_active(active: bool) -> void:
 func _fill_occupied_labels() -> void:
 	match _status:
 		"valid":
-			name_label.text = str(_meta.get("character_name", "?"))
+			name_label.visible = false
+			name_label.text = ""
 			level_label.text = tr("Level %d") % int(_meta.get("level", 0))
 			playtime_label.text = _format_playtime(int(_meta.get("play_time_sec", 0)))
-			name_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
-			level_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+			level_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
 			playtime_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 		"corrupt":
+			name_label.visible = true
 			name_label.text = tr("Corrupt")
 			level_label.text = ""
 			playtime_label.text = ""
 			name_label.add_theme_color_override("font_color", UIColors.NEGATIVE)
 		"incompatible":
+			name_label.visible = true
 			name_label.text = tr("Incompatible")
 			level_label.text = ""
 			playtime_label.text = ""
 			name_label.add_theme_color_override("font_color", UIColors.NEGATIVE)
 		_:
+			name_label.visible = true
 			name_label.text = "?"
 			level_label.text = ""
 			playtime_label.text = ""
@@ -347,16 +350,7 @@ func _refresh_confirm_choice() -> void:
 
 
 func _apply_choice_style(label: Label, selected: bool) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_width_left = 3
-	style.border_color = UIColors.SELECT_BORDER if selected else Color(0, 0, 0, 0)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	label.add_theme_stylebox_override("normal", style)
-	label.add_theme_color_override("font_color", UIColors.GOLD if selected else UIColors.TEXT_MUTED)
+	UISelectStyle.apply_label(label, selected, UIColors.TEXT_MUTED)
 
 
 func _format_playtime(sec: int) -> String:

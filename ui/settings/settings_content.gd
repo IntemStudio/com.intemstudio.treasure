@@ -112,9 +112,9 @@ func _style_sub_tab_keycaps() -> void:
 	keycap.content_margin_top = 3
 	keycap.content_margin_right = 8
 	keycap.content_margin_bottom = 3
-	keycap.bg_color = Color(0.06, 0.06, 0.07, 0.92)
+	keycap.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.92)
 	keycap.set_border_width_all(1)
-	keycap.border_color = Color(0.88, 0.88, 0.9, 0.95)
+	keycap.border_color = UIColors.TEXT_MAIN
 	keycap.set_corner_radius_all(3)
 	if sub_tab_prev_hint:
 		sub_tab_prev_hint.add_theme_stylebox_override("panel", keycap)
@@ -130,9 +130,7 @@ func _refresh_sub_tab_key_hints() -> void:
 
 
 func _sub_tab_cycle_keys() -> Dictionary:
-	# Title: Q/E. In-game: 1/3 (Q/E reserved for MenuShell top tabs).
-	if _is_in_game():
-		return {"prev": "1", "next": "3", "prev_action": "inventory_category_prev", "next_action": "inventory_category_next"}
+	# Sheet popups no longer steal Q/E for top tabs.
 	return {"prev": "Q", "next": "E", "prev_action": "ui_nav_prev_tab", "next_action": "ui_nav_next_tab"}
 
 
@@ -334,24 +332,7 @@ func _add_exit_option(action_id: String, label_text: String) -> void:
 
 
 func _style_flat_button(button: Button) -> void:
-	_apply_left_select_mark(button, false, UIColors.TEXT_MAIN)
-
-
-func _apply_left_select_mark(button: Button, selected: bool, idle_color: Color) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_width_left = 3
-	style.border_color = UIColors.SELECT_BORDER if selected else Color(0, 0, 0, 0)
-	style.content_margin_left = 16
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	style.content_margin_right = 4
-	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
-		button.add_theme_stylebox_override(state_name, style)
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	var color := UIColors.GOLD if selected else idle_color
-	button.add_theme_color_override("font_color", color)
-	button.add_theme_color_override("font_hover_color", UIColors.GOLD)
+	UISelectStyle.apply_button(button, false, UIColors.TEXT_MAIN)
 
 
 func _sync_rows_from_settings() -> void:
@@ -633,7 +614,7 @@ func _cancel_exit_confirm() -> void:
 
 func _update_exit_selection() -> void:
 	for i in range(_exit_buttons.size()):
-		_apply_left_select_mark(_exit_buttons[i], i == _exit_focus, UIColors.TEXT_MAIN)
+		UISelectStyle.apply_button(_exit_buttons[i], i == _exit_focus, UIColors.TEXT_MAIN)
 
 
 func _update_exit_detail() -> void:
@@ -666,8 +647,8 @@ func _update_exit_detail() -> void:
 
 
 func _update_exit_confirm_style() -> void:
-	_apply_left_select_mark(exit_yes_button, _confirm_yes_selected, UIColors.TEXT_MUTED)
-	_apply_left_select_mark(exit_no_button, not _confirm_yes_selected, UIColors.TEXT_MUTED)
+	UISelectStyle.apply_button(exit_yes_button, _confirm_yes_selected, UIColors.TEXT_MUTED)
+	UISelectStyle.apply_button(exit_no_button, not _confirm_yes_selected, UIColors.TEXT_MUTED)
 
 
 func _on_exit_yes() -> void:

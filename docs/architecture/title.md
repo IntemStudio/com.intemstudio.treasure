@@ -26,7 +26,8 @@
 
 | 영역 | 내용 |
 |------|------|
-| Brand | 상단 중앙 게임명 |
+| Background | `UIColors.TEXT_INVERSE` (`#1d2021`) |
+| Brand | 상단 중앙 게임명 (`TEXT_MAIN`) |
 | MenuStack | **좌하단** Start / Settings / Quit |
 | ProfileSelect | Start 시 전체 화면 — 가로 4슬롯 + 하단 Back |
 | SettingsHost | Settings 시 딤 + settings_content + BACK |
@@ -77,7 +78,7 @@ scenes/title/
 | ProfileSlot 상태 | UI |
 |------------------|-----|
 | `empty` | 중앙 `New Game` / `새 게임` |
-| `occupied` | 이름 · `Level %d` / `레벨 %d` · 플레이 시간 · 푸터 삭제 버튼 |
+| `occupied` | `Level %d` / `레벨 %d` · 플레이 시간 · 푸터 삭제 버튼 (캐릭터 이름 메타 없음) |
 | `confirm_delete_1` | `Delete the selected profile?` / `선택한 프로필을 지웁니까?` 예/아니요 |
 | `confirm_delete_2` | `Continue?` / `계속합니까?` 예/아니요 |
 

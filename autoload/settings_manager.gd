@@ -132,6 +132,15 @@ func save_settings() -> void:
 	config.save(SETTINGS_PATH)
 
 
+## Deletes settings.cfg and restores in-memory defaults (does not rewrite the file).
+func reset_settings() -> void:
+	if FileAccess.file_exists(SETTINGS_PATH):
+		DirAccess.remove_absolute(SETTINGS_PATH)
+	_reset_to_defaults()
+	apply_all()
+	settings_changed.emit()
+
+
 func apply_all() -> void:
 	apply_display()
 	apply_audio()

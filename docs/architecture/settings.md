@@ -15,7 +15,7 @@
 | 행 컨트롤 | [`settings_cycle_row.gd`](../../ui/settings/components/settings_cycle_row.gd) · [`settings_toggle_row.gd`](../../ui/settings/components/settings_toggle_row.gd) · [`settings_slider_row.gd`](../../ui/settings/components/settings_slider_row.gd) |
 | 오디오 버스 | [`default_bus_layout.tres`](../../default_bus_layout.tres) (Master / Music / SFX) |
 | 폰트 | [`assets/fonts/KR/NotoSansKR-Regular.ttf`](../../assets/fonts/KR/NotoSansKR-Regular.ttf), [`NotoSerifKR-Regular.otf`](../../assets/fonts/KR/NotoSerifKR-Regular.otf) |
-| 진입 | MenuShell Settings 탭, 타이틀 SettingsHost |
+| 진입 | MenuShell Settings Sheet, 타이틀 SettingsHost |
 | 타이틀 복귀 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) `return_to_title()` |
 
 세이브 슬롯 UI는 설정에 없음 → [`title.md`](title.md) 프로필 선택.
@@ -86,7 +86,7 @@ SettingsContent
 | 타이틀 | `Q` / `E` | `ui_nav_prev_tab` / `ui_nav_next_tab` |
 | 인게임 | `1` / `3` | `inventory_category_prev` / `next` |
 
-  인게임에서 Q/E는 MenuShell TopBar 탭용으로 남긴다. 푸터: BACK
+  인게임에서도 Q/E로 설정 서브탭 순환. 푸터: BACK
 
 ---
 
@@ -117,6 +117,7 @@ SettingsManager.set_resolution / set_display_mode / set_vsync / set_max_fps
 SettingsManager.set_master_volume / set_music_volume / set_sfx_volume / set_background_audio
 SettingsManager.set_font_family  # sans | serif → ThemeDB + ui themes
 SettingsManager.get_locale / set_locale
+SettingsManager.save_settings / reset_settings  # reset: delete cfg + in-memory defaults + apply
 UIManager.return_to_title()
 LocaleManager.set_language(code)  # persist → SettingsManager
 ```

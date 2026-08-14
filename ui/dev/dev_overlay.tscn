@@ -1,236 +1,379 @@
-[gd_scene load_steps=3 format=3 uid="uid://dev_overlay"]
+[gd_scene load_steps=4 format=3 uid="uid://dev_overlay"]
 
 [ext_resource type="Script" path="res://ui/dev/dev_overlay.gd" id="1"]
 [ext_resource type="Theme" path="res://ui/shared/themes/ui_theme.tres" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dev_panel"]
+bg_color = Color(0.157, 0.157, 0.157, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.271, 0.522, 0.533, 1)
 
 [node name="DevOverlay" type="CanvasLayer"]
 layer = 100
 script = ExtResource("1")
 
 [node name="Dim" type="ColorRect" parent="."]
+unique_name_in_owner = true
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0, 0, 0, 0.55)
+color = Color(0.271, 0.522, 0.533, 0.45)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Safe" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 80
 
-[node name="Panel" type="PanelContainer" parent="Center"]
+[node name="Center" type="CenterContainer" parent="Safe"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Safe/Center"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(760, 420)
+custom_minimum_size = Vector2(760, 480)
 layout_mode = 2
 theme = ExtResource("2")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dev_panel")
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+[node name="Margin" type="MarginContainer" parent="Safe/Center/Panel"]
 layout_mode = 2
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 20
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Safe/Center/Panel/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.271, 0.522, 0.533, 1)
 theme_override_font_sizes/font_size = 22
 text = "Developer Tools"
 
-[node name="TabRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="TabRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="CharacterTabButton" type="Button" parent="Center/Panel/Margin/VBox/TabRow"]
+[node name="CharacterTabButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/TabRow"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true
 text = "Character"
 
-[node name="ItemTabButton" type="Button" parent="Center/Panel/Margin/VBox/TabRow"]
+[node name="ItemTabButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/TabRow"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true
 text = "Items"
 
-[node name="SaveTabButton" type="Button" parent="Center/Panel/Margin/VBox/TabRow"]
+[node name="ShelfTabButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/TabRow"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+text = "Shelf"
+
+[node name="SaveTabButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/TabRow"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true
 text = "Save Data"
 
-[node name="CharacterPanel" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="CharacterPanel" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="LevelInfoLabel" type="Label" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+[node name="LevelInfoLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Level 1"
 
-[node name="LevelButtons" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+[node name="LevelButtons" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LevelDownButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
+[node name="LevelDownButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Level Down"
 
-[node name="LevelUpButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
+[node name="LevelUpButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/LevelButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Level Up"
 
-[node name="CombatButtons" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+[node name="CombatButtons" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ForceEncounterButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
+[node name="ForceEncounterButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Encounter"
 
-[node name="ForceWinButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
+[node name="ForceWinButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/CombatButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Win"
 
-[node name="CombatButtons2" type="HBoxContainer" parent="Center/Panel/Margin/VBox/CharacterPanel"]
+[node name="CombatButtons2" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ForceLoseButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
+[node name="ForceLoseButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Lose"
 
-[node name="ForceRetreatButton" type="Button" parent="Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
+[node name="ForceRetreatButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/CharacterPanel/CombatButtons2"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Force Retreat"
 
-[node name="ItemPanel" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="ItemPanel" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="EquipRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ItemPanel"]
+[node name="EquipRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="EquipLabel" type="Label" parent="Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="EquipLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 text = "Equipment"
 
-[node name="EquipSlotOption" type="OptionButton" parent="Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="EquipSlotOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(108, 0)
 layout_mode = 2
 
-[node name="EquipOption" type="OptionButton" parent="Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="EquipOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="EquipRarityOption" type="OptionButton" parent="Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="EquipRarityOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 
-[node name="EquipGrantButton" type="Button" parent="Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="EquipGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Grant"
 
-[node name="GemRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ItemPanel"]
+[node name="GemRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GemLabel" type="Label" parent="Center/Panel/Margin/VBox/ItemPanel/GemRow"]
+[node name="GemLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 text = "Gem"
 
-[node name="GemOption" type="OptionButton" parent="Center/Panel/Margin/VBox/ItemPanel/GemRow"]
+[node name="GemOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="GemGrantButton" type="Button" parent="Center/Panel/Margin/VBox/ItemPanel/GemRow"]
+[node name="GemGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Grant"
 
-[node name="RuneRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/ItemPanel"]
+[node name="RuneRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="RuneLabel" type="Label" parent="Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
+[node name="RuneLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 text = "Rune"
 
-[node name="RuneOption" type="OptionButton" parent="Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
+[node name="RuneOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RuneGrantButton" type="Button" parent="Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
+[node name="RuneGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Grant"
 
-[node name="SavePanel" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+[node name="ShelfPanel" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="PathLabel" type="Label" parent="Center/Panel/Margin/VBox/SavePanel"]
+[node name="UnlockAllRunesButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ShelfPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unlock All Runes"
+
+[node name="UnlockAllGemsButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ShelfPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unlock All Gems"
+
+[node name="SavePanel" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="PathLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "user://saves/"
 
-[node name="OpenFolderButton" type="Button" parent="Center/Panel/Margin/VBox/SavePanel"]
+[node name="OpenFolderButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open Save Folder"
 
-[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="SlotRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SaveSlotLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel/SlotRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Slot"
+
+[node name="SaveSlotOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/SavePanel/SlotRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MetaRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MetaLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel/MetaRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Meta"
+
+[node name="SaveMetaButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/MetaRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="DeleteMetaButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/MetaRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="RunRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RunLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel/RunRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Run"
+
+[node name="SaveRunButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/RunRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="DeleteRunButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/RunRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="SettingsRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SettingsLayerLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel/SettingsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Settings"
+
+[node name="SaveSettingsButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/SettingsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="DeleteSettingsButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/SettingsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="AllRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/SavePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AllLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/SavePanel/AllRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "All"
+
+[node name="SaveAllButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/AllRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="DeleteAllButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/SavePanel/AllRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="StatusLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ""
 
-[node name="CloseHintLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="CloseHintLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "` / Esc: Close"

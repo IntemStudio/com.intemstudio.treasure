@@ -66,28 +66,7 @@ func _refresh_texts() -> void:
 
 
 func _style_back_button() -> void:
-	var padded := StyleBoxEmpty.new()
-	padded.content_margin_left = 16
-	padded.content_margin_top = 4
-	padded.content_margin_bottom = 4
-	padded.content_margin_right = 4
-	back_button.flat = true
-	back_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	back_button.focus_mode = Control.FOCUS_ALL
-	for state_name in ["normal", "hover", "pressed", "disabled"]:
-		back_button.add_theme_stylebox_override(state_name, padded)
-	var focus_style := StyleBoxFlat.new()
-	focus_style.bg_color = Color(0, 0, 0, 0)
-	focus_style.border_color = UIColors.SELECT_BORDER
-	focus_style.border_width_left = 3
-	focus_style.content_margin_left = 16
-	focus_style.content_margin_top = 4
-	focus_style.content_margin_bottom = 4
-	focus_style.content_margin_right = 4
-	back_button.add_theme_stylebox_override("focus", focus_style)
-	back_button.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
-	back_button.add_theme_color_override("font_hover_color", UIColors.GOLD)
-	back_button.add_theme_color_override("font_focus_color", UIColors.GOLD)
+	UISelectStyle.apply_button_focus_bar(back_button, UIColors.TEXT_MAIN)
 
 
 func _on_locale_changed(_locale: String) -> void:
