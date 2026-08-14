@@ -40,20 +40,21 @@ func set_rune(rune: RuneData) -> void:
 		return
 	name_label.text = tr(rune.display_name)
 	kind_label.text = tr("Rune")
-	rarity_label.text = _rarity_text(rune.rarity)
+	rarity_label.text = ""
 	blurb_label.text = tr("RUNE_BLURB") % tr(rune.skill_name)
 	var lines: PackedStringArray = []
 	lines.append(_row(tr("Type"), tr(_skill_kind_label(rune.skill_kind))))
 	lines.append(_row(tr("Cost"), str(rune.mana_cost)))
 	lines.append("")
-	lines.append("[color=#7eb8e8]%s[/color]" % tr("Attack"))
+	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.RARITY_RARE), tr("Attack")])
 	lines.append("  %s" % tr(rune.skill_name))
 	lines.append("  %s: %s" % [tr("Skill kind"), tr(_skill_kind_label(rune.skill_kind))])
+	var skill_desc := _skill_kind_desc(rune.skill_kind)
+	if not skill_desc.is_empty():
+		lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), skill_desc])
 	lines.append("")
 	lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
 	lines.append(_row(tr("Resonance"), _format_reso_tags(rune.resonance_tags)))
-	if rune.card_number > 0:
-		lines.append(_row(tr("Shelf"), "%s #%d" % [String(rune.shelf_id), rune.card_number]))
 	body_label.text = "\n".join(lines)
 
 
@@ -63,7 +64,7 @@ func set_gem(gem: GemData) -> void:
 		return
 	name_label.text = tr(gem.display_name)
 	kind_label.text = tr("Gem")
-	rarity_label.text = _rarity_text(gem.rarity)
+	rarity_label.text = ""
 	if gem.skill_name_suffix.is_empty():
 		blurb_label.text = tr("GEM_BLURB")
 	else:
@@ -71,7 +72,7 @@ func set_gem(gem: GemData) -> void:
 	var lines: PackedStringArray = []
 	lines.append(_row(tr("Type"), tr(_gem_type_label(String(gem.gem_type)))))
 	lines.append("")
-	lines.append("[color=#c9a227]%s[/color]" % tr("Slot effects"))
+	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.GOLD), tr("Slot effects")])
 	var effect_rows := _grouped_slot_effects(gem.slot_effects)
 	if effect_rows.is_empty():
 		lines.append("  —")
@@ -80,13 +81,11 @@ func set_gem(gem: GemData) -> void:
 			lines.append("  %s: %s" % [row["slot"], row["effect"]])
 	lines.append("")
 	lines.append(_row(tr("Resonance"), _format_reso_tags(gem.resonance_tags)))
-	if gem.card_number > 0:
-		lines.append(_row(tr("Shelf"), "%s #%d" % [String(gem.shelf_id), gem.card_number]))
 	body_label.text = "\n".join(lines)
 
 
 func _row(label: String, value: String) -> String:
-	return "[color=#9a968c]%s[/color]  %s" % [label, value]
+	return "[color=%s]%s[/color]  %s" % [UIColors.html(UIColors.TEXT_MUTED), label, value]
 
 
 func _grouped_slot_effects(slot_effects: Dictionary) -> Array[Dictionary]:
@@ -152,35 +151,23 @@ func _rarity_text(rarity: ItemData.ItemRarity) -> String:
 
 
 func _skill_kind_label(kind: String) -> String:
-	match kind:
-		"strike":
-			return "SKILL_KIND_STRIKE"
-		"combo":
-			return "SKILL_KIND_COMBO"
-		"aoe":
-			return "SKILL_KIND_AOE"
-		"heal":
-			return "SKILL_KIND_HEAL"
-		"ward":
-			return "SKILL_KIND_WARD"
-		"thorns":
-			return "SKILL_KIND_THORNS"
-		_:
-			return kind if not kind.is_empty() else "SKILL_KIND_STRIKE"
+	var id := kind if not kind.is_empty() else "strike"
+	var key := "SKILL_KIND_%s" % id.to_upper()
+	return key if tr(key) != key else id
+
+
+func _skill_kind_desc(kind: String) -> String:
+	var id := kind if not kind.is_empty() else "strike"
+	var key := "SKILL_KIND_%s_DESC" % id.to_upper()
+	var translated := tr(key)
+	return translated if translated != key else ""
 
 
 func _gem_type_label(gem_type: String) -> String:
-	match gem_type:
-		"element":
-			return "GEM_TYPE_ELEMENT"
-		"condition":
-			return "GEM_TYPE_CONDITION"
-		"mediator":
-			return "GEM_TYPE_MEDIATOR"
-		"explore":
-			return "GEM_TYPE_EXPLORE"
-		_:
-			return gem_type
+	if gem_type.is_empty():
+		return gem_type
+	var key := "GEM_TYPE_%s" % gem_type.to_upper()
+	return key if tr(key) != key else gem_type
 
 
 func _slot_label(slot: String) -> String:
@@ -204,23 +191,10 @@ func _slot_label(slot: String) -> String:
 
 
 func _tag_label(tag: String) -> String:
-	match tag:
-		"weapon":
-			return "TAG_WEAPON"
-		"melee":
-			return "TAG_MELEE"
-		"sword":
-			return "TAG_SWORD"
-		"staff":
-			return "TAG_STAFF"
-		"magic":
-			return "TAG_MAGIC"
-		"polearm":
-			return "TAG_POLEARM"
-		"dagger":
-			return "TAG_DAGGER"
-		_:
-			return tag
+	if tag.is_empty():
+		return tag
+	var key := "TAG_%s" % tag.to_upper()
+	return key if tr(key) != key else tag
 
 
 func _reso_label(tag: String) -> String:

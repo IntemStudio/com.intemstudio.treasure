@@ -3,7 +3,8 @@
 인게임 HUD 우하의 스크롤 텍스트. 전투에서 일어난 이산 행동을 다시 읽는다.  
 플로팅 데미지·전리품 토스트와 병행한다.
 
-후속: [`docs/design/game-log.md`](../design/game-log.md).
+후속: [`docs/design/game-log.md`](../design/game-log.md).  
+색 (bbcode 토큰): [`ui-colors.md`](ui-colors.md).
 
 ---
 
@@ -21,6 +22,7 @@
 Autoload 아님. `CombatSession`은 로그 타입을 모른다. 세이브 JSON에 없음.
 
 메뉴가 열리면 `GameHud`와 함께 숨긴다. **전투 중에는 유지**.  
+마을에서는 HUD가 꺼지고 `VillageShell` 오른쪽이 같은 `game_log`를 붙인다.  
 `unbind_dungeon` / 마을·타이틀 귀환 시 `clear`.
 
 ---

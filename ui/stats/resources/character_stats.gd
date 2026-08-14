@@ -21,7 +21,7 @@ const ATTRIBUTE_LABELS: Dictionary = {
 	"equip_load": "Equip Load",
 }
 
-@export var character_name: String = "Kirin"
+@export var character_name: String = ""
 @export var level: int = 1
 @export var xp: int = 0
 ## Derived from LevelProgression CSV; keep in sync via sync_xp_to_next().
@@ -143,6 +143,7 @@ func recalculate_derived() -> void:
 
 
 func apply_new_game_start() -> void:
+	character_name = ""
 	level = MIN_LEVEL
 	xp = 0
 	recalculate_derived()

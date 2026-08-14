@@ -82,7 +82,7 @@ func _set_bar(bar: ProgressBar, label: Label, key: String, value: int, max_value
 
 func _style_bar(bar: ProgressBar, fill: Color) -> void:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.08, 0.08, 0.09, 0.75)
+	bg.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.75)
 	bg.set_content_margin_all(0)
 	var fg := StyleBoxFlat.new()
 	fg.bg_color = fill

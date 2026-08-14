@@ -9,7 +9,6 @@ const ATB_SIZE := Vector2(48, 4)
 const FLOAT_DURATION := 0.8
 const FLOAT_RISE := 48.0
 const FOCUS_PAD := 4.0
-const FOCUS_COLOR := Color(0.95, 0.78, 0.28, 1)
 
 var unit_id: String = ""
 
@@ -34,7 +33,7 @@ func setup(unit: Dictionary) -> void:
 	unit_id = str(unit.get("id", ""))
 	if _body == null:
 		_build()
-	_body.color = unit.get("body_color", Color(0.7, 0.3, 0.3, 1))
+	_body.color = unit.get("body_color", UIColors.NEGATIVE)
 	apply_unit(unit)
 
 
@@ -43,7 +42,7 @@ func apply_unit(unit: Dictionary) -> void:
 		_build()
 	var alive := bool(unit.get("alive", true))
 	visible = true
-	modulate = Color(1, 1, 1, 1) if alive else Color(0.4, 0.4, 0.4, 0.55)
+	modulate = Color.WHITE if alive else Color(0.4, 0.4, 0.4, 0.55)
 	_name_label.text = _unit_name(unit)
 	var hp := maxi(0, int(unit.get("hp", 0)))
 	var max_hp := maxi(1, int(unit.get("max_hp", 1)))
@@ -71,8 +70,8 @@ func spawn_damage_float(amount: int) -> void:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 18)
-	label.add_theme_color_override("font_color", Color(0.96, 0.42, 0.32, 1))
-	label.add_theme_color_override("font_outline_color", Color(0.06, 0.03, 0.03, 0.92))
+	label.add_theme_color_override("font_color", UIColors.NEGATIVE)
+	label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
 	label.add_theme_constant_override("outline_size", 4)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.position = Vector2(-32.0 + randf_range(-8.0, 8.0), -BODY_SIZE.y - 8.0)
@@ -102,8 +101,8 @@ func _build() -> void:
 	_name_label.size = Vector2(88, 16)
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.add_theme_font_size_override("font_size", 11)
-	_name_label.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1))
-	_name_label.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05, 0.92))
+	_name_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	_name_label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
 	_name_label.add_theme_constant_override("outline_size", 2)
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_name_label)
@@ -112,7 +111,7 @@ func _build() -> void:
 	_hp_bg.name = "HpBg"
 	_hp_bg.position = Vector2(-BAR_SIZE.x * 0.5, -BODY_SIZE.y - 18)
 	_hp_bg.size = BAR_SIZE
-	_hp_bg.color = Color(0.12, 0.12, 0.14, 0.9)
+	_hp_bg.color = UIColors.BAR_BG
 	_hp_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hp_bg)
 
@@ -120,7 +119,7 @@ func _build() -> void:
 	_hp_fill.name = "HpFill"
 	_hp_fill.position = _hp_bg.position
 	_hp_fill.size = BAR_SIZE
-	_hp_fill.color = Color(0.35, 0.78, 0.42, 1)
+	_hp_fill.color = UIColors.HP_FILL
 	_hp_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hp_fill)
 
@@ -131,8 +130,8 @@ func _build() -> void:
 	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_hp_label.add_theme_font_size_override("font_size", 9)
-	_hp_label.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1))
-	_hp_label.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05, 0.9))
+	_hp_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	_hp_label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.9))
 	_hp_label.add_theme_constant_override("outline_size", 2)
 	_hp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_hp_label)
@@ -141,7 +140,7 @@ func _build() -> void:
 	_atb_bg.name = "AtbBg"
 	_atb_bg.position = Vector2(-ATB_SIZE.x * 0.5, -BODY_SIZE.y - 8)
 	_atb_bg.size = ATB_SIZE
-	_atb_bg.color = Color(0.08, 0.08, 0.1, 0.9)
+	_atb_bg.color = UIColors.BAR_BG
 	_atb_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_atb_bg)
 
@@ -149,7 +148,7 @@ func _build() -> void:
 	_atb_fill.name = "AtbFill"
 	_atb_fill.position = _atb_bg.position
 	_atb_fill.size = Vector2(0, ATB_SIZE.y)
-	_atb_fill.color = Color(0.75, 0.75, 0.78, 1)
+	_atb_fill.color = UIColors.ATB_FILL
 	_atb_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_atb_fill)
 
@@ -157,7 +156,7 @@ func _build() -> void:
 	_focus_frame.name = "FocusFrame"
 	_focus_frame.position = Vector2(-BODY_SIZE.x * 0.5 - FOCUS_PAD, -BODY_SIZE.y - FOCUS_PAD)
 	_focus_frame.size = BODY_SIZE + Vector2(FOCUS_PAD * 2.0, FOCUS_PAD * 2.0)
-	_focus_frame.color = FOCUS_COLOR
+	_focus_frame.color = UIColors.GOLD
 	_focus_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_focus_frame.visible = false
 	add_child(_focus_frame)
@@ -166,7 +165,7 @@ func _build() -> void:
 	_body.name = "Body"
 	_body.position = Vector2(-BODY_SIZE.x * 0.5, -BODY_SIZE.y)
 	_body.size = BODY_SIZE
-	_body.color = Color(0.7, 0.3, 0.3, 1)
+	_body.color = UIColors.NEGATIVE
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_body)
 
@@ -174,10 +173,11 @@ func _build() -> void:
 	_hit.name = "Hit"
 	_hit.position = Vector2(-44, -BODY_SIZE.y - 36)
 	_hit.size = Vector2(88, BODY_SIZE.y + 36)
-	_hit.color = Color(0, 0, 0, 0)
+	_hit.color = UIColors.CLEAR
 	_hit.mouse_filter = Control.MOUSE_FILTER_STOP
 	_hit.gui_input.connect(_on_hit_gui_input)
 	add_child(_hit)
+
 	_refresh_hit()
 
 

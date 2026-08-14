@@ -1,6 +1,6 @@
 # 스탯 UI
 
-스탯 탭 본문 스펙. 전체화면 크롬(Overlay / TopBar / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Stats 콘텐츠 패널**만 다룹니다.
+스탯 탭 본문 스펙. 모달 크롬(Overlay / TopBar 제목 / Footer / pause, Sheet 1440×800)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Stats 콘텐츠 패널**만 다룹니다. 단독 Sheet 팝업 (탭 순환 없음).
 
 후속(Focus→Mana 라벨·무게 전투 보정): [`docs/design/stats.md`](../design/stats.md).  
 기술 게이지·마나 자동 발동은 전투 ([`combat.md`](combat.md) · [`equipment.md`](equipment.md)).
@@ -30,7 +30,9 @@
 
 | 영역 | 내용 |
 |------|------|
-| TopBar (셸) | 재화, `[인벤토리][맵][스탯][설정]`, 이름·레벨·XP·HP |
+| TopBar (셸) | 상단 밴드(72) — 제목만 |
+| Body | 중단 밴드 — expand |
+| Footer (셸) | 하단 밴드(72) — 프롬프트 |
 | Left | 초상화, Attribute Points, 속성 목록 (Health~Equip Load), Insight 시 선택 속성 설명. Body 1/4 |
 | Right | GENERAL / COMBAT / DEFENSE / WEIGHT + 무기 데미지 테이블. Body 3/4 |
 | Footer (셸) | LEVEL-UP / INSIGHT / BACK |
@@ -95,4 +97,4 @@ ui/stats/components/
 - **전투 XP:** 승리 시 `CharacterStats.add_xp` ([`combat.md`](combat.md)). HUD·스탯은 `UIManager.refresh_character_views`로 갱신
 - **입력:** 상하 속성 선택, Enter 투자, Insight, Esc → `request_close`
 
-탭 전환은 Q/E·LB/RB → TopBar → `MenuShell`이 다른 콘텐츠를 `activate`합니다. Map은 순환 탭에 포함됩니다 (`TopBar.CYCLEABLE_TABS`).
+탭 전환은 없다 — 인벤/맵/스탯/설정은 각각 단독 Sheet. Map은 HUD 미니맵·메뉴에서 `open_tab(MAP)`으로만 연다.

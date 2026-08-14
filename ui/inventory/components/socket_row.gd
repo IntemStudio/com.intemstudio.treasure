@@ -67,17 +67,7 @@ func _kind_label(kind: String, index: int) -> String:
 func _rarity_text_color() -> Color:
 	if _rarity == ItemData.ItemRarity.COMMON:
 		return UIColors.TEXT_MAIN
-	match _rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
-		ItemData.ItemRarity.RARE:
-			return UIColors.RARE_GLOW
-		ItemData.ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
-		ItemData.ItemRarity.LEGENDARY:
-			return UIColors.GOLD
-		_:
-			return UIColors.TEXT_MAIN
+	return ItemData.color_for_rarity(_rarity)
 
 
 func _apply_visual_state() -> void:
@@ -90,34 +80,20 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"InventorySlot"
 		if _filled:
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.06, 0.06, 0.07, 0.7)
-			style.border_color = _rarity_border()
+			style.bg_color = UIColors.SLOT_BG
+			style.border_color = ItemData.color_for_rarity(_rarity)
 			style.set_border_width_all(1)
 			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else UIColors.TEXT_MUTED
 	if kind_label:
-		kind_label.add_theme_color_override("font_color", color if _selected else Color(0.55, 0.7, 0.85))
+		kind_label.add_theme_color_override("font_color", color)
 	if value_label and _selected:
 		value_label.add_theme_color_override("font_color", UIColors.GOLD)
 	elif value_label and _filled:
 		value_label.add_theme_color_override("font_color", _rarity_text_color())
 	elif value_label:
 		value_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
-
-
-func _rarity_border() -> Color:
-	match _rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
-		ItemData.ItemRarity.RARE:
-			return UIColors.RARE_GLOW
-		ItemData.ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
-		ItemData.ItemRarity.LEGENDARY:
-			return UIColors.GOLD
-		_:
-			return Color(0.35, 0.34, 0.33)
 
 
 func _on_gui_input(event: InputEvent) -> void:

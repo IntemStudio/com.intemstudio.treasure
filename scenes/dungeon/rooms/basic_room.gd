@@ -1,17 +1,17 @@
 extends Node2D
 
 const TYPE_COLORS := {
-	RoomData.RoomType.START: Color(0.22, 0.32, 0.28, 1),
-	RoomData.RoomType.NORMAL: Color(0.16, 0.18, 0.22, 1),
-	RoomData.RoomType.BOSS: Color(0.32, 0.16, 0.18, 1),
+	RoomData.RoomType.START: UIColors.MAP_START,
+	RoomData.RoomType.NORMAL: UIColors.MAP_NORMAL,
+	RoomData.RoomType.BOSS: UIColors.MAP_BOSS,
 }
 
 const FLOOR_HALF := Vector2(480, 270)
 const WALL_THICK := 48.0
 const DOOR_LENGTH := 128.0
-const WALL_COLOR := Color(0.06, 0.06, 0.08, 1)
-const DOOR_FRAME := Color(0.78, 0.66, 0.30, 1)
-const DOOR_OPENING := Color(0.10, 0.10, 0.12, 1)
+const WALL_COLOR := UIColors.SLOT_BG_SOLID
+const DOOR_FRAME := UIColors.GOLD
+const DOOR_OPENING := UIColors.MAP_LOCKED
 const DIR_KEYS: Array[String] = ["N", "E", "S", "W"]
 const DIR_INPUT: Dictionary = {
 	"N": "W",
@@ -170,8 +170,8 @@ func _add_key_label(parent: Node, rect: Rect2, text: String) -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override("font_color", Color(0.96, 0.95, 0.92, 1))
-	label.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05, 0.92))
+	label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
 	label.add_theme_constant_override("outline_size", 4)
 	parent.add_child(label)
 

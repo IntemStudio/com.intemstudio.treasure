@@ -11,7 +11,7 @@ offset_left = -480.0
 offset_top = -270.0
 offset_right = 480.0
 offset_bottom = 270.0
-color = Color(0.16, 0.18, 0.22, 1)
+color = Color(0.314, 0.286, 0.271, 1)
 
 [node name="SpawnMarker" type="Marker2D" parent="."]
 unique_name_in_owner = true
@@ -23,7 +23,7 @@ offset_left = -200.0
 offset_top = -240.0
 offset_right = 200.0
 offset_bottom = -200.0
-theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
+theme_override_colors/font_color = Color(0.922, 0.859, 0.698, 1)
 theme_override_font_sizes/font_size = 28
 horizontal_alignment = 1
 text = "Room"

@@ -12,7 +12,9 @@ func set_stats(data: CharacterStats) -> void:
 	if not data:
 		return
 	data.sync_xp_to_next()
-	name_label.text = data.character_name
+	if name_label:
+		name_label.visible = false
+		name_label.text = ""
 	level_label.text = tr("Level %d") % data.level
 	var xp_max := data.xp_to_next
 	xp_bar.max_value = maxi(xp_max, 1)

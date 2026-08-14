@@ -5,10 +5,10 @@ signal request_close
 const CELL_SIZE := 48
 const CELL_GAP := 8
 
-const COLOR_START := Color(0.28, 0.48, 0.38, 1)
-const COLOR_NORMAL := Color(0.22, 0.24, 0.28, 1)
-const COLOR_BOSS := Color(0.55, 0.22, 0.25, 1)
-const COLOR_LOCKED := Color(0.10, 0.10, 0.12, 1)
+const COLOR_START := UIColors.MAP_START
+const COLOR_NORMAL := UIColors.MAP_NORMAL
+const COLOR_BOSS := UIColors.MAP_BOSS
+const COLOR_LOCKED := UIColors.MAP_LOCKED
 
 @onready var empty_label: Label = %EmptyLabel
 @onready var grid_host: Control = %GridHost
@@ -242,7 +242,7 @@ func _refresh_cell_styles() -> void:
 					fill = COLOR_BOSS
 				_:
 					fill = COLOR_NORMAL
-		var border := UIColors.GOLD if p == current else Color(0.35, 0.35, 0.38, 1)
+		var border := UIColors.GOLD if p == current else UIColors.SLOT_BORDER
 		var border_w := 3 if p == current else 1
 		btn.disabled = not reachable
 		btn.text = room.type_letter()
@@ -265,7 +265,7 @@ func _apply_cell_style(
 	btn.add_theme_stylebox_override("pressed", style)
 	btn.add_theme_stylebox_override("focus", style)
 	btn.add_theme_stylebox_override("disabled", style)
-	btn.modulate = Color(1, 1, 1, 1) if reachable else Color(1, 1, 1, 0.45)
+	btn.modulate = Color.WHITE if reachable else Color(1, 1, 1, 0.45)
 	var letter := UIColors.TEXT_MAIN
 	btn.add_theme_color_override("font_color", letter)
 	btn.add_theme_color_override("font_hover_color", letter)

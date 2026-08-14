@@ -84,20 +84,6 @@ func set_selected(is_selected: bool) -> void:
 	_apply_visual_state()
 
 
-func _rarity_color() -> Color:
-	match _entry_rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
-		ItemData.ItemRarity.RARE:
-			return UIColors.RARE_GLOW
-		ItemData.ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
-		ItemData.ItemRarity.LEGENDARY:
-			return UIColors.GOLD
-		_:
-			return Color(0.35, 0.34, 0.33)
-
-
 func _apply_visual_state() -> void:
 	remove_theme_stylebox_override("panel")
 	if _selected:
@@ -108,8 +94,8 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"InventorySlot"
 		if _has_entry:
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.06, 0.06, 0.07, 0.7)
-			style.border_color = _rarity_color()
+			style.bg_color = UIColors.SLOT_BG
+			style.border_color = ItemData.color_for_rarity(_entry_rarity)
 			style.set_border_width_all(1)
 			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)

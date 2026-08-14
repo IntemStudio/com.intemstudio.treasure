@@ -1,10 +1,11 @@
 # 인게임 HUD
 
-탐험 중 상시 UI. 메뉴 셸([`menu_shell`](../../ui/shell/menu_shell.tscn))과 분리되며, **메뉴가 열리면** 숨긴다. 전투 중에는 유지한다([`combat.md`](combat.md)).
+탐험 중 상시 UI. 메뉴 셸([`menu_shell`](../../ui/shell/menu_shell.tscn))과 분리되며, **메뉴가 열리면** 숨긴다. 전투 중에는 유지한다([`combat.md`](combat.md)). **마을 허브에서는 숨긴다** — 크롬은 [`village.md`](village.md) `VillageShell`.
 
 후속: [`docs/design/hud.md`](../design/hud.md).  
 미니맵: [`minimap.md`](minimap.md) · 후속 [`docs/design/minimap.md`](../design/minimap.md).  
-게임 로그: [`docs/architecture/game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).
+게임 로그: [`docs/architecture/game-log.md`](game-log.md) · 후속 [`docs/design/game-log.md`](../design/game-log.md).  
+색: [`ui-colors.md`](ui-colors.md) (Gruvbox Dark / `UIColors`).
 
 ---
 
@@ -23,7 +24,8 @@
 | 앱 버전 | [`ui/hud/app_version.gd`](../../ui/hud/app_version.gd) |
 | 소유 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) |
 
-CanvasLayer: HUD `layer = 0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
+CanvasLayer: HUD `layer = 0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.  
+DevOverlay 크롬: 딤·패널 테두리·제목 = `MAP_START` (청록). 플레이어 메뉴(금·갈)와 구분.
 
 전투 중: `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud는 유지** (메뉴 오픈 시에만 숨김).
 
@@ -35,6 +37,7 @@ CanvasLayer: HUD `layer = 0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 |------|------|
 | 좌상 | XP(흰) → 마나(주황) → HP(빨강) + `EXP/MP/HP 현재/최대` (`tr`: 경험치/마나/체력) |
 | 우상 | 지역명 · `AppVersion` **위**, 그 아래 미니맵 (안개 격자) |
+| 좌중 | `[인벤토리]` `[맵]` `[스탯]` `[설정]` (마을에선 HUD 자체 숨김) |
 | 좌하 | 기술 4칸(상) + 주무기·보조·아이템·음식(하) |
 | 우하 | 게임 로그 (배속/후퇴 **위**) |
 | 상단 중앙 | 방 `win` 전리품 토스트 (~3초, [`loot.md`](loot.md)) |
@@ -53,6 +56,7 @@ GameHud (CanvasLayer)
     ├── TopRight (VBox)
     │   ├── WorldInfo
     │   └── MiniMap
+    ├── MenuNav                 # [인벤토리]/[맵]/[스탯]/[설정]
     ├── ActionBar
     │   ├── SkillRow (HudSlot × 4)
     │   └── EquipRow (Main / Off / Item / Food)
@@ -94,7 +98,8 @@ UIManager.refresh_hud()            # HUD만. 인벤 포커스 유지
 GameHud.setup(stats, inventory, location_id)
 GameHud.refresh(stats?, inventory?)
 GameHud.set_location(location_id)
-GameHud.set_menu_open(is_open)      # 메뉴일 때만 숨김
+GameHud.set_menu_open(is_open)      # 메뉴일 때만 숨김. hub면 유지 숨김
+GameHud.set_hub_mode(bool)          # true면 HUD 숨김
 GameHud.bind_floor_map(floor_map)
 GameHud.unbind_floor_map()
 GameHud.bind_game_log(log)

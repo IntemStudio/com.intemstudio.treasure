@@ -121,48 +121,30 @@ func _offer_rarity(offer: Dictionary) -> ItemData.ItemRarity:
 	var item: ItemData = offer.get("item") as ItemData
 	if item:
 		return item.rarity
-	var rune: RuneData = offer.get("rune") as RuneData
-	if rune:
-		return rune.rarity
-	var gem: GemData = offer.get("gem") as GemData
-	if gem:
-		return gem.rarity
+	# Runes/gems have no rarity (shelf.v3).
 	return ItemData.ItemRarity.COMMON
-
-
-func _rarity_color() -> Color:
-	match _rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
-		ItemData.ItemRarity.RARE:
-			return UIColors.RARE_GLOW
-		ItemData.ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
-		ItemData.ItemRarity.LEGENDARY:
-			return UIColors.GOLD
-		_:
-			return Color(0.45, 0.44, 0.42)
 
 
 func _apply_visual_state() -> void:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.05, 0.05, 0.06, 0.92)
+	style.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.92)
 	style.set_content_margin_all(10)
+	var rarity_color := ItemData.color_for_rarity(_rarity)
 	if _selected:
 		style.border_color = UIColors.SELECT_BORDER
 		style.set_border_width_all(3)
 	elif _hovered and _has_offer:
-		style.border_color = _rarity_color()
+		style.border_color = rarity_color
 		style.set_border_width_all(2)
 	elif _has_offer:
-		style.border_color = _rarity_color()
+		style.border_color = rarity_color
 		style.set_border_width_all(1)
 	else:
-		style.border_color = Color(0.25, 0.25, 0.28, 1)
+		style.border_color = UIColors.SLOT_BORDER
 		style.set_border_width_all(1)
 	add_theme_stylebox_override("panel", style)
 	if _modifier_detail and _modifier_detail.visible and _modifier_detail.rarity_label:
-		_modifier_detail.rarity_label.add_theme_color_override("font_color", _rarity_color())
+		_modifier_detail.rarity_label.add_theme_color_override("font_color", rarity_color)
 
 
 func _on_gui_input(event: InputEvent) -> void:

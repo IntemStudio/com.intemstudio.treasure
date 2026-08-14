@@ -60,9 +60,9 @@ func set_charge(ratio: float, highlighted: bool = false) -> void:
 		return
 	charge_bar.value = clampf(ratio, 0.0, 1.0) * 100.0
 	if highlighted:
-		charge_bar.modulate = Color(1.0, 0.85, 0.35, 1.0)
+		charge_bar.modulate = UIColors.GOLD
 	else:
-		charge_bar.modulate = Color(0.55, 0.75, 1.0, 1.0)
+		charge_bar.modulate = UIColors.RARITY_RARE
 
 
 func clear() -> void:

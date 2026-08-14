@@ -66,18 +66,22 @@ func is_two_handed() -> bool:
 	return t.contains("two handed") or t.contains("two-handed")
 
 
-func get_rarity_color() -> Color:
-	match rarity:
+static func color_for_rarity(r: ItemRarity) -> Color:
+	match r:
 		ItemRarity.UNCOMMON:
-			return Color(0.45, 0.85, 0.55)
+			return UIColors.RARITY_UNCOMMON
 		ItemRarity.RARE:
-			return UIColors.RARE_GLOW
+			return UIColors.RARITY_RARE
 		ItemRarity.EPIC:
-			return Color(0.85, 0.55, 0.25)
+			return UIColors.RARITY_EPIC
 		ItemRarity.LEGENDARY:
-			return UIColors.GOLD
+			return UIColors.RARITY_LEGENDARY
 		_:
-			return Color(0.35, 0.34, 0.33)
+			return UIColors.RARITY_COMMON
+
+
+func get_rarity_color() -> Color:
+	return color_for_rarity(rarity)
 
 
 func rarity_locale_key() -> String:

@@ -62,20 +62,16 @@ func _ensure_nodes() -> void:
 		return
 	_empty_style = StyleBoxEmpty.new()
 	_box_style = StyleBoxFlat.new()
-	_box_style.bg_color = Color(0.06, 0.06, 0.07, 0.92)
+	_box_style.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.92)
 	_box_style.set_border_width_all(1)
-	_box_style.border_color = Color(0.88, 0.88, 0.9, 0.95)
+	_box_style.border_color = UIColors.TEXT_MAIN
 	_box_style.set_corner_radius_all(2)
 
 	add_theme_constant_override("separation", 16)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
-	_select_bar = ColorRect.new()
-	_select_bar.custom_minimum_size = Vector2(3, 0)
-	_select_bar.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_select_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_select_bar.color = Color(0, 0, 0, 0)
+	_select_bar = UISelectStyle.make_select_bar()
 	add_child(_select_bar)
 
 	label = Label.new()
@@ -114,7 +110,7 @@ func _refresh_value() -> void:
 	_mark.text = "✓" if _enabled else ""
 	_value_label.text = tr("On") if _enabled else tr("Off")
 	_box_style.bg_color = (
-		Color(0.78, 0.66, 0.3, 0.35) if _enabled else Color(0.06, 0.06, 0.07, 0.92)
+		UIColors.with_alpha(UIColors.GOLD, 0.35) if _enabled else UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.92)
 	)
 	_box.add_theme_stylebox_override("panel", _box_style)
 
@@ -127,7 +123,7 @@ func _apply_selection_style() -> void:
 	_box_style.border_color = color
 	_box.add_theme_stylebox_override("panel", _box_style)
 	if _select_bar:
-		_select_bar.color = UIColors.SELECT_BORDER if _selected else Color(0, 0, 0, 0)
+		UISelectStyle.set_select_bar(_select_bar, _selected)
 
 
 func _on_mouse_entered() -> void:

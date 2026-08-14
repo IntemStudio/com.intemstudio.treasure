@@ -56,7 +56,7 @@ func start(
 		hero_stats.duplicate_stats() if hero_stats else CombatStats.new(),
 		hero_hp,
 		0,
-		Color(0.85, 0.75, 0.35, 1),
+		UIColors.TEXT_LORE,
 		false
 	)
 	hero["is_hero"] = true

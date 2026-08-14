@@ -2,7 +2,8 @@
 
 던전 **현재 방**에서 시작하는 **탑다운 ATB 자동 전투**.  
 후속: [`docs/design/combat.md`](../design/combat.md). 방 `win` 장비: [`loot.md`](loot.md).  
-인게임 텍스트 로그: [`game-log.md`](game-log.md). 기술·공명: [`equipment.md`](equipment.md).
+인게임 텍스트 로그: [`game-log.md`](game-log.md). 기술·공명: [`equipment.md`](equipment.md).  
+색 (포커스 금·HP 바): [`ui-colors.md`](ui-colors.md).
 
 **현황:** v2 방 안 전장 + 고급 스탯(회피·크리·흡혈·반격·리젠·Magic HP·스태미나/Tired) + 히어로 기술 게이지·마나 자동 발동 + **고정 타겟**(클릭으로 변경). GameHud·미니맵 전투 중 유지.
 
@@ -121,4 +122,4 @@ signal action_resolved(payload)
 
 ## 디버그
 
-DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 소켓 재구성).
+DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 소켓 재구성). `[서가]` 탭: 룬/보석 판 `open_cards` 전 칸 해금 (`CardRegistrationService.open_all_on_shelf`).

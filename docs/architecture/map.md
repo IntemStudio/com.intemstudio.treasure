@@ -83,7 +83,7 @@ Dungeon (Node2D)
 ## Map 탭
 
 패널 계약: `setup` / `activate` / `deactivate` / `request_close` (다른 탭과 동일).  
-`MenuShell`이 `Tab.MAP`을 마운트하고, `TopBar.CYCLEABLE_TABS`에 Map 포함 (Q/E 순환에 들어감).
+`MenuShell`이 `Tab.MAP`을 단독 Sheet로 마운트한다. TopBar 탭 순환에는 포함되지 않는다.
 
 이동 불가 칸은 비활성·흐리게 표시. **안개:** 방문+이웃만 칸·타입 글자 표시 (미니맵과 동일). `RoomHost.enter_room`도 `can_enter`를 검사한다.  
 전투 중 칸 클릭은 `UIManager.is_combat_active()`에서 거부.

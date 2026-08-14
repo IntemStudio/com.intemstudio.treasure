@@ -1,11 +1,25 @@
 class_name GameLogFormatter
 extends RefCounted
 
-const COLOR_HIT := "#e88888"
-const COLOR_CRIT := "#e6c35a"
-const COLOR_EVADE := "#999999"
-const COLOR_HEAL := "#7ecb8a"
-const COLOR_SYSTEM := "#a8a498"
+
+static func _color_hit() -> String:
+	return UIColors.html(UIColors.NEGATIVE)
+
+
+static func _color_crit() -> String:
+	return UIColors.html(UIColors.GOLD)
+
+
+static func _color_evade() -> String:
+	return UIColors.html(UIColors.TEXT_MUTED)
+
+
+static func _color_heal() -> String:
+	return UIColors.html(UIColors.POSITIVE)
+
+
+static func _color_system() -> String:
+	return UIColors.html(UIColors.TEXT_MUTED)
 
 
 static func format_bbcode(entry: GameLogEntry) -> String:
@@ -13,22 +27,22 @@ static func format_bbcode(entry: GameLogEntry) -> String:
 		return ""
 	match entry.kind:
 		"combat.start":
-			return _wrap(COLOR_SYSTEM, _tr("LOG_COMBAT_START") % _joined_names(entry.actor_name))
+			return _wrap(_color_system(), _tr("LOG_COMBAT_START") % _joined_names(entry.actor_name))
 		"combat.end":
-			return _wrap(COLOR_SYSTEM, _end_text(entry.result))
+			return _wrap(_color_system(), _end_text(entry.result))
 		"evade":
-			return _wrap(COLOR_EVADE, _tr("LOG_EVADE") % _name(entry.target_name))
+			return _wrap(_color_evade(), _tr("LOG_EVADE") % _name(entry.target_name))
 		"death":
 			var dead := entry.target_name if not entry.target_name.is_empty() else entry.actor_name
-			return _wrap(COLOR_SYSTEM, _tr("LOG_DEATH") % _name(dead))
+			return _wrap(_color_system(), _tr("LOG_DEATH") % _name(dead))
 		"tired":
-			return _wrap(COLOR_SYSTEM, _tr("LOG_TIRED") % _name(entry.actor_name))
+			return _wrap(_color_system(), _tr("LOG_TIRED") % _name(entry.actor_name))
 		"hit":
 			return _format_hit(entry)
 		"loot.grant":
-			return _wrap(COLOR_SYSTEM, _tr("LOOT_GOT") % _joined_names(entry.actor_name))
+			return _wrap(_color_system(), _tr("LOOT_GOT") % _joined_names(entry.actor_name))
 		"loot.skip":
-			return _wrap(COLOR_SYSTEM, _tr("LOOT_INVENTORY_FULL"))
+			return _wrap(_color_system(), _tr("LOOT_INVENTORY_FULL"))
 		_:
 			return ""
 
@@ -41,16 +55,16 @@ static func _format_hit(entry: GameLogEntry) -> String:
 		base = _tr("LOG_SKILL") % [actor, _tr(entry.skill_name), target, entry.amount]
 	else:
 		base = _tr("LOG_HIT") % [actor, target, entry.amount]
-	var color := COLOR_CRIT if entry.flags.has("crit") else COLOR_HIT
+	var color := _color_crit() if entry.flags.has("crit") else _color_hit()
 	var line := _wrap(color, base)
 	if entry.flags.has("crit"):
-		line += _wrap(COLOR_CRIT, _tr("LOG_CRIT_SUFFIX"))
+		line += _wrap(_color_crit(), _tr("LOG_CRIT_SUFFIX"))
 	if entry.heal_amount > 0:
-		line += _wrap(COLOR_HEAL, _tr("LOG_VAMP_SUFFIX") % entry.heal_amount)
+		line += _wrap(_color_heal(), _tr("LOG_VAMP_SUFFIX") % entry.heal_amount)
 	if entry.flags.has("counter"):
-		line += _wrap(COLOR_SYSTEM, _tr("LOG_COUNTER_SUFFIX"))
+		line += _wrap(_color_system(), _tr("LOG_COUNTER_SUFFIX"))
 	if entry.flags.has("retaliation"):
-		line += _wrap(COLOR_SYSTEM, _tr("LOG_RETALIATION_SUFFIX"))
+		line += _wrap(_color_system(), _tr("LOG_RETALIATION_SUFFIX"))
 	return line
 
 

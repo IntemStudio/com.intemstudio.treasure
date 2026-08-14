@@ -6,7 +6,6 @@ signal slot_activated(slot_id: String)
 
 @onready var slot_icon: TextureRect = $Content/SlotIcon
 @onready var name_label: Label = $Content/Name
-@onready var empty_label: Label = $Content/EmptyLabel
 
 var slot_id: String = ""
 var _selected: bool = false
@@ -20,7 +19,6 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
-	empty_label.text = tr("Empty")
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 
 
@@ -32,6 +30,7 @@ func setup(id: String, slot_texture: Texture2D = null) -> void:
 	slot_id = id
 	if slot_texture:
 		slot_icon.texture = slot_texture
+	_refresh_labels()
 
 
 func set_item(item: ItemData) -> void:
@@ -47,15 +46,33 @@ func set_blocked(blocked: bool) -> void:
 
 
 func _refresh_labels() -> void:
+	if name_label == null:
+		return
+	var top := tr("Two-handed") if _blocked and _item == null else tr("Empty")
 	if _item:
-		name_label.text = tr(_item.display_name)
-		name_label.visible = true
-		empty_label.visible = false
-	else:
-		name_label.visible = false
-		name_label.text = ""
-		empty_label.visible = true
-		empty_label.text = tr("Two-handed") if _blocked else tr("Empty")
+		top = tr(_item.display_name)
+	name_label.visible = true
+	name_label.text = "%s\n(%s)" % [top, tr(_slot_name_key())]
+
+
+func _slot_name_key() -> String:
+	match slot_id:
+		"main_hand":
+			return "EQUIP_SLOT_MAIN_HAND"
+		"off_hand":
+			return "EQUIP_SLOT_OFF_HAND"
+		"head":
+			return "SLOT_HELMETS"
+		"chest":
+			return "SLOT_BODY"
+		"legs":
+			return "EQUIP_SLOT_LEGS"
+		"ring_1", "ring_2":
+			return "SLOT_RINGS"
+		"tool_1", "tool_2":
+			return "SLOT_TOOLS"
+		_:
+			return slot_id
 
 
 func set_selected(is_selected: bool) -> void:
@@ -73,17 +90,19 @@ func _apply_visual_state() -> void:
 		theme_type_variation = &"EquipmentSlot"
 		if _item:
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.08, 0.08, 0.09, 0.85) if _hovered else Color(0.05, 0.05, 0.06, 0.8)
+			style.bg_color = (
+				UIColors.with_alpha(UIColors.PANEL_BG, 0.85)
+				if _hovered
+				else UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.80)
+			)
 			style.border_color = _item.get_rarity_color()
 			style.set_border_width_all(1)
 			style.set_content_margin_all(6)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else _item_text_color()
+	if _item == null and not _selected:
+		color = UIColors.TEXT_MUTED
 	name_label.add_theme_color_override("font_color", color)
-	empty_label.add_theme_color_override(
-		"font_color",
-		UIColors.GOLD if _selected else (UIColors.TEXT_MUTED if _blocked else Color(0.55, 0.53, 0.5, 1))
-	)
 
 
 func _item_text_color() -> Color:

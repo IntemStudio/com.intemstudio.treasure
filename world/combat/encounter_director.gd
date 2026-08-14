@@ -99,7 +99,7 @@ func start(room: RoomData, override_encounter: EncounterDef = null) -> bool:
 	_active_room = room
 	var hero_stats := CombatStatsBuilder.build(ui_manager.character_stats, ui_manager.inventory_data)
 	var hero_hp := ui_manager.character_stats.hp if ui_manager.character_stats else hero_stats.max_hp
-	var hero_name := ui_manager.character_stats.character_name if ui_manager.character_stats else "Hero"
+	var hero_name := tr("Hero")
 	var hero_mana := ui_manager.character_stats.mana if ui_manager.character_stats else 0
 	var hero_mana_max := ui_manager.character_stats.mana_max if ui_manager.character_stats else 0
 	var hero_skills: Array = _collect_hero_skills()
@@ -238,6 +238,7 @@ func _begin_loot_choice(room: RoomData, was_boss: bool) -> void:
 		{
 			"seed": seed_value,
 			"cell": room.grid_pos,
+			"card_meta": SaveManager.get_card_meta(),
 		}
 	)
 	if offers.is_empty():

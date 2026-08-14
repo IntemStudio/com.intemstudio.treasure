@@ -54,7 +54,7 @@ text = "Attribute Points"
 [node name="PointsValueLabel" type="Label" parent="Body/LeftPanel/PointsRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.66, 0.3, 1)
+theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 text = "1"
 
 [node name="PointsNextBtn" type="Button" parent="Body/LeftPanel/PointsRow"]
@@ -73,7 +73,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 autowrap_mode = 3
-theme_override_colors/font_color = Color(0.7, 0.68, 0.6, 1)
+theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
 
@@ -99,7 +99,7 @@ theme_override_constants/separation = 6
 [node name="GeneralTitle" type="Label" parent="Body/RightPanel/Columns/GeneralCol"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "GENERAL"
 
 [node name="CombatCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
@@ -112,7 +112,7 @@ theme_override_constants/separation = 6
 [node name="CombatTitle" type="Label" parent="Body/RightPanel/Columns/CombatCol"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "COMBAT"
 
 [node name="DefenseCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
@@ -125,7 +125,7 @@ theme_override_constants/separation = 6
 [node name="DefenseTitle" type="Label" parent="Body/RightPanel/Columns/DefenseCol"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "DEFENSE"
 
 [node name="WeightCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
@@ -137,7 +137,7 @@ theme_override_constants/separation = 6
 [node name="WeightTitle" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "WEIGHT"
 
 [node name="MaxWeightLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
@@ -175,14 +175,14 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Weapon"
 
 [node name="Base" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Base"
 horizontal_alignment = 1
 
@@ -190,7 +190,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Attr Bonus"
 horizontal_alignment = 1
 
@@ -198,7 +198,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Other"
 horizontal_alignment = 1
 
@@ -206,7 +206,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Total"
 horizontal_alignment = 1
 
