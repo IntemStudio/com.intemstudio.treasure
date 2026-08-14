@@ -21,66 +21,104 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.03, 0.88)
+color = Color(0.114, 0.125, 0.129, 0.88)
 mouse_filter = 0
 
-[node name="Root" type="MarginContainer" parent="."]
+[node name="Safe" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 80
 
-[node name="Main" type="VBoxContainer" parent="Root"]
+[node name="Center" type="CenterContainer" parent="Safe"]
 layout_mode = 2
-theme_override_constants/separation = 12
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="TitleLabel" type="Label" parent="Root/Main"]
+[node name="Sheet" type="PanelContainer" parent="Safe/Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1440, 800)
+layout_mode = 2
+
+[node name="Main" type="VBoxContainer" parent="Safe/Center/Sheet"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TopBand" type="PanelContainer" parent="Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+
+[node name="TopColumn" type="VBoxContainer" parent="Safe/Center/Sheet/Main/TopBand"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Safe/Center/Sheet/Main/TopBand/TopColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 28
 text = "Choose a reward"
 horizontal_alignment = 1
 
-[node name="TypeLabel" type="Label" parent="Root/Main"]
+[node name="TypeLabel" type="Label" parent="Safe/Center/Sheet/Main/TopBand/TopColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.72, 0.55, 1)
+theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
 text = "Weapon"
 horizontal_alignment = 1
 
-[node name="HintLabel" type="Label" parent="Root/Main"]
+[node name="HintLabel" type="Label" parent="Safe/Center/Sheet/Main/TopBand/TopColumn"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 theme_override_font_sizes/font_size = 14
 text = "Select one offer"
 horizontal_alignment = 1
 
-[node name="CardsHost" type="HBoxContainer" parent="Root/Main"]
+[node name="MidBand" type="Control" parent="Safe/Center/Sheet/Main"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+clip_contents = true
+
+[node name="CardsHost" type="HBoxContainer" parent="Safe/Center/Sheet/Main/MidBand"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 18
 alignment = 1
 
-[node name="Footer" type="VBoxContainer" parent="Root/Main"]
+[node name="BottomBand" type="PanelContainer" parent="Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
-theme_override_constants/separation = 8
 
-[node name="StatusLabel" type="Label" parent="Root/Main/Footer"]
+[node name="Footer" type="VBoxContainer" parent="Safe/Center/Sheet/Main/BottomBand"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="StatusLabel" type="Label" parent="Safe/Center/Sheet/Main/BottomBand/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.45, 0.4, 1)
+theme_override_colors/font_color = Color(0.984, 0.286, 0.204, 1)
 text = ""
 horizontal_alignment = 1
 
-[node name="TakeButton" type="Button" parent="Root/Main/Footer"]
+[node name="TakeButton" type="Button" parent="Safe/Center/Sheet/Main/BottomBand/Footer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 42)
 layout_mode = 2

@@ -59,7 +59,7 @@ static func grant(
 		if equipment_pool.is_empty():
 			skipped += count - i
 			break
-		var slot_index := inventory.find_empty_slot()
+		var slot_index := inventory.find_empty_slot(InventoryData.BAG_EQUIPMENT)
 		if slot_index < 0:
 			skipped += count - i
 			break
@@ -67,13 +67,13 @@ static func grant(
 		var item := catalog.get_item(item_id)
 		if item == null:
 			continue
-		inventory.slots[slot_index] = item
+		inventory.set_item(InventoryData.BAG_EQUIPMENT, slot_index, item)
 		granted.append(item)
 
 	return {"granted": granted, "skipped": skipped}
 
 
-## ctx: seed (int), cell (Vector2i)
+## ctx: seed (int), cell (Vector2i), card_meta (Dictionary) — rune/gem pool uses open_cards
 ## returns Array of { kind, id, item?, rune?, gem? }
 static func roll_offers(
 	reward_type: int,
@@ -90,7 +90,7 @@ static func roll_offers(
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, cell.x, cell.y, "offers"])
 
-	var pool := _pool_ids(reward_type, catalog, rune_catalog, gem_catalog)
+	var pool := _pool_ids(reward_type, catalog, rune_catalog, gem_catalog, ctx)
 	if pool.is_empty():
 		return out
 
@@ -123,17 +123,14 @@ static func take_offer(inventory: InventoryData, offer: Dictionary) -> Dictionar
 			var item: ItemData = offer.get("item") as ItemData
 			if item == null:
 				return empty
-			var slot_index := inventory.find_empty_slot()
-			if slot_index < 0:
+			var copy := item.duplicate(true) as ItemData
+			if inventory.try_place_item(copy) < 0:
 				return {
 					"ok": false,
 					"granted_name": item.display_name,
 					"skipped": 1,
 					"granted": [],
 				}
-			var copy := item.duplicate(true) as ItemData
-			inventory.ensure_grid_size()
-			inventory.slots[slot_index] = copy
 			return {
 				"ok": true,
 				"granted_name": copy.display_name,
@@ -145,7 +142,13 @@ static func take_offer(inventory: InventoryData, offer: Dictionary) -> Dictionar
 			if rune_id.is_empty():
 				return empty
 			var ri := RuneInstance.create(rune_id)
-			inventory.runes.append(ri)
+			if not inventory.try_add_rune(ri):
+				return {
+					"ok": false,
+					"granted_name": rune_id,
+					"skipped": 1,
+					"granted": [],
+				}
 			var rname := ""
 			var rd: RuneData = offer.get("rune") as RuneData
 			if rd:
@@ -163,7 +166,13 @@ static func take_offer(inventory: InventoryData, offer: Dictionary) -> Dictionar
 			if gem_id.is_empty():
 				return empty
 			var gi := GemInstance.create(gem_id)
-			inventory.gems.append(gi)
+			if not inventory.try_add_gem(gi):
+				return {
+					"ok": false,
+					"granted_name": gem_id,
+					"skipped": 1,
+					"granted": [],
+				}
 			var gname := ""
 			var gd: GemData = offer.get("gem") as GemData
 			if gd:
@@ -182,14 +191,28 @@ static func take_offer(inventory: InventoryData, offer: Dictionary) -> Dictionar
 
 static func offer_needs_inventory_slot(offer: Dictionary) -> bool:
 	var kind := str(offer.get("kind", ""))
-	return kind == "weapon" or kind == "armor"
+	return kind == "weapon" or kind == "armor" or kind == "rune" or kind == "gem"
+
+
+static func offer_inventory_full(inventory: InventoryData, offer: Dictionary) -> bool:
+	if inventory == null or offer.is_empty():
+		return true
+	var kind := str(offer.get("kind", ""))
+	match kind:
+		"weapon", "armor":
+			return inventory.find_empty_slot(InventoryData.BAG_EQUIPMENT) < 0
+		"rune", "gem":
+			return not inventory.can_add_modifier()
+		_:
+			return false
 
 
 static func _pool_ids(
 	reward_type: int,
 	catalog: ItemCatalog,
 	rune_catalog: RuneCatalog,
-	gem_catalog: GemCatalog
+	gem_catalog: GemCatalog,
+	ctx: Dictionary = {}
 ) -> Array[String]:
 	match reward_type:
 		RoomData.RewardType.WEAPON:
@@ -201,23 +224,19 @@ static func _pool_ids(
 				return []
 			return catalog.ids_for_categories([ItemData.ItemCategory.ARMOR])
 		RoomData.RewardType.RUNE:
-			var out: Array[String] = []
-			if rune_catalog == null:
-				return out
-			for id in rune_catalog.all_ids():
-				out.append(str(id))
-			out.sort()
-			return out
+			return CardRegistrationService.loot_pool_ids(_card_meta_from_ctx(ctx), "rune", rune_catalog)
 		RoomData.RewardType.GEM:
-			var gout: Array[String] = []
-			if gem_catalog == null:
-				return gout
-			for id in gem_catalog.all_ids():
-				gout.append(str(id))
-			gout.sort()
-			return gout
+			return CardRegistrationService.loot_pool_ids(_card_meta_from_ctx(ctx), "gem", gem_catalog)
 		_:
 			return []
+
+
+static func _card_meta_from_ctx(ctx: Dictionary) -> Dictionary:
+	if ctx.has("card_meta") and ctx["card_meta"] is Dictionary:
+		return CardRegistrationService.ensure_meta(ctx["card_meta"] as Dictionary)
+	if ctx.has("unlocked_shelves"):
+		return CardRegistrationService.ensure_meta({"unlocked_shelves": ctx["unlocked_shelves"]})
+	return CardRegistrationService.ensure_meta({})
 
 
 static func _make_offer(

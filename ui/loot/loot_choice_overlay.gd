@@ -25,6 +25,14 @@ func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	var sheet := get_node_or_null("%Sheet") as PanelContainer
+	if sheet:
+		UIPopupLayout.apply_sheet_panel(sheet)
+	UIPopupLayout.apply_sheet_bands(
+		get_node_or_null("%TopBand") as Control,
+		get_node_or_null("%MidBand") as Control,
+		get_node_or_null("%BottomBand") as Control
+	)
 	if take_button:
 		take_button.pressed.connect(_on_take_pressed)
 	if LocaleManager:
@@ -161,7 +169,7 @@ func _sync_take_enabled() -> void:
 	var offer: Dictionary = _offers[_index]
 	var blocked := false
 	if LootService.offer_needs_inventory_slot(offer) and _ui_manager and _ui_manager.inventory_data:
-		blocked = _ui_manager.inventory_data.find_empty_slot() < 0
+		blocked = LootService.offer_inventory_full(_ui_manager.inventory_data, offer)
 	take_button.disabled = blocked
 	if status_label:
 		status_label.text = tr("LOOT_INVENTORY_FULL") if blocked else ""
@@ -172,7 +180,7 @@ func _on_take_pressed() -> void:
 		return
 	var offer: Dictionary = _offers[_index]
 	if LootService.offer_needs_inventory_slot(offer) and _ui_manager and _ui_manager.inventory_data:
-		if _ui_manager.inventory_data.find_empty_slot() < 0:
+		if LootService.offer_inventory_full(_ui_manager.inventory_data, offer):
 			_sync_take_enabled()
 			return
 	var cb := _on_done

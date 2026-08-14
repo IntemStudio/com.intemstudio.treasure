@@ -1,7 +1,6 @@
 # 상점 / 아이템 가격 — 후속 설계
 
-**현황:** 필드·표시만. `ItemData.cost` / `gain`, 인벤 상세 `Cost %d` / `Gain %d`.  
-카탈로그 대부분은 0. 클레이모어 `23` / `9`와 시작 골드 `1250`은 UI 자리값.  
+**현황(가격):** [`docs/architecture/shop.md`](../architecture/shop.md) (`shop.price`).  
 상점 NPC는 마을 v2 ([`village.md`](village.md)).
 
 관련: [`village.md`](village.md) (상점 위치) · [`loot.md`](loot.md) (장비는 던전 3택1) · [`equipment.md`](equipment.md) (`eq.economy`는 소켓·인챈트, 골드가 아님) · [`inventory.md`](../architecture/inventory.md) (상세 표시) · [`save-load.md`](save-load.md) (가격 미저장) · [`hud.md`](hud.md) (재화는 TopBar).
@@ -23,7 +22,7 @@
 | 3 | `gain`을 아이템마다 따로 튜닝하지 않는다. 기본 `floor(buy * 0.4)`. 클레이모어 9/23이 이 비율. |
 | 4 | 세이브에 가격을 넣지 않는다. 카탈로그 템플릿 + 인스턴스 오버라이드(희귀도·접두사·내구)로 재계산. `ItemData` JSON 덤프 금지와 같다. |
 | 5 | 결제는 **골드만**. `silver`는 표시 자리값. 용도는 후속. |
-| 6 | 룬·보석에 골드 필드를 넣지 않는다. `mana_cost`는 전투. 카드는 제단 등록 ([`equipment.md`](equipment.md)). |
+| 6 | 룬·보석에 골드 필드를 넣지 않는다. `mana_cost`는 전투. 카드는 마을 서가 봉인 ([`bookshelf.md`](bookshelf.md)). |
 | 7 | 게시판 `reward_mult`는 가격에 쓰지 않는다. 드랍에도 쓰지 않음 ([`loot.md`](loot.md)). |
 | 8 | 장비의 본줄은 던전 3택1. 상점은 보급(소모품·재료·도구)과 소량 장비. 판매는 골드 싱크. |
 | 9 | 상점 마크업(`shop_buy_mult`)은 상점 상수. 아이템 필드가 아니다. |
@@ -35,8 +34,8 @@
 
 | 단계 | 범위 | 상태 | 선행 |
 |------|------|------|------|
-| 현황 | `cost`/`gain` 필드, 상세 표시, 클레이모어만 값 | 구현됨 | — |
-| **shop.price** | `ShopPricing`, 카탈로그 전 아이템 0 아님, 상세가 서비스 호출 | 설계만 | — |
+| 현황 | `cost`/`gain` 오버라이드 필드 + 상세 표시 | 구현됨 | — |
+| **shop.price** | `ShopPricing`, 카탈로그 전 아이템 0 아님, 상세가 서비스 호출 | 구현됨 | — |
 | **shop.npc** | 마을 상점 NPC, 구매·판매, 골드 차감 | 설계만 | shop.price · 마을 v2 |
 | **shop.roll** | 접두사 롤러 인스턴스를 공식에 반영 | 설계만 | loot v2 |
 
@@ -56,13 +55,13 @@ ShopPricing.buy_price(item) / sell_price(item)
 
 | 역할 | 현재 |
 |------|------|
-| `ItemData.cost` / `gain` | 클레이모어만 23 / 9. `ItemDefaults`는 0 |
-| 상세 | `item.cost` / `item.gain`을 그대로 표시 |
+| `ItemData.cost` / `gain` | 기본 0. 특수 가격만 오버라이드 |
+| 상세 | `ShopPricing.buy_price` / `sell_price` |
 | 골드 | `InventoryData.currencies.gold` 시작 1250. TopBar만 |
 | 세이브 | `id` + quantity / rarity / affixes / durability. 가격 없음 |
 | 상점 | 없음 |
 
-시작 골드·클레이모어 숫자는 밸런스가 아니다. shop.price에서 공식이 덮는다.
+클레이모어 `cost`/`gain`은 0(공식). 시작 골드 1250은 아직 자리값.
 
 ---
 
@@ -117,7 +116,7 @@ SELL_RATIO  = 0.4
 | 소모품 | 고정 소액(공식) | 안 팔거나 `buy * 0.25` | 여관·보급. 스택이면 **개당** |
 | 재료 | 공식 | `buy * 0.75` | 거래 재화 |
 | 도구 | 슬롯 기본가 | 장비와 동일 `0.4` | 드랍 풀 밖 ([`loot.md`](loot.md)) |
-| 룬·보석 | 없음 | 없음 | 제단. 후속이면 별도 카탈로그 필드 |
+| 룬·보석 | 없음 | 없음 | 서가 봉인. 후속이면 별도 카탈로그 필드 |
 
 내구: 판매만 `durability / durability_max`를 곱한다. 구매는 템플릿(또는 오버라이드) 그대로.  
 착용 중·소켓이 찬 장비는 상점에서 팔 수 없다. 먼저 해제·추출.
@@ -134,7 +133,7 @@ gain > 0  → sell 기본가 = gain. 비율 생략
 둘 다 0   → 공식
 ```
 
-`ItemDefaults` 팩토리에 숫자를 하나씩 넣지 않는다. 클레이모어 23/9는 shop.price에서 0으로 돌려 공식에 맡기거나, 특수가로 남길지 구현 직전 한쪽만 고른다.
+`ItemDefaults` 팩토리에 숫자를 하나씩 넣지 않는다. 기본 `cost`/`gain`은 0(공식). 특수가만 오버라이드.
 
 loot v2 접두사 롤러: 인스턴스 `rarity` / `affixes`를 공식에 넣는다. 템플릿 고정가만 있으면 같은 `id`의 가격이 어긋난다.
 
@@ -200,7 +199,7 @@ ShopService.sell(inventory, grid_index, qty) -> { ok, gold }
 ## 비목표 (당분간)
 
 - 은화·물물교환·흥정·평판 할인
-- 룬·보석 골드 매매, 제단 등록비
+- 룬·보석 골드 매매, 서가 봉인비
 - 아이템마다 `gain` 수기 튜닝
 - 세이브에 가격 덤프
 - 던전 상인, 출발 전 보급 강제 ([`village.md`](village.md))

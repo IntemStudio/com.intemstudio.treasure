@@ -102,7 +102,6 @@ static func _character_to_dict(character: CharacterStats) -> Dictionary:
 	if character == null:
 		return {}
 	return {
-		"character_name": character.character_name,
 		"level": character.level,
 		"xp": character.xp,
 		"xp_to_next": character.xp_to_next,
@@ -121,7 +120,7 @@ static func _character_from_dict(d: Dictionary) -> CharacterStats:
 		character.recalculate_derived()
 		return character
 
-	character.character_name = str(d.get("character_name", character.character_name))
+	character.character_name = ""
 	character.level = int(d.get("level", character.level))
 	character.xp = int(d.get("xp", character.xp))
 	# xp_to_next is derived from LevelProgression CSV (not trusted from save).
@@ -159,11 +158,15 @@ static func _inventory_to_dict(inventory: InventoryData) -> Dictionary:
 	if inventory == null:
 		return {}
 	inventory.ensure_grid_size()
-	var slots: Array = []
-	for i in range(inventory.slots.size()):
-		var item: ItemData = inventory.slots[i]
-		if item:
-			slots.append({"index": i, "item": item_to_dict(item)})
+	var bags := {}
+	for key in InventoryData.BAG_KEYS:
+		var entries: Array = []
+		var bag: Array = inventory.get_bag(key)
+		for i in range(bag.size()):
+			var item: ItemData = bag[i] as ItemData
+			if item:
+				entries.append({"index": i, "item": item_to_dict(item)})
+		bags[key] = entries
 
 	var equipped := {}
 	for slot_name in InventoryData.EQUIP_SLOTS:
@@ -187,7 +190,7 @@ static func _inventory_to_dict(inventory: InventoryData) -> Dictionary:
 		"currencies": inventory.currencies.duplicate(true),
 		"current_category": int(inventory.current_category),
 		"sort_mode": inventory.sort_mode,
-		"slots": slots,
+		"bags": bags,
 		"equipped": equipped,
 		"quick_item": item_to_dict(quick_item) if quick_item else null,
 		"quick_food": item_to_dict(quick_food) if quick_food else null,
@@ -205,15 +208,36 @@ static func _inventory_from_dict(d: Dictionary, catalog: ItemCatalog) -> Invento
 	inventory.current_category = int(d.get("current_category", ItemData.ItemCategory.WEAPON)) as ItemData.ItemCategory
 	inventory.sort_mode = str(d.get("sort_mode", "time"))
 
-	for entry in d.get("slots", []):
-		if not entry is Dictionary:
-			continue
-		var slot_entry := entry as Dictionary
-		var index := int(slot_entry.get("index", -1))
-		if index < 0 or index >= InventoryData.GRID_SIZE:
-			continue
-		var item_data: Dictionary = slot_entry.get("item", {}) as Dictionary
-		inventory.slots[index] = item_from_dict(item_data, catalog)
+	if d.has("bags") and d["bags"] is Dictionary:
+		var loaded_bags: Dictionary = d["bags"] as Dictionary
+		for key in InventoryData.BAG_KEYS:
+			if not loaded_bags.has(key):
+				continue
+			for entry in loaded_bags[key]:
+				if not entry is Dictionary:
+					continue
+				var slot_entry := entry as Dictionary
+				var index := int(slot_entry.get("index", -1))
+				if index < 0 or index >= InventoryData.GRID_SIZE:
+					continue
+				var item_data: Dictionary = slot_entry.get("item", {}) as Dictionary
+				inventory.set_item(key, index, item_from_dict(item_data, catalog))
+	else:
+		# Legacy flat slots[] → per-tab bags by category.
+		for entry in d.get("slots", []):
+			if not entry is Dictionary:
+				continue
+			var slot_entry := entry as Dictionary
+			var item_data: Dictionary = slot_entry.get("item", {}) as Dictionary
+			var item := item_from_dict(item_data, catalog)
+			if item == null:
+				continue
+			var preferred := int(slot_entry.get("index", -1))
+			var key := InventoryData.bag_key_for_category(item.category)
+			if preferred >= 0 and preferred < InventoryData.GRID_SIZE and inventory.get_item(key, preferred) == null:
+				inventory.set_item(key, preferred, item)
+			else:
+				inventory.try_place_item(item)
 
 	var equipped := {}
 	for slot_name in InventoryData.EQUIP_SLOTS:
@@ -245,13 +269,13 @@ static func _inventory_from_dict(d: Dictionary, catalog: ItemCatalog) -> Invento
 	for entry in d.get("runes", []):
 		if entry is Dictionary:
 			var ri := RuneInstance.from_dict(entry as Dictionary)
-			if ri:
+			if ri and inventory.can_add_modifier():
 				inventory.runes.append(ri)
 	inventory.gems.clear()
 	for entry in d.get("gems", []):
 		if entry is Dictionary:
 			var gi := GemInstance.from_dict(entry as Dictionary)
-			if gi:
+			if gi and inventory.can_add_modifier():
 				inventory.gems.append(gi)
 
 	var service := ResonanceService.new()

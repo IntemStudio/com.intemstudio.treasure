@@ -18,8 +18,6 @@ static func create_claymore() -> ItemData:
 	item.defense = 20
 	item.defense_bonus = 10
 	item.scales_with = "strength"
-	item.cost = 23
-	item.gain = 9
 	item.skills = [
 		{"button": "X", "name": "Juggle Strike", "kind": "strike", "mana_cost": 12},
 		{"button": "Y", "name": ""},

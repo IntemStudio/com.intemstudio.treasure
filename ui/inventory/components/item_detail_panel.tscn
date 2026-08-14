@@ -86,7 +86,7 @@ text = "+10"
 [node name="ScalingLabel" type="Label" parent="DetailRoot"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Scales with: strength"
 
 [node name="SocketSection" type="VBoxContainer" parent="DetailRoot"]
@@ -107,7 +107,7 @@ theme_override_constants/separation = 4
 [node name="ResonanceLabel" type="Label" parent="DetailRoot/SocketSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.66, 0.3, 1)
+theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 theme_override_font_sizes/font_size = 13
 text = ""
 
@@ -126,7 +126,7 @@ text = "Cost 23"
 [node name="GainLabel" type="Label" parent="DetailRoot/ResourceCost"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.66, 0.3, 1)
+theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 text = "Gain 9"
 
 [node name="AffixList" type="VBoxContainer" parent="DetailRoot"]
@@ -136,7 +136,7 @@ layout_mode = 2
 [node name="FlavorText" type="Label" parent="DetailRoot"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.68, 0.64, 1)
+theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
 autowrap_mode = 3
 text = "Flavor text"
 

@@ -1,9 +1,10 @@
 # 인벤토리 UI
 
-인벤토리 탭 본문 스펙. 전체화면 크롬(Overlay / TopBar / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다.
+인벤토리 탭 본문 스펙. 모달 크롬(Overlay / TopBar 제목 / Footer / pause, Sheet 1440×800)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다. 팝업 기하: [`ui-colors.md`](ui-colors.md) · `UIPopupLayout`. 인벤·스탯·설정·맵·소문·서가는 **각각 단독 Sheet** (TopBar 탭 순환 없음).
 
-소켓·룬·보석·공명·제단: [`equipment.md`](equipment.md).  
-방 클리어 장비 드랍: [`loot.md`](loot.md). 상세 Cost/Gain: [`docs/design/shop.md`](../design/shop.md).
+소켓·룬·보석·공명·서가 봉인: [`equipment.md`](equipment.md).  
+방 클리어 장비 드랍: [`loot.md`](loot.md). 상세 Cost/Gain: [`shop.md`](shop.md).  
+색·희귀도: [`ui-colors.md`](ui-colors.md) (`UIColors` / `ItemData.color_for_rarity`).
 
 ---
 
@@ -26,8 +27,10 @@
 
 | 영역 | 내용 |
 |------|------|
-| TopBar (셸) | 재화, `[인벤토리][맵][스탯][설정]`, 이름·레벨·XP·HP |
-| Left | 카테고리 `WPN`/`ARM`/`CON`/`MAT`/`TOL`/`MOD` + 용량 라벨 + 5×6 그리드 (`GRID_SIZE` 30, **빈 칸 포함 항상 표시**). `MOD`는 `runes[]`+`gems[]` 합쳐 표시(상세는 `ModifierDetailPanel`). Body 1/3 |
+| TopBar (셸) | 상단 밴드(72) — 제목만 |
+| Body | 중단 밴드 — expand |
+| Footer (셸) | 하단 밴드(72) — 프롬프트 |
+| Left | 탭별 **5×5 = 25칸** (`GRID_SIZE`, 빈 칸 포함 항상 표시). 장비/소모품/재료/도구는 각자 `bags[tab]` 보유. `MOD`는 `runes[]`+`gems[]` 합산 최대 25. Body 1/3 |
 | Center | 선택 상세: 장비 `ItemDetailPanel`(이름·등급·유형) / 룬·보석 `ModifierDetailPanel`. Body 1/3 |
 | Right | 장비 슬롯(80×80, 가방과 동일, 이름 텍스트), 3D 프리뷰(160×160), 속성 요약, 무게 등급. Body 1/3 |
 | Footer (셸) | SORT / EQUIP·UNEQUIP / SOCKET·UNSOCKET / DISCARD / CLOSE. pick 모드 `BACK`. `MOD`는 SOCKET·DISCARD·CLOSE |
@@ -47,7 +50,7 @@ InventoryContent (Control, inventory_theme)
     │   ├── ItemDetailPanel
     │   └── ModifierDetailPanel
     └── RightColumn
-        ├── EquipmentLayout (3열)
+        ├── EquipmentLayout (무기·보조 / 투구·갑옷·바지 / 반지·반지 / 도구·도구)
         ├── CharacterPreview (SubViewportContainer)
         ├── AttributeList
         └── LoadIndicator
@@ -82,12 +85,12 @@ ui/inventory/components/
 
 ## 데이터·조작
 
-- **카테고리:** WEAPON / ARMOR / CONSUMABLE / MATERIAL / TOOL + UI 탭 `MOD`(룬·보석 합본). `runes[]` / `gems[]`는 `ItemCategory`가 아님 ([`equipment.md`](equipment.md))  
+- **카테고리:** 장비(WEAPON+ARMOR) / CONSUMABLE / MATERIAL / TOOL + UI 탭 `MOD`(룬·보석). 탭마다 가방 25칸. `runes[]` / `gems[]`는 `ItemCategory`가 아님 ([`equipment.md`](equipment.md))  
 - **정렬 사이클:** `time` → `name` → `weight` → `rarity` (`MOD`에서는 비활성)  
 - **장비 슬롯:** `InventoryData.EQUIP_SLOTS`. 착용 중이면 이름·테두리가 희귀도 색. 상세에 소켓 행(`SocketRow`)  
 - **양손 무기:** `ItemData.two_handed`. 장착 시 `main_hand`와 `off_hand`를 모두 가방으로 되돌림. 양손 착용 중 보조를 끼면 양손이 가방으로 가고 주무기 칸은 빈다. 한손+보조를 빼려면 가방에 빈 칸이 하나 더 필요  
 - **ATK/DEF 비교:** 가방·보상 카드에서 고른 장비의 공격/방어 옆 초록(`+`)·빨강(`-`) 숫자는 같은 슬롯 착용 장비 대비 차이. 착용 칸을 보거나 슬롯이 비었거나 수치가 같으면 숨김  
-- **Cost/Gain:** 상세가 `item.cost` / `item.gain`을 그대로 표시. 카탈로그 대부분은 0. 공식·상점: [`shop.md`](../design/shop.md)  
+- **Cost/Gain:** 상세가 [`ShopPricing`](shop.md) `buy_price` / `sell_price`. `item.cost` / `item.gain`은 오버라이드(둘 다 0이면 공식)  
 - **룬·보석:** `MOD` 탭에서 목록·상세·버리기·소켓. 장비 상세 소켓 행에서 꽂기/빼기. 호환만 강조 (`pick_modifier` / `pick_slot`)  
 - **푸터 액션:** `sort`, `equip`, `socket` / `unsocket`, `discard`, `close` / pick 모드 `back`  
 - **그리드 슬롯:** 이름 텍스트(`HudSlot`과 동일). 선택 시 `UIColors.GOLD` + `SELECT_BORDER` (스탯 `AttributeRowSelected` / 설정 행과 동일). MOD에 꽂힌 uid는 `SOCKETED` 뱃지  

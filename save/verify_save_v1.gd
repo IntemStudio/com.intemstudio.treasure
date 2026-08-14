@@ -36,9 +36,9 @@ func _test_roundtrip() -> int:
 	inventory.quick_food.quantity = 2
 	var potion := catalog.get_item("health_potion")
 	potion.quantity = 5
-	inventory.slots[0] = potion
+	inventory.set_item(InventoryData.BAG_CONSUMABLE, 0, potion)
 
-	var meta := {"slot": 0, "character_name": character.character_name, "level": character.level}
+	var meta := {"slot": 0, "level": character.level}
 	var data := SaveSerializer.to_dict(character, inventory, meta)
 	var save := SaveSerializer.from_dict(data, catalog)
 	if save.character.level != 7:
@@ -64,7 +64,7 @@ func _test_roundtrip() -> int:
 		push_error("quick_food mismatch")
 		return 1
 	var qty_ok := false
-	for item in save.inventory.slots:
+	for item in save.inventory.get_bag(InventoryData.BAG_CONSUMABLE):
 		if item and item.id == "health_potion" and item.quantity == 5:
 			qty_ok = true
 	if not qty_ok:
@@ -80,12 +80,14 @@ func _test_unknown_item() -> int:
 		"meta": {},
 		"character": {},
 		"inventory": {
-			"slots": [{"index": 0, "item": {"id": "does_not_exist", "quantity": 1}}],
+			"bags": {
+				"consumable": [{"index": 0, "item": {"id": "does_not_exist", "quantity": 1}}],
+			},
 			"equipped": {},
 		},
 	}
 	var save := SaveSerializer.from_dict(data, catalog)
-	if save.inventory.slots[0] != null:
+	if save.inventory.get_item(InventoryData.BAG_CONSUMABLE, 0) != null:
 		push_error("unknown item should clear slot")
 		return 1
 	return 0

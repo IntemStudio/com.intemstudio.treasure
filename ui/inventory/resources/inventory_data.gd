@@ -1,14 +1,26 @@
 class_name InventoryData
 extends Resource
 
-const GRID_SIZE := 30
+const GRID_SIZE := 25
+
+const BAG_EQUIPMENT := "equipment"
+const BAG_CONSUMABLE := "consumable"
+const BAG_MATERIAL := "material"
+const BAG_TOOL := "tool"
+const BAG_KEYS: Array[String] = [
+	BAG_EQUIPMENT,
+	BAG_CONSUMABLE,
+	BAG_MATERIAL,
+	BAG_TOOL,
+]
 
 const EQUIP_SLOTS: Array[String] = [
 	"head", "chest", "legs", "main_hand", "off_hand",
 	"ring_1", "ring_2", "tool_1", "tool_2",
 ]
 
-@export var slots: Array[ItemData] = []
+## Per-tab item bags (each GRID_SIZE). Modifiers use runes[]/gems[] capped at GRID_SIZE total.
+@export var bags: Dictionary = {}
 @export var equipped: Dictionary = {
 	"head": null,
 	"chest": null,
@@ -29,32 +41,104 @@ const EQUIP_SLOTS: Array[String] = [
 @export var current_category: ItemData.ItemCategory = ItemData.ItemCategory.WEAPON
 @export var sort_mode: String = "time"
 
-## Rune / gem bags (not ItemCategory grid).
+## Rune / gem bags (not ItemCategory grids). Combined capacity = GRID_SIZE.
 var runes: Array = []
 var gems: Array = []
 
 
+static func bag_key_for_category(category: ItemData.ItemCategory) -> String:
+	match category:
+		ItemData.ItemCategory.WEAPON, ItemData.ItemCategory.ARMOR:
+			return BAG_EQUIPMENT
+		ItemData.ItemCategory.CONSUMABLE:
+			return BAG_CONSUMABLE
+		ItemData.ItemCategory.MATERIAL:
+			return BAG_MATERIAL
+		ItemData.ItemCategory.TOOL:
+			return BAG_TOOL
+		_:
+			return BAG_EQUIPMENT
+
+
 func ensure_grid_size() -> void:
-	while slots.size() < GRID_SIZE:
-		slots.append(null)
+	for key in BAG_KEYS:
+		if not bags.has(key) or not bags[key] is Array:
+			bags[key] = []
+		var bag: Array = bags[key]
+		while bag.size() < GRID_SIZE:
+			bag.append(null)
+		if bag.size() > GRID_SIZE:
+			while bag.size() > GRID_SIZE and bag[bag.size() - 1] == null:
+				bag.pop_back()
+			if bag.size() > GRID_SIZE:
+				bag.resize(GRID_SIZE)
+		bags[key] = bag
 
 
-func get_items_for_category(category: ItemData.ItemCategory) -> Array:
-	var result: Array = []
+func get_bag(bag_key: String) -> Array:
 	ensure_grid_size()
-	for i in range(slots.size()):
-		var item: ItemData = slots[i]
-		if item and item.category == category:
-			result.append({"index": i, "item": item})
-	return result
+	if not BAG_KEYS.has(bag_key):
+		return []
+	return bags[bag_key] as Array
 
 
-func find_empty_slot() -> int:
-	ensure_grid_size()
-	for i in range(slots.size()):
-		if slots[i] == null:
+func bag_used_count(bag_key: String) -> int:
+	var used := 0
+	for item in get_bag(bag_key):
+		if item:
+			used += 1
+	return used
+
+
+func modifier_count() -> int:
+	return runes.size() + gems.size()
+
+
+func can_add_modifier() -> bool:
+	return modifier_count() < GRID_SIZE
+
+
+func find_empty_slot(bag_key: String) -> int:
+	var bag := get_bag(bag_key)
+	for i in range(bag.size()):
+		if bag[i] == null:
 			return i
 	return -1
+
+
+func find_empty_slot_for_category(category: ItemData.ItemCategory) -> int:
+	return find_empty_slot(bag_key_for_category(category))
+
+
+func find_empty_slot_for_item(item: ItemData) -> int:
+	if item == null:
+		return -1
+	return find_empty_slot_for_category(item.category)
+
+
+func try_place_item(item: ItemData) -> int:
+	if item == null:
+		return -1
+	var key := bag_key_for_category(item.category)
+	var idx := find_empty_slot(key)
+	if idx < 0:
+		return -1
+	get_bag(key)[idx] = item
+	return idx
+
+
+func get_item(bag_key: String, index: int) -> ItemData:
+	var bag := get_bag(bag_key)
+	if index < 0 or index >= bag.size():
+		return null
+	return bag[index] as ItemData
+
+
+func set_item(bag_key: String, index: int, item: ItemData) -> void:
+	var bag := get_bag(bag_key)
+	if index < 0 or index >= bag.size():
+		return
+	bag[index] = item
 
 
 func is_two_handed_equipped() -> bool:
@@ -62,27 +146,25 @@ func is_two_handed_equipped() -> bool:
 	return main != null and main.is_two_handed()
 
 
-func can_equip_from_bag(grid_index: int) -> bool:
-	ensure_grid_size()
-	if grid_index < 0 or grid_index >= slots.size():
-		return false
-	var item: ItemData = slots[grid_index]
+func can_equip_from_bag(bag_key: String, grid_index: int) -> bool:
+	var item := get_item(bag_key, grid_index)
 	if item == null:
 		return false
 	var slot := get_slot_for_equip(item)
 	if slot.is_empty():
 		return false
 	if item.is_two_handed():
-		return _two_hand_bag_space_ok(grid_index)
+		return _two_hand_bag_space_ok(bag_key, grid_index)
 	if slot == "off_hand" and is_two_handed_equipped():
-		return _off_hand_replaces_two_hand_ok(grid_index)
+		return _off_hand_replaces_two_hand_ok(bag_key, grid_index)
 	return true
 
 
-func equip_from_bag(grid_index: int) -> bool:
-	if not can_equip_from_bag(grid_index):
+func equip_from_bag(bag_key: String, grid_index: int) -> bool:
+	if not can_equip_from_bag(bag_key, grid_index):
 		return false
-	var item: ItemData = slots[grid_index]
+	var bag := get_bag(bag_key)
+	var item: ItemData = bag[grid_index] as ItemData
 	if item.is_two_handed():
 		var returning: Array[ItemData] = []
 		var main: ItemData = equipped.get("main_hand") as ItemData
@@ -91,59 +173,81 @@ func equip_from_bag(grid_index: int) -> bool:
 			returning.append(main)
 		if off:
 			returning.append(off)
-		slots[grid_index] = null
+		bag[grid_index] = null
 		equipped["main_hand"] = item
 		equipped["off_hand"] = null
 		for returned in returning:
-			var idx := find_empty_slot()
-			if idx < 0:
+			if try_place_item(returned) < 0:
 				return false
-			slots[idx] = returned
 		return true
 	var slot := get_slot_for_equip(item)
 	if slot == "off_hand" and is_two_handed_equipped():
-		return _equip_off_hand_over_two_hand(grid_index, item)
+		return _equip_off_hand_over_two_hand(bag_key, grid_index, item)
 	var previous: ItemData = equipped.get(slot) as ItemData
 	equipped[slot] = item
-	slots[grid_index] = previous
+	bag[grid_index] = null
+	if previous != null:
+		if bag_key_for_category(previous.category) == bag_key:
+			bag[grid_index] = previous
+		elif try_place_item(previous) < 0:
+			equipped[slot] = previous
+			bag[grid_index] = item
+			return false
 	return true
 
 
-func _two_hand_bag_space_ok(grid_index: int) -> bool:
-	var returning := 0
-	if equipped.get("main_hand") != null:
-		returning += 1
-	if equipped.get("off_hand") != null:
-		returning += 1
-	return _bag_empty_count(grid_index) >= returning
-
-
-func _off_hand_replaces_two_hand_ok(grid_index: int) -> bool:
-	if equipped.get("off_hand") == null:
-		return true
-	return _bag_empty_count(grid_index) >= 2
-
-
-func _equip_off_hand_over_two_hand(grid_index: int, item: ItemData) -> bool:
+func _two_hand_bag_space_ok(bag_key: String, grid_index: int) -> bool:
+	var returning: Array[ItemData] = []
 	var main: ItemData = equipped.get("main_hand") as ItemData
 	var off: ItemData = equipped.get("off_hand") as ItemData
-	slots[grid_index] = main
+	if main:
+		returning.append(main)
+	if off:
+		returning.append(off)
+	return _can_return_items(returning, bag_key, grid_index)
+
+
+func _off_hand_replaces_two_hand_ok(bag_key: String, grid_index: int) -> bool:
+	var returning: Array[ItemData] = []
+	var main: ItemData = equipped.get("main_hand") as ItemData
+	var off: ItemData = equipped.get("off_hand") as ItemData
+	if main:
+		returning.append(main)
+	if off:
+		returning.append(off)
+	return _can_return_items(returning, bag_key, grid_index)
+
+
+func _equip_off_hand_over_two_hand(bag_key: String, grid_index: int, item: ItemData) -> bool:
+	var bag := get_bag(bag_key)
+	var main: ItemData = equipped.get("main_hand") as ItemData
+	var off: ItemData = equipped.get("off_hand") as ItemData
+	bag[grid_index] = null
 	equipped["main_hand"] = null
 	equipped["off_hand"] = item
-	if off:
-		var idx := find_empty_slot()
-		if idx < 0:
-			return false
-		slots[idx] = off
+	if main and try_place_item(main) < 0:
+		return false
+	if off and try_place_item(off) < 0:
+		return false
 	return true
 
 
-func _bag_empty_count(grid_index: int) -> int:
-	var empty := 0
-	for i in range(slots.size()):
-		if slots[i] == null or i == grid_index:
-			empty += 1
-	return empty
+func _can_return_items(items: Array[ItemData], free_bag: String, free_index: int) -> bool:
+	var need: Dictionary = {}
+	for item in items:
+		if item == null:
+			continue
+		var key := bag_key_for_category(item.category)
+		need[key] = int(need.get(key, 0)) + 1
+	for key in need.keys():
+		var empty := 0
+		var bag := get_bag(str(key))
+		for i in range(bag.size()):
+			if bag[i] == null or (str(key) == free_bag and i == free_index):
+				empty += 1
+		if empty < int(need[key]):
+			return false
+	return true
 
 
 func get_slot_for_equip(item: ItemData) -> String:
@@ -207,6 +311,20 @@ func find_gem(uid: String) -> GemInstance:
 	return null
 
 
+func try_add_rune(ri: RuneInstance) -> bool:
+	if ri == null or not can_add_modifier():
+		return false
+	runes.append(ri)
+	return true
+
+
+func try_add_gem(gi: GemInstance) -> bool:
+	if gi == null or not can_add_modifier():
+		return false
+	gems.append(gi)
+	return true
+
+
 func remove_rune_uid(uid: String) -> RuneInstance:
 	for i in range(runes.size()):
 		var ri: RuneInstance = runes[i] as RuneInstance
@@ -227,6 +345,16 @@ func remove_gem_uid(uid: String) -> GemInstance:
 	return null
 
 
+func _iter_bag_items() -> Array[ItemData]:
+	var out: Array[ItemData] = []
+	ensure_grid_size()
+	for key in BAG_KEYS:
+		for item in bags[key]:
+			if item is ItemData:
+				out.append(item as ItemData)
+	return out
+
+
 func _clear_socket_refs(uid: String) -> void:
 	for slot_id in EQUIP_SLOTS:
 		var item: ItemData = equipped.get(slot_id) as ItemData
@@ -237,9 +365,7 @@ func _clear_socket_refs(uid: String) -> void:
 			if entry is Dictionary and str(entry.get("instance_uid", "")) != uid:
 				kept.append(entry)
 		item.socketed = kept
-	for item in slots:
-		if item == null:
-			continue
+	for item in _iter_bag_items():
 		var kept2: Array[Dictionary] = []
 		for entry in item.socketed:
 			if entry is Dictionary and str(entry.get("instance_uid", "")) != uid:
@@ -320,8 +446,8 @@ func find_socket(uid: String) -> Dictionary:
 			found["equip_slot"] = slot_id
 			found["item"] = item
 			return found
-	for item in slots:
-		var found2 := _find_socket_on_item(item as ItemData, uid)
+	for item in _iter_bag_items():
+		var found2 := _find_socket_on_item(item, uid)
 		if not found2.is_empty():
 			found2["equip_slot"] = ""
 			found2["item"] = item
@@ -404,12 +530,14 @@ func _set_socket(item: ItemData, kind: String, index: int, uid: String) -> void:
 	item.socketed = next
 
 
-func sort_slots() -> void:
-	ensure_grid_size()
+func sort_bag(bag_key: String) -> void:
+	if not BAG_KEYS.has(bag_key):
+		return
+	var bag := get_bag(bag_key)
 	var filtered: Array[ItemData] = []
-	for item in slots:
+	for item in bag:
 		if item:
-			filtered.append(item)
+			filtered.append(item as ItemData)
 	match sort_mode:
 		"name":
 			filtered.sort_custom(func(a: ItemData, b: ItemData) -> bool:
@@ -420,8 +548,9 @@ func sort_slots() -> void:
 		"rarity":
 			filtered.sort_custom(func(a: ItemData, b: ItemData) -> bool:
 				return a.rarity > b.rarity)
-	slots.clear()
+	var next: Array = []
 	for item in filtered:
-		slots.append(item)
-	while slots.size() < GRID_SIZE:
-		slots.append(null)
+		next.append(item)
+	while next.size() < GRID_SIZE:
+		next.append(null)
+	bags[bag_key] = next

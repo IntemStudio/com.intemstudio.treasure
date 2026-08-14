@@ -10,12 +10,12 @@ content_margin_left = 8.0
 content_margin_top = 3.0
 content_margin_right = 8.0
 content_margin_bottom = 3.0
-bg_color = Color(0.06, 0.06, 0.07, 0.92)
+bg_color = Color(0.157, 0.157, 0.157, 0.92)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.88, 0.88, 0.9, 0.95)
+border_color = Color(0.922, 0.859, 0.698, 0.95)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -28,6 +28,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 theme = ExtResource("2")
 script = ExtResource("1")
 
@@ -38,123 +39,196 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+clip_contents = true
 theme_override_constants/separation = 24
 
 [node name="LeftColumn" type="VBoxContainer" parent="Body"]
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
-theme_override_constants/separation = 20
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.15
+theme_override_constants/separation = 0
 
-[node name="CategoryRow" type="HBoxContainer" parent="Body/LeftColumn"]
+[node name="LeftScroll" type="ScrollContainer" parent="Body/LeftColumn"]
+unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="LeftInner" type="VBoxContainer" parent="Body/LeftColumn/LeftScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CategoryRow" type="HBoxContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+layout_mode = 2
+size_flags_vertical = 0
 theme_override_constants/separation = 8
 
-[node name="CatPrevHint" type="PanelContainer" parent="Body/LeftColumn/CategoryRow"]
+[node name="CatPrevHint" type="PanelContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/CategoryRow"]
 custom_minimum_size = Vector2(28, 26)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_keycap")
 
-[node name="KeyLabel" type="Label" parent="Body/LeftColumn/CategoryRow/CatPrevHint"]
+[node name="KeyLabel" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner/CategoryRow/CatPrevHint"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
+theme_override_colors/font_color = Color(0.922, 0.859, 0.698, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "1"
 
-[node name="CategoryTabs" type="HBoxContainer" parent="Body/LeftColumn/CategoryRow"]
+[node name="CategoryTabs" type="HBoxContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/CategoryRow"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="CatNextHint" type="PanelContainer" parent="Body/LeftColumn/CategoryRow"]
+[node name="CatNextHint" type="PanelContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/CategoryRow"]
 custom_minimum_size = Vector2(28, 26)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_keycap")
 
-[node name="KeyLabel" type="Label" parent="Body/LeftColumn/CategoryRow/CatNextHint"]
+[node name="KeyLabel" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner/CategoryRow/CatNextHint"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
+theme_override_colors/font_color = Color(0.922, 0.859, 0.698, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "3"
 
-[node name="BagCapacityLabel" type="Label" parent="Body/LeftColumn"]
+[node name="BagCapacityLabel" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.6, 0.56, 1)
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 theme_override_font_sizes/font_size = 13
-text = "0 / 30"
+text = "0 / 25"
 horizontal_alignment = 2
 
-[node name="ItemGrid" type="GridContainer" parent="Body/LeftColumn"]
+[node name="ItemGridPad" type="MarginContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ItemGrid" type="GridContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/ItemGridPad"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 columns = 5
 
 [node name="CenterColumn" type="VBoxContainer" parent="Body"]
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 0
 
-[node name="ItemDetailPanel" parent="Body/CenterColumn" instance=ExtResource("3")]
+[node name="CenterScroll" type="ScrollContainer" parent="Body/CenterColumn"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
 
-[node name="ModifierDetailPanel" parent="Body/CenterColumn" instance=ExtResource("4")]
+[node name="CenterInner" type="VBoxContainer" parent="Body/CenterColumn/CenterScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="ItemDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ModifierDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("4")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_horizontal = 3
 
 [node name="RightColumn" type="VBoxContainer" parent="Body"]
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 0
+
+[node name="RightScroll" type="ScrollContainer" parent="Body/RightColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="RightInner" type="VBoxContainer" parent="Body/RightColumn/RightScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="EquipmentLayout" type="GridContainer" parent="Body/RightColumn"]
+[node name="EquipmentTitle" type="Label" parent="Body/RightColumn/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-columns = 3
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+text = "Equipped"
+horizontal_alignment = 0
 
-[node name="CharacterPreview" type="SubViewportContainer" parent="Body/RightColumn"]
+[node name="EquipmentLayoutPad" type="MarginContainer" parent="Body/RightColumn/RightScroll/RightInner"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
-stretch = true
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
-[node name="SubViewport" type="SubViewport" parent="Body/RightColumn/CharacterPreview"]
-transparent_bg = true
-handle_input_locally = false
-size = Vector2i(512, 512)
-render_target_update_mode = 4
+[node name="EquipmentLayout" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner/EquipmentLayoutPad"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
 
-[node name="AttributeList" type="VBoxContainer" parent="Body/RightColumn"]
+[node name="AttributeList" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LoadIndicator" type="Label" parent="Body/RightColumn"]
+[node name="WeightBlock" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WeightTitle" type="Label" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+text = "WEIGHT"
+
+[node name="WeightBar" type="ProgressBar" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 80.0
+value = 42.4
+show_percentage = false
+
+[node name="LoadIndicator" type="Label" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Normal (53%)"
-horizontal_alignment = 2
+horizontal_alignment = 0

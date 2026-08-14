@@ -49,10 +49,10 @@
 
 최상위 키: `version`, `meta`, `character`, `inventory` (locale 없음).
 
-- **meta:** slot, created_at, updated_at, play_time_sec, character_name, level, **`registered_cards`**, `unlocked_shelves`, `card_pity` ([`equipment.md`](equipment.md))  
+- **meta:** slot, created_at, updated_at, play_time_sec, level, **`registered_cards`**, `open_cards`, `unlocked_shelves`(`shelf_rune`,`shelf_gem`), `card_pity` ([`equipment.md`](equipment.md))  
 - **character:** name, level, xp, xp_to_next(저장·표시용, 로드 시 [`LevelProgression`](../../data/progression/level_progression.gd) CSV로 재동기화), hp, attribute_points, attributes, weight_current, weapons(임시)  
 - **inventory:** currencies, current_category, sort_mode, sparse slots, equipped, **`runes`**, **`gems`**  
-- **아이템:** `id` + quantity / durability / `socketed` / `rarity` 등 인스턴스 오버라이드 (`ItemCatalog`로 베이스 복제). `rarity`가 있으면 소켓은 `SocketLayout.for_rarity`로 재구성. `cost` / `gain`은 저장하지 않음 ([`shop.md`](../design/shop.md))
+- **아이템:** `id` + quantity / durability / `socketed` / `rarity` 등 인스턴스 오버라이드 (`ItemCatalog`로 베이스 복제). `rarity`가 있으면 소켓은 `SocketLayout.for_rarity`로 재구성. `cost` / `gain`은 저장하지 않음 ([`shop.md`](shop.md))
 
 파생 스탯(`general` / `defense` / `hp_max` / `xp_to_next`)은 테이블·공식으로 복원. 요구 XP: [`data/progression/xp_to_next.csv`](../../data/progression/xp_to_next.csv) (D2 곡선 × 0.1).
 
@@ -80,13 +80,14 @@
 ```
 UIManager.save_to_slot / load_from_slot / start_new_game / apply_save_game
         ↓
-SaveManager (new_game, save_game, load_game, delete_slot, list_slots, open_save_folder)
+SaveManager (new_game, save_game, load_game, delete_slot, clear_meta, list_slots, open_save_folder)
         ↓
 SaveSerializer ↔ ItemCatalog → user://saves/slot_N.json
 SaveManager.save_run / load_run / clear_run / has_run → slot_N_run.json
+SettingsManager.save_settings / reset_settings → user://settings.cfg
 ```
 
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
 - `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV. 기존 런 파일 삭제  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
-- 개발 오버레이 (`` ` ``): 탭 `[캐릭터]` / `[아이템]` / `[세이브 데이터]`. 세이브 탭은 폴더 절대 경로 표시 + OS에서 열기. 아이템 탭에서 장비 희귀도를 바꾸면 `apply_rarity`로 소켓을 재구성하고 메타에 `rarity`를 저장
+- 개발 오버레이 (`` ` ``): 탭 `[캐릭터]` / `[아이템]` / `[서가]` / `[세이브 데이터]`. 서가 탭은 룬·보석 판 `open_cards` 전 칸 해금. 세이브 탭은 폴더 경로·열기 + 슬롯 선택 + 레이어별(메타/`slot_N.json`, 런/`slot_N_run.json`, 설정/`settings.cfg`)·모두 저장/삭제(선택 슬롯만). 아이템 탭에서 장비 희귀도를 바꾸면 `apply_rarity`로 소켓을 재구성하고 메타에 `rarity`를 저장

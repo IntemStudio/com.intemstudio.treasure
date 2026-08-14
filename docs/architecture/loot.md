@@ -1,9 +1,9 @@
 # 전리품 / 드랍
 
 방 `win` 후 **보상 타입에 맞는 후보 3택1**.  
-설계: [`docs/design/loot.md`](../design/loot.md).
+설계: [`docs/design/loot.md`](../design/loot.md). 서가 게이트: [`docs/design/bookshelf.md`](../design/bookshelf.md). 카드 Cost/Gain: [`shop.md`](shop.md). 게시판 `reward_mult`는 드랍·가격에 쓰지 않음.
 
-**현황:** `RoomData.reward_type` + `LootChoiceOverlay`. 자동 multi-grant 없음.
+**현황:** `RoomData.reward_type` + `LootChoiceOverlay`. 룬/보석 풀 = `open_cards` (시작 각 판 `#1`. shelf.v3). 무기/방어는 게이트 없음.
 
 ---
 
@@ -41,8 +41,8 @@ RNG: 타입 `hash([seed, cell, "reward"])`, 후보 `hash([seed, cell, "offers"])
 |------|-----|
 | weapon | `ItemCategory.WEAPON` |
 | armor | `ItemCategory.ARMOR` |
-| rune | `RuneCatalog` |
-| gem | `GemCatalog` |
+| rune | `RuneCatalog` ∩ `open_cards` |
+| gem | `GemCatalog` ∩ `open_cards` |
 
 장비는 `slots`, 룬/보석은 `runes[]`/`gems[]`. 가방 가득 시 장비 후보 확정 불가.
 

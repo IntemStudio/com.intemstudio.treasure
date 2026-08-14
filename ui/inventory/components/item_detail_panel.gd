@@ -142,8 +142,8 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 		scaling_label.text = tr("Scales with: %s") % CharacterStats.get_attribute_label(item.scales_with)
 	else:
 		scaling_label.text = ""
-	cost_label.text = tr("Cost %d") % item.cost
-	gain_label.text = tr("Gain %d") % item.gain
+	cost_label.text = tr("Cost %d") % ShopPricing.buy_price(item)
+	gain_label.text = tr("Gain %d") % ShopPricing.sell_price(item)
 	flavor_text.text = tr(item.flavor_text) if not item.flavor_text.is_empty() else ""
 	requirements_label.text = "%s %d" % [
 		CharacterStats.get_attribute_label(item.required_stat),
@@ -190,14 +190,12 @@ func _populate_sockets(item: ItemData) -> void:
 					var rd := _rune_catalog.get_rune(ri.rune_id)
 					if rd:
 						display = tr(rd.display_name)
-						rarity = rd.rarity
 			else:
 				var gi := _inventory.find_gem(uid)
 				if gi and _gem_catalog:
 					var gd := _gem_catalog.get_gem(gi.gem_id)
 					if gd:
 						display = tr(gd.display_name)
-						rarity = gd.rarity
 		var row: SocketRow = SOCKET_SCENE.instantiate()
 		socket_list.add_child(row)
 		row.setup(kind, index, display, rarity)
