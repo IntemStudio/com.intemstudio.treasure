@@ -2,9 +2,10 @@ class_name CombatArena
 extends Node
 
 const ACTOR_SCENE := preload("res://world/combat/combatant_actor.tscn")
-const FALLBACK_ALLY := Vector2(-160, 40)
-const FALLBACK_ENEMY := Vector2(160, 40)
-const FALLBACK_ENEMY_STEP := Vector2(0, 72)
+const FALLBACK_ALLY := Vector2(-200, 24)
+const FALLBACK_ALLY_STEP := Vector2(-48, 104)
+const FALLBACK_ENEMY := Vector2(160, 24)
+const FALLBACK_ENEMY_STEP := Vector2(40, 120)
 
 var player: Node2D
 var _session: CombatSession
@@ -44,6 +45,7 @@ func start(room_node: Node2D, state: Dictionary, _encounter: EncounterDef = null
 	_actors_host = Node2D.new()
 	_actors_host.name = "CombatActors"
 	_actors_host.z_index = 5
+	_actors_host.y_sort_enabled = true
 	_room.add_child(_actors_host)
 	_spawn_from_state(state)
 
@@ -62,16 +64,17 @@ func _spawn_from_state(state: Dictionary) -> void:
 	if _actors_host == null:
 		return
 	var units: Array = state.get("units", [])
+	var enemy_count := _count_side(units, CombatUnitDef.UnitSide.ENEMY)
 	var ally_i := 0
 	var enemy_i := 0
 	for unit in units:
 		var side: int = int(unit.get("side", CombatUnitDef.UnitSide.ENEMY))
 		var pos: Vector2
 		if side == CombatUnitDef.UnitSide.ALLY:
-			pos = _slot_global(true, ally_i)
+			pos = _slot_global(true, ally_i, enemy_count)
 			ally_i += 1
 		else:
-			pos = _slot_global(false, enemy_i)
+			pos = _slot_global(false, enemy_i, enemy_count)
 			enemy_i += 1
 		var actor: CombatantActor = ACTOR_SCENE.instantiate() as CombatantActor
 		_actors_host.add_child(actor)
@@ -82,13 +85,21 @@ func _spawn_from_state(state: Dictionary) -> void:
 	_apply_focus(state)
 
 
-func _slot_global(is_ally: bool, index: int) -> Vector2:
+func _count_side(units: Array, side: int) -> int:
+	var n := 0
+	for unit in units:
+		if int(unit.get("side", CombatUnitDef.UnitSide.ENEMY)) == side:
+			n += 1
+	return n
+
+
+func _slot_global(is_ally: bool, index: int, enemy_count: int) -> Vector2:
 	if _room and _room.has_method("get_ally_slot_global") and is_ally:
 		return _room.get_ally_slot_global(index)
 	if _room and _room.has_method("get_enemy_slot_global") and not is_ally:
-		return _room.get_enemy_slot_global(index)
+		return _room.get_enemy_slot_global(index, enemy_count)
 	var origin := FALLBACK_ALLY if is_ally else FALLBACK_ENEMY
-	var step := Vector2(0, 64) if is_ally else FALLBACK_ENEMY_STEP
+	var step := FALLBACK_ALLY_STEP if is_ally else FALLBACK_ENEMY_STEP
 	var local := origin + step * index
 	if _room:
 		return _room.to_global(local)

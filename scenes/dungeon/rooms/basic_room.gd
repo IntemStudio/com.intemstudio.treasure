@@ -20,26 +20,27 @@ const DIR_INPUT: Dictionary = {
 	"W": "A",
 }
 const SPAWN_INSET := 56.0
+const ALLY_SLOTS: Array[Vector2] = [
+	Vector2(-200, 24),
+	Vector2(-248, -80),
+	Vector2(-248, 128),
+]
 
 @onready var floor_rect: ColorRect = %Floor
 @onready var spawn_marker: Marker2D = %SpawnMarker
 @onready var room_label: Label = %RoomLabel
 
 var _doors: Dictionary = {}
-var _ally_slots: Array[Marker2D] = []
-var _enemy_slots: Array[Marker2D] = []
 
 
 func _ready() -> void:
 	_ensure_geometry()
-	_ensure_combat_slots()
 
 
 func apply_room(room: RoomData) -> void:
 	if room == null:
 		return
 	_ensure_geometry()
-	_ensure_combat_slots()
 	floor_rect.color = TYPE_COLORS.get(room.room_type, TYPE_COLORS[RoomData.RoomType.NORMAL])
 	room_label.text = "%s (%d, %d)" % [tr("ROOM_TYPE_%s" % room.type_name().to_upper()), room.grid_pos.x, room.grid_pos.y]
 	_refresh_doors(room)
@@ -54,38 +55,36 @@ func get_door_spawn_global(dir: String) -> Vector2:
 
 
 func get_ally_slot_global(index: int) -> Vector2:
-	_ensure_combat_slots()
-	if index >= 0 and index < _ally_slots.size():
-		return _ally_slots[index].global_position
-	return to_global(Vector2(-160, 40 + index * 64))
+	if index >= 0 and index < ALLY_SLOTS.size():
+		return to_global(ALLY_SLOTS[index])
+	return to_global(Vector2(-200, 24 + index * 104))
 
 
-func get_enemy_slot_global(index: int) -> Vector2:
-	_ensure_combat_slots()
-	if index >= 0 and index < _enemy_slots.size():
-		return _enemy_slots[index].global_position
-	return to_global(Vector2(160, 40 + index * 72))
+func get_enemy_slot_global(index: int, enemy_count: int = 1) -> Vector2:
+	var formation := _enemy_formation(enemy_count)
+	if index >= 0 and index < formation.size():
+		return to_global(formation[index])
+	var overflow := maxi(0, index - formation.size() + 1)
+	return to_global(Vector2(260 + overflow * 48, 24 + overflow * 120))
 
 
-func _ensure_combat_slots() -> void:
-	if not _ally_slots.is_empty():
-		return
-	var ally0 := _make_slot("AllySlot0", Vector2(-160, 40))
-	_ally_slots.append(ally0)
-	for i in range(3):
-		var enemy := _make_slot("EnemySlot%d" % i, Vector2(140 + i * 20, -40 + i * 72))
-		_enemy_slots.append(enemy)
-
-
-func _make_slot(slot_name: String, local_pos: Vector2) -> Marker2D:
-	var existing := get_node_or_null(slot_name) as Marker2D
-	if existing:
-		return existing
-	var marker := Marker2D.new()
-	marker.name = slot_name
-	marker.position = local_pos
-	add_child(marker)
-	return marker
+func _enemy_formation(count: int) -> Array[Vector2]:
+	var slots: Array[Vector2] = []
+	match clampi(count, 1, 4):
+		1:
+			slots.assign([Vector2(160, 24)])
+		2:
+			slots.assign([Vector2(140, -80), Vector2(200, 128)])
+		3:
+			slots.assign([Vector2(200, -96), Vector2(120, 24), Vector2(200, 148)])
+		_:
+			slots.assign([
+				Vector2(180, -100),
+				Vector2(120, 24),
+				Vector2(180, 148),
+				Vector2(260, 24),
+			])
+	return slots
 
 
 func _ensure_geometry() -> void:

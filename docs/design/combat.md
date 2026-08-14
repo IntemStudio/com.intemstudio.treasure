@@ -3,7 +3,7 @@
 **v2 현황(구조):** [`docs/architecture/combat.md`](../architecture/combat.md)  
 이 문서는 **미구현** 로드맵만 다룬다.
 
-방 안 ATB·머리 위 HP/ATB·배속/후퇴·승패는 구현됨.  
+방 안 ATB·머리 위 HP/ATB·배속/후퇴·승패·적 수별 진형은 구현됨.  
 관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 마을 책장 ≠ 전투 카드) · [`loot.md`](loot.md) (방 `win` 장비) · [`game-log.md`](game-log.md) (인게임 텍스트 로그).
 
 ---
@@ -15,7 +15,8 @@
 | 구 v1 | 사이드뷰 오버레이 ATB | 폐기됨 |
 | **v2a / v2b** | 방 안 전장, CombatHud, GameHud 유지 | 구현됨 → 구조 문서 |
 | **v2.region** | 지역별 유닛·인카운터 (`dungeon_id`) | 구현됨 → 구조 문서 |
-| **v2c** | 선택 유닛 하단 스탯, 전투 줌, 다수 아군 슬롯 | 설계만 |
+| **v2.formation** | 적 수별 진형, 아군 왼쪽 고정, `y_sort` | 구현됨 → 구조 문서 |
+| **v2c** | 선택 유닛 하단 스탯, 전투 줌, 다수 아군 | 설계만 |
 | **v2.stats** | 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 | 구현됨 → 구조 문서 |
 | **loot v1** | 방 `win` 장비 드랍 | 구현됨 → [`loot.md`](loot.md) / [`architecture/loot.md`](../architecture/loot.md) |
 | **게임 로그** | `action_resolved` → 우하 텍스트. `unit_hit` 유지 | 구현됨 → [`game-log.md`](../architecture/game-log.md) |
@@ -25,13 +26,13 @@
 
 ## v2c — 표현·편성 (예정)
 
-데스폿의 **하단 유닛 스탯·다수 편성**만 가져온다. 드래프트·시너지·FIGHT 준비는 비목표.
+데스폿의 **하단 유닛 스탯·다수 편성**만 가져온다. 드래프트·시너지·FIGHT 준비는 비목표. 적 수별 진형은 [`architecture/combat.md`](../architecture/combat.md) (v2.formation).
 
 | 항목 | 방향 |
 |------|------|
 | 하단 패널 | 유닛 클릭(또는 포커스) 시 이름·HP·ATB·주요 스탯. 탐험 인벤/스탯 탭과 별개 |
 | 전투 줌 | 방 중심 유지하되 전투 중 살짝 확대. 수치·연출은 구현 직전 확정 |
-| 다수 아군 | `AllySlot1+` 사용. 히어로 외 아군 소스는 파티 시스템이 생긴 뒤 |
+| 다수 아군 | `ALLY_SLOTS` 여분. 히어로 외 아군 소스는 파티 시스템이 생긴 뒤. Marker2D `AllySlot*`는 없음 |
 | 소모품 | HUD 퀵 슬롯 실사용과 맞춤 ([`hud.md`](hud.md) v1.1) |
 
 `CombatSession` 공식·인카운터 리소스는 유지. 뷰·슬롯만 확장.

@@ -40,7 +40,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 4. `EncounterDirector.on_room_entered` — `START`/`cleared`면 skip
 5. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
 6. `UIManager.set_combat_active(true)` → 월드 입력 차단. **GameHud 유지**
-7. `CombatArena.start(room)` — Player 숨김, 슬롯에 액터 스폰; `CombatHud.show_combat` (배속·후퇴)
+7. `CombatArena.start(room)` — Player 숨김, 적 수 진형 슬롯에 액터 스폰(`y_sort`); `CombatHud.show_combat` (배속·후퇴)
 8. 세션 `_process`로 ATB·**기술 게이지**·고급 히트 공식 (`speed_mult`). 배속은 같은 던전에서 방 이동 후에도 유지. **타겟:** 전투 시작 시 우선순위가 같은 생존 적 중 하나를 고르고, 죽을 때까지 유지 (`target_mode=sticky`). 적을 클릭하면 히어로 포커스를 바꿈 (금색 테두리). 죽으면 다음 생존 적으로 재지정
 9. 메뉴 오픈 → `get_tree().paused` → ATB 일시정지. 미니맵 클릭은 Map 탭을 열지 않음
 10. `combat_ended` → Arena `clear` + `CombatHud.hide_combat` + `set_combat_active(false)`
@@ -86,6 +86,8 @@ CombatArena.setup(player)
 CombatArena.bind_session(session)
 CombatArena.start(room_node, state, encounter)
 CombatArena.clear(show_player)
+basic_room.get_ally_slot_global(index)
+basic_room.get_enemy_slot_global(index, enemy_count)
 CombatHud.bind_session(session)
 CombatHud.show_combat(state, encounter)
 CombatHud.hide_combat()
@@ -113,10 +115,10 @@ signal action_resolved(payload)
 | mansion | Ghoul + Vampire | Vampire Lord |
 | battlefield | Ghost + Goblin | War Specter |
 
-방 슬롯: `basic_room` `AllySlot0` / `EnemySlot0..2`. 유닛 표시명 `tr(display_name)`.
+방 슬롯: `basic_room` `ALLY_SLOTS`(히어로 왼쪽 중앙) / `get_enemy_slot_global(index, enemy_count)` 진형(1 정면, 2 위·아래, 3 삼각형, 4 뒷줄). Marker2D 슬롯 없음. 액터 호스트 `y_sort_enabled`. 유닛 표시명 `tr(display_name)`.
 
 ---
 
 ## 디버그
 
-DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급.
+DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 소켓 재구성).
