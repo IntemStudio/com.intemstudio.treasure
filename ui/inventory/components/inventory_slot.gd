@@ -3,7 +3,6 @@ extends PanelContainer
 
 signal slot_pressed(index: int)
 signal slot_activated(index: int)
-signal slot_discard_requested(index: int)
 
 var slot_index: int = -1
 var _item: ItemData
@@ -14,6 +13,7 @@ var _hovered: bool = false
 
 @onready var name_label: Label = $Content/Name
 @onready var quantity_label: Label = $Content/Quantity
+@onready var badge_label: Label = %Badge
 
 
 func _ready() -> void:
@@ -41,16 +41,22 @@ func set_item(item: ItemData) -> void:
 		name_label.text = ""
 		quantity_label.visible = false
 		_entry_rarity = ItemData.ItemRarity.COMMON
+	_set_badge(false)
 	_apply_visual_state()
 
 
-func set_modifier_entry(display_name: String, rarity: ItemData.ItemRarity) -> void:
+func set_modifier_entry(
+	display_name: String,
+	rarity: ItemData.ItemRarity,
+	socketed: bool = false
+) -> void:
 	_item = null
 	_has_entry = true
 	_entry_rarity = rarity
 	name_label.text = display_name
 	name_label.visible = true
 	quantity_label.visible = false
+	_set_badge(socketed)
 	_apply_visual_state()
 
 
@@ -61,7 +67,16 @@ func clear_entry() -> void:
 	name_label.visible = false
 	name_label.text = ""
 	quantity_label.visible = false
+	_set_badge(false)
 	_apply_visual_state()
+
+
+func _set_badge(socketed: bool) -> void:
+	if badge_label == null:
+		return
+	badge_label.visible = socketed
+	if socketed:
+		badge_label.text = tr("SOCKETED")
 
 
 func set_selected(is_selected: bool) -> void:
@@ -110,7 +125,7 @@ func _on_gui_input(event: InputEvent) -> void:
 			if event.double_click:
 				slot_activated.emit(slot_index)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			slot_discard_requested.emit(slot_index)
+			slot_activated.emit(slot_index)
 
 
 func _on_mouse_entered() -> void:

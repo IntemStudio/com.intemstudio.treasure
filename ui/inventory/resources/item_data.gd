@@ -54,6 +54,11 @@ func ensure_socket_layout() -> void:
 	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
 
 
+func apply_rarity(new_rarity: ItemRarity) -> void:
+	rarity = new_rarity
+	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+
+
 func is_two_handed() -> bool:
 	if two_handed:
 		return true
@@ -73,3 +78,17 @@ func get_rarity_color() -> Color:
 			return UIColors.GOLD
 		_:
 			return Color(0.35, 0.34, 0.33)
+
+
+func rarity_locale_key() -> String:
+	match rarity:
+		ItemRarity.UNCOMMON:
+			return "UNCOMMON"
+		ItemRarity.RARE:
+			return "RARE"
+		ItemRarity.EPIC:
+			return "EPIC"
+		ItemRarity.LEGENDARY:
+			return "LEGENDARY"
+		_:
+			return "COMMON"

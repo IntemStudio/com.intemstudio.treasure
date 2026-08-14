@@ -308,6 +308,11 @@ func refresh_character_views() -> void:
 		_shell.open_tab(_active_tab, character_stats, inventory_data)
 
 
+func refresh_hud() -> void:
+	if _hud:
+		_hud.refresh(character_stats, inventory_data)
+
+
 func push_log(payload: Dictionary) -> void:
 	if game_log:
 		game_log.push(payload)

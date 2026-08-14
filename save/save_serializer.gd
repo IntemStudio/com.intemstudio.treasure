@@ -34,6 +34,7 @@ static func item_to_dict(item: ItemData) -> Dictionary:
 	var d := {
 		"id": item.id,
 		"quantity": item.quantity,
+		"rarity": int(item.rarity),
 	}
 	if item.durability != item.durability_max:
 		d["durability"] = item.durability
@@ -62,6 +63,9 @@ static func item_from_dict(d: Dictionary, catalog: ItemCatalog) -> ItemData:
 		return null
 	var item := catalog.get_item(item_id)
 	item.quantity = int(d.get("quantity", 1))
+	if d.has("rarity"):
+		var rarity := clampi(int(d["rarity"]), 0, int(ItemData.ItemRarity.LEGENDARY))
+		item.apply_rarity(rarity as ItemData.ItemRarity)
 	if d.has("durability_max"):
 		item.durability_max = int(d["durability_max"])
 	if d.has("durability"):

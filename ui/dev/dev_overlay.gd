@@ -2,6 +2,33 @@ extends CanvasLayer
 
 enum Tab { CHARACTER = 0, ITEM = 1, SAVE = 2 }
 
+const _RARITY_KEYS: Array[String] = [
+	"COMMON",
+	"UNCOMMON",
+	"RARE",
+	"EPIC",
+	"LEGENDARY",
+]
+const _SLOT_GROUPS: Array[String] = [
+	"head",
+	"chest",
+	"legs",
+	"main_hand",
+	"off_hand",
+	"ring",
+	"tool",
+]
+const _SLOT_KEYS: Array[String] = [
+	"SLOT_HELMETS",
+	"SLOT_BODY",
+	"SLOT_PANTS",
+	"SLOT_WEAPONS",
+	"SLOT_OFF_HANDS",
+	"SLOT_RINGS",
+	"SLOT_TOOLS",
+]
+
+
 @onready var panel: PanelContainer = %Panel
 @onready var title_label: Label = %TitleLabel
 @onready var character_tab_button: Button = %CharacterTabButton
@@ -20,7 +47,9 @@ enum Tab { CHARACTER = 0, ITEM = 1, SAVE = 2 }
 @onready var force_lose_button: Button = %ForceLoseButton
 @onready var force_retreat_button: Button = %ForceRetreatButton
 @onready var equip_label: Label = %EquipLabel
+@onready var equip_slot_option: OptionButton = %EquipSlotOption
 @onready var equip_option: OptionButton = %EquipOption
+@onready var equip_rarity_option: OptionButton = %EquipRarityOption
 @onready var equip_grant_button: Button = %EquipGrantButton
 @onready var gem_label: Label = %GemLabel
 @onready var gem_option: OptionButton = %GemOption
@@ -70,8 +99,13 @@ func _ready() -> void:
 	equip_grant_button.pressed.connect(_on_equip_grant_pressed)
 	gem_grant_button.pressed.connect(_on_gem_grant_pressed)
 	rune_grant_button.pressed.connect(_on_rune_grant_pressed)
+	equip_slot_option.item_selected.connect(_on_equip_slot_selected)
+	equip_option.item_selected.connect(_on_equip_option_selected)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
+	_setup_rarity_option()
+	_setup_slot_option()
 	_populate_item_options()
+	_sync_equip_rarity_from_selection()
 	_refresh_texts()
 	_apply_tab()
 
@@ -106,6 +140,8 @@ func is_open() -> bool:
 func _on_locale_changed(_locale: String) -> void:
 	_refresh_texts()
 	_populate_item_options()
+	_refresh_rarity_option_texts()
+	_refresh_slot_option_texts()
 	if visible:
 		_apply_tab()
 
@@ -209,11 +245,9 @@ func _inventory() -> InventoryData:
 
 
 func _populate_item_options() -> void:
-	_equip_ids = _item_catalog.ids_for_categories([
-		ItemData.ItemCategory.WEAPON,
-		ItemData.ItemCategory.ARMOR,
-		ItemData.ItemCategory.TOOL,
-	])
+	_populate_equip_options(true)
+	var prev_gem := _selected_id(gem_option, _gem_ids)
+	var prev_rune := _selected_id(rune_option, _rune_ids)
 	_gem_ids.clear()
 	for gem_id in _gem_catalog.all_ids():
 		_gem_ids.append(str(gem_id))
@@ -222,23 +256,71 @@ func _populate_item_options() -> void:
 	for rune_id in _rune_catalog.all_ids():
 		_rune_ids.append(str(rune_id))
 	_rune_ids.sort()
-
-	_fill_option(equip_option, _equip_ids, func(id: String) -> String:
-		var item := _item_catalog.get_item(id)
-		return tr(item.display_name) if item else id
-	)
 	_fill_option(gem_option, _gem_ids, func(id: String) -> String:
 		var gem := _gem_catalog.get_gem(id)
 		return tr(gem.display_name) if gem else id
-	)
+	, prev_gem)
 	_fill_option(rune_option, _rune_ids, func(id: String) -> String:
 		var rune := _rune_catalog.get_rune(id)
 		return tr(rune.display_name) if rune else id
-	)
+	, prev_rune)
 
 
-func _fill_option(option: OptionButton, ids: Array[String], label_fn: Callable) -> void:
-	var prev := option.selected
+func _populate_equip_options(keep_item: bool) -> void:
+	var keep_id := _selected_id(equip_option, _equip_ids) if keep_item else ""
+	_equip_ids = _equip_ids_for_selected_slot()
+	_fill_option(equip_option, _equip_ids, func(id: String) -> String:
+		var item := _item_catalog.get_item(id)
+		return tr(item.display_name) if item else id
+	, keep_id)
+	equip_grant_button.disabled = _equip_ids.is_empty()
+
+
+func _equip_ids_for_selected_slot() -> Array[String]:
+	var group := _selected_slot_group()
+	var out: Array[String] = []
+	var all_ids := _item_catalog.ids_for_categories([
+		ItemData.ItemCategory.WEAPON,
+		ItemData.ItemCategory.ARMOR,
+		ItemData.ItemCategory.TOOL,
+	])
+	for item_id in all_ids:
+		var item := _item_catalog.get_item(item_id)
+		if item and _item_matches_slot_group(item, group):
+			out.append(item_id)
+	return out
+
+
+func _item_matches_slot_group(item: ItemData, group: String) -> bool:
+	match group:
+		"ring":
+			return item.equip_slot.begins_with("ring")
+		"tool":
+			return item.equip_slot.begins_with("tool")
+		_:
+			return item.equip_slot == group
+
+
+func _selected_slot_group() -> String:
+	var idx := equip_slot_option.selected
+	if idx < 0 or idx >= _SLOT_GROUPS.size():
+		return _SLOT_GROUPS[0]
+	return _SLOT_GROUPS[idx]
+
+
+func _selected_id(option: OptionButton, ids: Array[String]) -> String:
+	var idx := option.selected
+	if idx < 0 or idx >= ids.size():
+		return ""
+	return ids[idx]
+
+
+func _fill_option(
+	option: OptionButton,
+	ids: Array[String],
+	label_fn: Callable,
+	keep_id: String = ""
+) -> void:
 	option.clear()
 	for i in ids.size():
 		option.add_item(str(label_fn.call(ids[i])), i)
@@ -246,10 +328,72 @@ func _fill_option(option: OptionButton, ids: Array[String], label_fn: Callable) 
 		option.disabled = true
 		return
 	option.disabled = false
-	if prev >= 0 and prev < ids.size():
-		option.select(prev)
+	var keep_idx := ids.find(keep_id)
+	if keep_idx >= 0:
+		option.select(keep_idx)
 	else:
 		option.select(0)
+
+
+func _setup_rarity_option() -> void:
+	equip_rarity_option.clear()
+	for i in _RARITY_KEYS.size():
+		equip_rarity_option.add_item(tr(_RARITY_KEYS[i]), i)
+
+
+func _setup_slot_option() -> void:
+	equip_slot_option.clear()
+	for i in _SLOT_KEYS.size():
+		equip_slot_option.add_item(tr(_SLOT_KEYS[i]), i)
+	if _SLOT_KEYS.is_empty():
+		equip_slot_option.disabled = true
+		return
+	equip_slot_option.disabled = false
+	equip_slot_option.select(0)
+
+
+func _refresh_rarity_option_texts() -> void:
+	_refresh_option_texts(equip_rarity_option, _RARITY_KEYS)
+
+
+func _refresh_slot_option_texts() -> void:
+	_refresh_option_texts(equip_slot_option, _SLOT_KEYS)
+
+
+func _refresh_option_texts(option: OptionButton, keys: Array[String]) -> void:
+	for i in option.item_count:
+		var id := option.get_item_id(i)
+		if id >= 0 and id < keys.size():
+			option.set_item_text(i, tr(keys[id]))
+
+
+func _on_equip_slot_selected(_index: int) -> void:
+	_populate_equip_options(false)
+	_sync_equip_rarity_from_selection()
+
+
+func _on_equip_option_selected(_index: int) -> void:
+	_sync_equip_rarity_from_selection()
+
+
+func _sync_equip_rarity_from_selection() -> void:
+	var idx := equip_option.selected
+	if idx < 0 or idx >= _equip_ids.size():
+		return
+	var item := _item_catalog.get_item(_equip_ids[idx])
+	if item == null:
+		return
+	var rarity_idx := int(item.rarity)
+	if rarity_idx < 0 or rarity_idx >= equip_rarity_option.item_count:
+		return
+	equip_rarity_option.select(rarity_idx)
+
+
+func _selected_equip_rarity() -> ItemData.ItemRarity:
+	var idx := equip_rarity_option.selected
+	if idx < 0 or idx >= _RARITY_KEYS.size():
+		return ItemData.ItemRarity.COMMON
+	return idx as ItemData.ItemRarity
 
 
 func _on_equip_grant_pressed() -> void:
@@ -264,6 +408,7 @@ func _on_equip_grant_pressed() -> void:
 	var item := _item_catalog.get_item(item_id)
 	if item == null:
 		return
+	item.apply_rarity(_selected_equip_rarity())
 	var slot := inventory.find_empty_slot()
 	if slot < 0:
 		status_label.text = tr("LOOT_INVENTORY_FULL")

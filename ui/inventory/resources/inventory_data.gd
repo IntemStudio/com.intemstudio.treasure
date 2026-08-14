@@ -250,9 +250,18 @@ func _clear_socket_refs(uid: String) -> void:
 func socket_rune(equip_slot: String, rune_uid: String, index: int = 0) -> bool:
 	if equip_slot != "main_hand":
 		return false
-	var item: ItemData = equipped.get(equip_slot) as ItemData
+	return socket_rune_on_item(equipped.get(equip_slot) as ItemData, rune_uid, index)
+
+
+func socket_gem(equip_slot: String, gem_uid: String, kind: String, index: int = 0) -> bool:
+	return socket_gem_on_item(equipped.get(equip_slot) as ItemData, gem_uid, kind, index)
+
+
+func socket_rune_on_item(item: ItemData, rune_uid: String, index: int = 0) -> bool:
+	if item == null or item.equip_slot != "main_hand":
+		return false
 	var ri := find_rune(rune_uid)
-	if item == null or ri == null or ri.registered:
+	if ri == null or ri.registered:
 		return false
 	item.ensure_socket_layout()
 	if item.socket_layout == null or index < 0 or index >= item.socket_layout.rune_slots:
@@ -261,10 +270,11 @@ func socket_rune(equip_slot: String, rune_uid: String, index: int = 0) -> bool:
 	return true
 
 
-func socket_gem(equip_slot: String, gem_uid: String, kind: String, index: int = 0) -> bool:
-	var item: ItemData = equipped.get(equip_slot) as ItemData
+func socket_gem_on_item(item: ItemData, gem_uid: String, kind: String, index: int = 0) -> bool:
+	if item == null:
+		return false
 	var gi := find_gem(gem_uid)
-	if item == null or gi == null or gi.registered:
+	if gi == null or gi.registered:
 		return false
 	item.ensure_socket_layout()
 	if item.socket_layout == null:
@@ -281,7 +291,105 @@ func socket_gem(equip_slot: String, gem_uid: String, kind: String, index: int = 
 	return true
 
 
+func unsocket(item: ItemData, kind: String, index: int) -> bool:
+	if item == null:
+		return false
+	var next: Array[Dictionary] = []
+	var removed := false
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
+			removed = true
+			continue
+		next.append(d)
+	if not removed:
+		return false
+	item.socketed = next
+	return true
+
+
+func find_socket(uid: String) -> Dictionary:
+	if uid.is_empty():
+		return {}
+	for slot_id in EQUIP_SLOTS:
+		var item: ItemData = equipped.get(slot_id) as ItemData
+		var found := _find_socket_on_item(item, uid)
+		if not found.is_empty():
+			found["equip_slot"] = slot_id
+			found["item"] = item
+			return found
+	for item in slots:
+		var found2 := _find_socket_on_item(item as ItemData, uid)
+		if not found2.is_empty():
+			found2["equip_slot"] = ""
+			found2["item"] = item
+			return found2
+	return {}
+
+
+func is_uid_socketed(uid: String) -> bool:
+	return not find_socket(uid).is_empty()
+
+
+func list_socket_rows(item: ItemData) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if item == null:
+		return out
+	item.ensure_socket_layout()
+	if item.socket_layout == null:
+		return out
+	var layout: SocketLayout = item.socket_layout
+	for i in range(layout.rune_slots):
+		out.append(_socket_row_dict(item, "rune", i))
+	for i in range(layout.core_gem_slots):
+		out.append(_socket_row_dict(item, "core_gem", i))
+	for i in range(layout.aux_gem_slots):
+		out.append(_socket_row_dict(item, "aux_gem", i))
+	return out
+
+
+func empty_socket_rows(item: ItemData, kind_filter: String = "") -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for row in list_socket_rows(item):
+		if not str(row.get("instance_uid", "")).is_empty():
+			continue
+		if not kind_filter.is_empty() and str(row.get("kind", "")) != kind_filter:
+			continue
+		out.append(row)
+	return out
+
+
+func _socket_row_dict(item: ItemData, kind: String, index: int) -> Dictionary:
+	var uid := ""
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
+			uid = str(d.get("instance_uid", ""))
+			break
+	return {"kind": kind, "index": index, "instance_uid": uid}
+
+
+func _find_socket_on_item(item: ItemData, uid: String) -> Dictionary:
+	if item == null:
+		return {}
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("instance_uid", "")) == uid:
+			return {
+				"kind": str(d.get("kind", "")),
+				"index": int(d.get("index", -1)),
+			}
+	return {}
+
+
 func _set_socket(item: ItemData, kind: String, index: int, uid: String) -> void:
+	_clear_socket_refs(uid)
 	var next: Array[Dictionary] = []
 	for entry in item.socketed:
 		if not entry is Dictionary:

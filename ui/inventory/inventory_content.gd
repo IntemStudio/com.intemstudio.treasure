@@ -10,6 +10,12 @@ const EQUIPMENT_SLOT_SCENE := preload("res://ui/inventory/components/equipment_s
 const STAT_ROW_SCENE := preload("res://ui/stats/components/stat_row.tscn")
 
 const TAB_MODIFIERS := "modifiers"
+const MODE_NONE := ""
+const MODE_PICK_MODIFIER := "pick_modifier"
+const MODE_PICK_SLOT := "pick_slot"
+const FOCUS_BAG := "bag"
+const FOCUS_EQUIP := "equip"
+const FOCUS_SOCKETS := "sockets"
 
 const CATEGORY_DEFS: Array[Dictionary] = [
 	{"id": "weapon", "category": ItemData.ItemCategory.WEAPON, "label": "WPN"},
@@ -50,6 +56,17 @@ var _preview_root: Node3D
 var _footer_connected: bool = false
 var _rune_catalog: RuneCatalog = RuneCatalog.new()
 var _gem_catalog: GemCatalog = GemCatalog.new()
+var _resonance_service: ResonanceService = ResonanceService.new()
+
+var _focus_zone: String = FOCUS_BAG
+var _mode: String = MODE_NONE
+var _socket_item: ItemData
+var _socket_kind: String = ""
+var _socket_index: int = -1
+var _selected_socket_row: int = 0
+var _pick_mod_kind: String = ""
+var _pick_mod_uid: String = ""
+var _detail_wired: bool = false
 
 
 func _ready() -> void:
@@ -71,21 +88,34 @@ func setup(ui_manager: UIManager, footer: FooterPrompts) -> void:
 	if _footer and not _footer_connected:
 		_footer.prompt_activated.connect(_on_footer_prompt)
 		_footer_connected = true
+	_wire_detail_panel()
 
 
 func activate(stats: CharacterStats, inventory_data: InventoryData) -> void:
 	character_stats = stats
 	inventory = inventory_data
 	_bag_tab_id = _tab_id_from_category(inventory.current_category)
+	_cancel_pick_mode()
+	_focus_zone = FOCUS_BAG
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
+	_wire_detail_panel()
 	_refresh_all()
 
 
 func deactivate() -> void:
+	_cancel_pick_mode()
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
 	_refresh_character_preview()
+
+
+func _wire_detail_panel() -> void:
+	if detail_panel == null or _detail_wired:
+		return
+	detail_panel.socket_row_pressed.connect(_on_socket_row_pressed)
+	detail_panel.socket_row_activated.connect(_on_socket_row_activated)
+	_detail_wired = true
 
 
 func _is_using_gamepad() -> bool:
@@ -113,19 +143,46 @@ func _update_footer() -> void:
 	if not _footer:
 		return
 	var using_gamepad := _is_using_gamepad()
+	if _mode == MODE_PICK_MODIFIER or _mode == MODE_PICK_SLOT:
+		_footer.set_prompts([
+			{"action": "socket", "button": "A" if using_gamepad else "Enter", "label": tr("SOCKET")},
+			{"action": "back", "button": "B" if using_gamepad else "Esc", "label": tr("BACK")},
+		])
+		return
+	if _focus_zone == FOCUS_SOCKETS:
+		var filled := _selected_socket_filled()
+		_footer.set_prompts([
+			{
+				"action": "socket",
+				"button": "A" if using_gamepad else "Enter",
+				"label": tr("UNSOCKET") if filled else tr("SOCKET"),
+			},
+			{"action": "equip", "button": "Y" if using_gamepad else "E", "label": tr("EQUIP / UNEQUIP")},
+			{"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")},
+			{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")},
+		])
+		return
 	if _is_modifier_tab():
 		_footer.set_prompts([
+			{"action": "socket", "button": "A" if using_gamepad else "Enter", "label": tr("SOCKET")},
 			{"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")},
 			{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")},
 		])
 		return
 	var sort_key := inventory.sort_mode.to_upper() if inventory else "TIME"
-	_footer.set_prompts([
+	var prompts: Array = [
 		{"action": "sort", "button": "L3" if using_gamepad else "S", "label": tr("SORT: %s") % tr(sort_key)},
 		{"action": "equip", "button": "A" if using_gamepad else "Enter", "label": tr("EQUIP / UNEQUIP")},
-		{"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")},
-		{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")},
-	])
+	]
+	if _current_item_has_sockets():
+		prompts.append({
+			"action": "socket",
+			"button": "Y" if using_gamepad else "F",
+			"label": tr("SOCKET"),
+		})
+	prompts.append({"action": "discard", "button": "X" if using_gamepad else "X", "label": tr("DISCARD")})
+	prompts.append({"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("CLOSE")})
+	_footer.set_prompts(prompts)
 
 
 func _build_category_tabs() -> void:
@@ -150,7 +207,6 @@ func _build_grid() -> void:
 		slot.setup(i)
 		slot.slot_pressed.connect(_on_slot_pressed)
 		slot.slot_activated.connect(_on_slot_activated)
-		slot.slot_discard_requested.connect(_on_slot_discard_requested)
 		_slots.append(slot)
 
 
@@ -214,6 +270,8 @@ func _refresh_all() -> void:
 		return
 	inventory.ensure_grid_size()
 	_selected_grid_index = clampi(_selected_grid_index, 0, InventoryData.GRID_SIZE - 1)
+	if detail_panel:
+		detail_panel.bind_socket_context(inventory, _rune_catalog, _gem_catalog)
 	if character_stats:
 		_refresh_attributes()
 		_refresh_load_indicator()
@@ -293,6 +351,8 @@ func _modifier_entries() -> Array[Dictionary]:
 			"bag_index": i,
 			"instance": ri,
 			"rune": data,
+			"uid": ri.instance_uid,
+			"registered": ri.registered,
 			"display_name": tr(data.display_name) if data else ri.rune_id,
 			"rarity": data.rarity if data else ItemData.ItemRarity.COMMON,
 		})
@@ -306,6 +366,8 @@ func _modifier_entries() -> Array[Dictionary]:
 			"bag_index": i,
 			"instance": gi,
 			"gem": gdata,
+			"uid": gi.instance_uid,
+			"registered": gi.registered,
 			"display_name": tr(gdata.display_name) if gdata else gi.gem_id,
 			"rarity": gdata.rarity if gdata else ItemData.ItemRarity.COMMON,
 		})
@@ -323,11 +385,19 @@ func _refresh_grid() -> void:
 		slot.setup(i)
 		var item: ItemData = inventory.slots[i] if i < inventory.slots.size() else null
 		slot.set_item(item)
+		var dim := false
 		if item and item.category != inventory.current_category:
-			slot.modulate = Color(1, 1, 1, 0.38)
-		else:
-			slot.modulate = Color(1, 1, 1, 1)
-		slot.set_selected(i == _selected_grid_index and _selected_equip_slot == "")
+			dim = true
+		if _mode == MODE_PICK_SLOT and item != null:
+			dim = not _item_accepts_pick_modifier(item)
+		elif _mode == MODE_PICK_SLOT and item == null:
+			dim = true
+		slot.modulate = Color(1, 1, 1, 0.38) if dim else Color(1, 1, 1, 1)
+		slot.set_selected(
+			i == _selected_grid_index
+			and _focus_zone == FOCUS_BAG
+			and _selected_equip_slot == ""
+		)
 	_refresh_detail_panel()
 
 
@@ -337,20 +407,33 @@ func _refresh_modifier_grid() -> void:
 		var slot := _slots[i]
 		slot.visible = true
 		slot.setup(i)
-		slot.modulate = Color(1, 1, 1, 1)
 		if i < entries.size():
 			var entry: Dictionary = entries[i]
+			var uid := str(entry.get("uid", ""))
 			slot.set_modifier_entry(
 				str(entry.get("display_name", "")),
-				entry.get("rarity", ItemData.ItemRarity.COMMON) as ItemData.ItemRarity
+				entry.get("rarity", ItemData.ItemRarity.COMMON) as ItemData.ItemRarity,
+				inventory.is_uid_socketed(uid)
 			)
+			var dim := false
+			if _mode == MODE_PICK_MODIFIER:
+				dim = not _modifier_compatible_for_pick(entry)
+			slot.modulate = Color(1, 1, 1, 0.38) if dim else Color(1, 1, 1, 1)
 		else:
 			slot.clear_entry()
-		slot.set_selected(i == _selected_grid_index and _selected_equip_slot == "")
+			slot.modulate = Color(1, 1, 1, 1)
+		slot.set_selected(
+			i == _selected_grid_index
+			and _focus_zone == FOCUS_BAG
+			and _selected_equip_slot == ""
+		)
 	_refresh_detail_panel()
 
 
 func _refresh_detail_panel() -> void:
+	if _focus_zone == FOCUS_SOCKETS and _socket_item != null:
+		_show_item_detail(_socket_item)
+		return
 	if _selected_equip_slot != "":
 		_show_item_detail(inventory.equipped.get(_selected_equip_slot) as ItemData)
 		return
@@ -368,8 +451,26 @@ func _refresh_detail_panel() -> void:
 func _show_item_detail(item: ItemData) -> void:
 	if detail_panel:
 		detail_panel.visible = true
+		detail_panel.bind_socket_context(inventory, _rune_catalog, _gem_catalog)
 		var compare_with: ItemData = inventory.equipped_in_same_slot(item) if inventory else null
 		detail_panel.set_item(item, compare_with)
+		var equipped_main: ItemData = inventory.equipped.get("main_hand") as ItemData if inventory else null
+		if item != null and item == equipped_main:
+			var result := _resonance_service.rebuild_main_hand_skills(
+				inventory, _rune_catalog, _gem_catalog
+			)
+			detail_panel.set_item(item, compare_with)
+			detail_panel.set_resonance_state(result.state_key())
+		else:
+			detail_panel.set_resonance_state("")
+		if _focus_zone == FOCUS_SOCKETS and _socket_kind != "":
+			detail_panel.set_selected_socket(_socket_kind, _socket_index)
+		elif detail_panel.get_socket_row_count() > 0:
+			var row := detail_panel.get_socket_row_at(
+				clampi(_selected_socket_row, 0, detail_panel.get_socket_row_count() - 1)
+			)
+			if not row.is_empty():
+				detail_panel.set_selected_socket(str(row.get("kind", "")), int(row.get("index", 0)))
 	if modifier_detail:
 		modifier_detail.visible = false
 		modifier_detail.clear()
@@ -414,13 +515,47 @@ func _get_selected_item() -> ItemData:
 	return inventory.slots[index]
 
 
+func _current_detail_item() -> ItemData:
+	if _socket_item != null and (_focus_zone == FOCUS_SOCKETS or _mode == MODE_PICK_MODIFIER):
+		return _socket_item
+	if _selected_equip_slot != "":
+		return inventory.equipped.get(_selected_equip_slot) as ItemData
+	return _get_selected_item()
+
+
+func _current_item_has_sockets() -> bool:
+	var item := _current_detail_item()
+	if item == null or inventory == null:
+		return false
+	return not inventory.list_socket_rows(item).is_empty()
+
+
+func _selected_socket_filled() -> bool:
+	var item := _socket_item if _socket_item else _current_detail_item()
+	if item == null or _socket_kind.is_empty() or inventory == null:
+		return false
+	for row in inventory.list_socket_rows(item):
+		if str(row.get("kind", "")) == _socket_kind and int(row.get("index", -1)) == _socket_index:
+			return not str(row.get("instance_uid", "")).is_empty()
+	return false
+
+
 func _refresh_equipment() -> void:
 	for slot_id in _equipment_slots.keys():
 		var slot: EquipmentSlot = _equipment_slots[slot_id]
-		slot.set_item(inventory.equipped.get(slot_id))
-		var blocked := slot_id == "off_hand" and inventory.is_two_handed_equipped()
+		var item: ItemData = inventory.equipped.get(slot_id)
+		slot.set_item(item)
+		var blocked := false
+		if slot_id == "off_hand" and inventory.is_two_handed_equipped():
+			blocked = true
 		slot.set_blocked(blocked)
-		slot.set_selected(slot_id == _selected_equip_slot)
+		var dim := false
+		if _mode == MODE_PICK_SLOT and item != null:
+			dim = not _item_accepts_pick_modifier(item)
+		elif _mode == MODE_PICK_SLOT and item == null:
+			dim = true
+		slot.modulate = Color(1, 1, 1, 0.38) if dim else Color(1, 1, 1, 1)
+		slot.set_selected(slot_id == _selected_equip_slot and _focus_zone == FOCUS_EQUIP)
 
 
 func _refresh_character_preview() -> void:
@@ -429,14 +564,23 @@ func _refresh_character_preview() -> void:
 
 func _select_grid_index(grid_index: int) -> void:
 	_selected_grid_index = clampi(grid_index, 0, InventoryData.GRID_SIZE - 1)
+	_focus_zone = FOCUS_BAG
 	if _selected_equip_slot != "":
 		_selected_equip_slot = ""
 		_refresh_equipment()
+	if _mode != MODE_PICK_MODIFIER and _mode != MODE_PICK_SLOT:
+		_socket_item = null
 	_refresh_grid()
+	_update_footer()
 
 
 func _on_tab_selected(tab_id: String) -> void:
+	if _mode == MODE_PICK_MODIFIER and tab_id != TAB_MODIFIERS:
+		return
+	if _mode == MODE_PICK_SLOT and tab_id == TAB_MODIFIERS:
+		return
 	_bag_tab_id = tab_id
+	_focus_zone = FOCUS_BAG
 	if _is_modifier_tab():
 		_selected_grid_index = 0
 	else:
@@ -474,6 +618,15 @@ func _first_index_for_category(category: ItemData.ItemCategory) -> int:
 func _on_slot_pressed(index: int) -> void:
 	if index < 0:
 		return
+	if _mode == MODE_PICK_SLOT:
+		_select_grid_index(index)
+		var item := _get_selected_item()
+		if item and _item_accepts_pick_modifier(item):
+			_try_socket_picked_modifier_on(item)
+		return
+	if _mode == MODE_PICK_MODIFIER:
+		_select_grid_index(index)
+		return
 	_selected_equip_slot = ""
 	_refresh_equipment()
 	_select_grid_index(index)
@@ -481,20 +634,33 @@ func _on_slot_pressed(index: int) -> void:
 
 func _on_slot_activated(index: int) -> void:
 	_on_slot_pressed(index)
-	if not _is_modifier_tab():
+	if _mode == MODE_PICK_MODIFIER:
+		_confirm_pick_modifier()
+		return
+	if _mode == MODE_PICK_SLOT:
+		return
+	if _is_modifier_tab():
+		_begin_pick_slot()
+	else:
 		_try_equip()
 
 
-func _on_slot_discard_requested(index: int) -> void:
-	_on_slot_pressed(index)
-	_try_discard()
-
-
 func _on_equipment_pressed(slot_id: String) -> void:
+	if _mode == MODE_PICK_SLOT:
+		_focus_equipment_slot(slot_id)
+		var item: ItemData = inventory.equipped.get(slot_id) as ItemData
+		if item and _item_accepts_pick_modifier(item):
+			_try_socket_picked_modifier_on(item)
+		return
+	if _mode == MODE_PICK_MODIFIER:
+		return
 	_focus_equipment_slot(slot_id)
 
 
 func _on_equipment_activated(slot_id: String) -> void:
+	if _mode != MODE_NONE:
+		_on_equipment_pressed(slot_id)
+		return
 	_unequip_slot(slot_id)
 
 
@@ -503,19 +669,47 @@ func _on_footer_prompt(action: String) -> void:
 		return
 	match action:
 		"sort":
-			if not _is_modifier_tab():
+			if not _is_modifier_tab() and _mode == MODE_NONE:
 				_cycle_sort()
 		"equip":
-			if not _is_modifier_tab():
+			if _mode == MODE_NONE and not _is_modifier_tab():
 				_try_equip()
+		"socket":
+			_on_socket_action()
+		"back":
+			_cancel_pick_mode()
+			_refresh_all()
 		"discard":
-			_try_discard()
+			if _mode == MODE_NONE:
+				_try_discard()
 		"close":
-			request_close.emit()
+			if _mode != MODE_NONE:
+				_cancel_pick_mode()
+				_refresh_all()
+			else:
+				request_close.emit()
+
+
+func _on_socket_action() -> void:
+	if _mode == MODE_PICK_MODIFIER:
+		_confirm_pick_modifier()
+		return
+	if _mode == MODE_PICK_SLOT:
+		var item := _current_detail_item()
+		if item:
+			_try_socket_picked_modifier_on(item)
+		return
+	if _focus_zone == FOCUS_SOCKETS:
+		_activate_selected_socket()
+		return
+	if _is_modifier_tab():
+		_begin_pick_slot()
+		return
+	_focus_sockets_on_current_item()
 
 
 func _try_equip() -> void:
-	if _is_modifier_tab():
+	if _is_modifier_tab() or _mode != MODE_NONE:
 		return
 	if _selected_equip_slot != "":
 		_unequip_slot(_selected_equip_slot)
@@ -554,10 +748,9 @@ func _unequip_slot(slot_id: String) -> void:
 func _rebuild_resonance() -> void:
 	if inventory == null:
 		return
-	var service := ResonanceService.new()
-	service.rebuild_main_hand_skills(inventory, _rune_catalog, _gem_catalog)
+	_resonance_service.rebuild_main_hand_skills(inventory, _rune_catalog, _gem_catalog)
 	if _ui_manager:
-		_ui_manager.refresh_character_views()
+		_ui_manager.refresh_hud()
 
 
 func _try_discard() -> void:
@@ -581,15 +774,13 @@ func _try_discard_modifier() -> void:
 		return
 	var entry: Dictionary = entries[_selected_grid_index]
 	var kind := str(entry.get("kind", ""))
-	var bag_index: int = int(entry.get("bag_index", -1))
-	if bag_index < 0:
+	var uid := str(entry.get("uid", ""))
+	if uid.is_empty():
 		return
 	if kind == "rune":
-		if bag_index < inventory.runes.size():
-			inventory.runes.remove_at(bag_index)
+		inventory.remove_rune_uid(uid)
 	elif kind == "gem":
-		if bag_index < inventory.gems.size():
-			inventory.gems.remove_at(bag_index)
+		inventory.remove_gem_uid(uid)
 	else:
 		return
 	_selected_grid_index = clampi(_selected_grid_index, 0, maxi(entries.size() - 2, 0))
@@ -598,7 +789,7 @@ func _try_discard_modifier() -> void:
 
 
 func _cycle_sort() -> void:
-	if _is_modifier_tab():
+	if _is_modifier_tab() or _mode != MODE_NONE:
 		return
 	var current := SORT_MODES.find(inventory.sort_mode)
 	var next := (current + 1) % SORT_MODES.size()
@@ -607,26 +798,294 @@ func _cycle_sort() -> void:
 	_refresh_all()
 
 
+func _focus_sockets_on_current_item() -> void:
+	var item := _current_detail_item()
+	if item == null or inventory == null:
+		return
+	var rows := inventory.list_socket_rows(item)
+	if rows.is_empty():
+		return
+	_socket_item = item
+	_focus_zone = FOCUS_SOCKETS
+	_selected_socket_row = 0
+	var first: Dictionary = rows[0]
+	_socket_kind = str(first.get("kind", ""))
+	_socket_index = int(first.get("index", 0))
+	_refresh_all()
+
+
+func _on_socket_row_pressed(kind: String, index: int) -> void:
+	var item := _current_detail_item()
+	if item == null:
+		return
+	_socket_item = item
+	_focus_zone = FOCUS_SOCKETS
+	_socket_kind = kind
+	_socket_index = index
+	_selected_socket_row = detail_panel.find_socket_row_index(kind, index)
+	if detail_panel:
+		detail_panel.set_selected_socket(kind, index)
+	_update_footer()
+
+
+func _on_socket_row_activated(kind: String, index: int) -> void:
+	_on_socket_row_pressed(kind, index)
+	_activate_selected_socket()
+
+
+func _activate_selected_socket() -> void:
+	if _socket_item == null or _socket_kind.is_empty():
+		return
+	# Pending MOD → equipment with multiple empty sockets: confirm into selected row.
+	if _mode == MODE_PICK_SLOT and not _pick_mod_uid.is_empty():
+		if _selected_socket_filled():
+			return
+		var ok := false
+		if _pick_mod_kind == "rune" and _socket_kind == "rune":
+			ok = inventory.socket_rune_on_item(_socket_item, _pick_mod_uid, _socket_index)
+		elif _pick_mod_kind == "gem" and _socket_kind in ["core_gem", "aux_gem"]:
+			ok = inventory.socket_gem_on_item(
+				_socket_item, _pick_mod_uid, _socket_kind, _socket_index
+			)
+		if ok:
+			_mode = MODE_NONE
+			_pick_mod_kind = ""
+			_pick_mod_uid = ""
+			_focus_zone = FOCUS_SOCKETS
+			_rebuild_resonance()
+			_refresh_all()
+		return
+	if _selected_socket_filled():
+		inventory.unsocket(_socket_item, _socket_kind, _socket_index)
+		_rebuild_resonance()
+		_refresh_all()
+		return
+	_begin_pick_modifier()
+
+
+func _begin_pick_modifier() -> void:
+	if _socket_item == null or _socket_kind.is_empty():
+		return
+	_mode = MODE_PICK_MODIFIER
+	_bag_tab_id = TAB_MODIFIERS
+	_focus_zone = FOCUS_BAG
+	_selected_equip_slot = ""
+	_selected_grid_index = _first_compatible_modifier_index()
+	_refresh_all()
+
+
+func _begin_pick_slot() -> void:
+	var entries := _modifier_entries()
+	if _selected_grid_index < 0 or _selected_grid_index >= entries.size():
+		return
+	var entry: Dictionary = entries[_selected_grid_index]
+	if bool(entry.get("registered", false)):
+		return
+	_pick_mod_kind = str(entry.get("kind", ""))
+	_pick_mod_uid = str(entry.get("uid", ""))
+	if _pick_mod_uid.is_empty():
+		return
+	_mode = MODE_PICK_SLOT
+	# Prefer weapon tab for runes, else keep current non-mod tab or weapon.
+	if _pick_mod_kind == "rune":
+		_bag_tab_id = "weapon"
+		inventory.current_category = ItemData.ItemCategory.WEAPON
+	elif _bag_tab_id == TAB_MODIFIERS:
+		_bag_tab_id = "weapon"
+		inventory.current_category = ItemData.ItemCategory.WEAPON
+	_focus_zone = FOCUS_BAG
+	_selected_grid_index = _first_compatible_item_index()
+	_refresh_all()
+
+
+func _cancel_pick_mode() -> void:
+	var was := _mode
+	_mode = MODE_NONE
+	_pick_mod_kind = ""
+	_pick_mod_uid = ""
+	if was == MODE_PICK_MODIFIER and _socket_item != null:
+		_focus_zone = FOCUS_SOCKETS
+		if _socket_item.category == ItemData.ItemCategory.WEAPON:
+			_bag_tab_id = "weapon"
+		elif _socket_item.category == ItemData.ItemCategory.ARMOR:
+			_bag_tab_id = "armor"
+		elif _socket_item.category == ItemData.ItemCategory.TOOL:
+			_bag_tab_id = "tool"
+		else:
+			_bag_tab_id = "weapon"
+		inventory.current_category = _socket_item.category
+	elif was == MODE_PICK_SLOT:
+		_bag_tab_id = TAB_MODIFIERS
+		_focus_zone = FOCUS_BAG
+
+
+func _confirm_pick_modifier() -> void:
+	if _mode != MODE_PICK_MODIFIER or _socket_item == null:
+		return
+	var entries := _modifier_entries()
+	if _selected_grid_index < 0 or _selected_grid_index >= entries.size():
+		return
+	var entry: Dictionary = entries[_selected_grid_index]
+	if not _modifier_compatible_for_pick(entry):
+		return
+	var uid := str(entry.get("uid", ""))
+	var ok := false
+	if _socket_kind == "rune" and str(entry.get("kind", "")) == "rune":
+		ok = inventory.socket_rune_on_item(_socket_item, uid, _socket_index)
+	elif _socket_kind in ["core_gem", "aux_gem"] and str(entry.get("kind", "")) == "gem":
+		ok = inventory.socket_gem_on_item(_socket_item, uid, _socket_kind, _socket_index)
+	if not ok:
+		return
+	_mode = MODE_NONE
+	_pick_mod_kind = ""
+	_pick_mod_uid = ""
+	_focus_zone = FOCUS_SOCKETS
+	_rebuild_resonance()
+	# Restore bag tab to the item's category if possible.
+	if _socket_item.category == ItemData.ItemCategory.WEAPON:
+		_bag_tab_id = "weapon"
+	elif _socket_item.category == ItemData.ItemCategory.ARMOR:
+		_bag_tab_id = "armor"
+	elif _socket_item.category == ItemData.ItemCategory.TOOL:
+		_bag_tab_id = "tool"
+	inventory.current_category = _socket_item.category
+	_refresh_all()
+
+
+func _try_socket_picked_modifier_on(item: ItemData) -> void:
+	if _mode != MODE_PICK_SLOT or item == null:
+		return
+	if not _item_accepts_pick_modifier(item):
+		return
+	var empties: Array[Dictionary] = []
+	if _pick_mod_kind == "rune":
+		empties = inventory.empty_socket_rows(item, "rune")
+	else:
+		for row in inventory.empty_socket_rows(item):
+			var k := str(row.get("kind", ""))
+			if k == "core_gem" or k == "aux_gem":
+				empties.append(row)
+	if empties.is_empty():
+		return
+	if empties.size() == 1:
+		var row: Dictionary = empties[0]
+		var ok := false
+		if _pick_mod_kind == "rune":
+			ok = inventory.socket_rune_on_item(item, _pick_mod_uid, int(row.get("index", 0)))
+		else:
+			ok = inventory.socket_gem_on_item(
+				item, _pick_mod_uid, str(row.get("kind", "")), int(row.get("index", 0))
+			)
+		if ok:
+			_mode = MODE_NONE
+			_pick_mod_kind = ""
+			_pick_mod_uid = ""
+			_socket_item = item
+			_focus_zone = FOCUS_SOCKETS
+			_socket_kind = str(row.get("kind", ""))
+			_socket_index = int(row.get("index", 0))
+			_rebuild_resonance()
+			_refresh_all()
+		return
+	_socket_item = item
+	_focus_zone = FOCUS_SOCKETS
+	var first: Dictionary = empties[0]
+	_socket_kind = str(first.get("kind", ""))
+	_socket_index = int(first.get("index", 0))
+	_selected_socket_row = 0
+	_refresh_all()
+
+
+func _modifier_compatible_for_pick(entry: Dictionary) -> bool:
+	if _socket_item == null:
+		return false
+	if bool(entry.get("registered", false)):
+		return false
+	var kind := str(entry.get("kind", ""))
+	if _socket_kind == "rune":
+		if kind != "rune":
+			return false
+		return _resonance_service.can_socket_rune(_socket_item, entry.get("rune") as RuneData)
+	if _socket_kind in ["core_gem", "aux_gem"]:
+		if kind != "gem":
+			return false
+		return _resonance_service.can_socket_gem(_socket_item, entry.get("gem") as GemData)
+	return false
+
+
+func _item_accepts_pick_modifier(item: ItemData) -> bool:
+	if item == null or _pick_mod_uid.is_empty():
+		return false
+	if _pick_mod_kind == "rune":
+		var ri := inventory.find_rune(_pick_mod_uid)
+		if ri == null or ri.registered:
+			return false
+		var rd := _rune_catalog.get_rune(ri.rune_id)
+		if not _resonance_service.can_socket_rune(item, rd):
+			return false
+		return not inventory.empty_socket_rows(item, "rune").is_empty()
+	if _pick_mod_kind == "gem":
+		var gi := inventory.find_gem(_pick_mod_uid)
+		if gi == null or gi.registered:
+			return false
+		var gd := _gem_catalog.get_gem(gi.gem_id)
+		if not _resonance_service.can_socket_gem(item, gd):
+			return false
+		for row in inventory.empty_socket_rows(item):
+			var k := str(row.get("kind", ""))
+			if k == "core_gem" or k == "aux_gem":
+				return true
+		return false
+	return false
+
+
+func _first_compatible_modifier_index() -> int:
+	var entries := _modifier_entries()
+	for i in range(entries.size()):
+		if _modifier_compatible_for_pick(entries[i]):
+			return i
+	return 0
+
+
+func _first_compatible_item_index() -> int:
+	inventory.ensure_grid_size()
+	for i in range(inventory.slots.size()):
+		var item: ItemData = inventory.slots[i]
+		if item and _item_accepts_pick_modifier(item):
+			return i
+	return 0
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
 	if event.is_action_pressed("ui_cancel"):
-		request_close.emit()
+		if _mode != MODE_NONE:
+			_cancel_pick_mode()
+			_refresh_all()
+		else:
+			request_close.emit()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_equip"):
-		_try_equip()
+		if _mode != MODE_NONE or _focus_zone == FOCUS_SOCKETS or _is_modifier_tab():
+			_on_socket_action()
+		else:
+			_try_equip()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_discard"):
-		_try_discard()
+		if _mode == MODE_NONE:
+			_try_discard()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_sort"):
 		_cycle_sort()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_category_prev"):
-		_cycle_tab(-1)
+		if _mode == MODE_NONE:
+			_cycle_tab(-1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_category_next"):
-		_cycle_tab(1)
+		if _mode == MODE_NONE:
+			_cycle_tab(1)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_left"):
 		_move_focus(-1, 0)
@@ -643,16 +1102,21 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _move_focus(delta_x: int, delta_y: int) -> void:
-	if _selected_equip_slot != "":
+	if _focus_zone == FOCUS_SOCKETS:
+		_move_socket_focus(delta_x, delta_y)
+	elif _focus_zone == FOCUS_EQUIP or _selected_equip_slot != "":
 		_move_equipment_focus(delta_x, delta_y)
 	else:
 		_move_bag_focus(delta_x, delta_y)
 
 
 func _move_bag_focus(delta_x: int, delta_y: int) -> void:
-	if delta_x > 0 and _is_bag_right_edge():
+	if delta_x > 0 and _is_bag_right_edge() and _mode != MODE_PICK_MODIFIER:
 		_focus_equipment_from_bag()
 		return
+	if delta_y > 0 and _mode == MODE_NONE and _current_item_has_sockets() and not _is_modifier_tab():
+		# Optional: down from bag does not enter sockets; only from equip / SOCKET.
+		pass
 	var next := _selected_grid_index + delta_x + delta_y * GRID_COLUMNS
 	_select_grid_index(clampi(next, 0, InventoryData.GRID_SIZE - 1))
 
@@ -670,8 +1134,12 @@ func _focus_equipment_from_bag() -> void:
 
 func _focus_equipment_slot(slot_id: String) -> void:
 	_selected_equip_slot = slot_id
+	_focus_zone = FOCUS_EQUIP
+	if _mode != MODE_PICK_SLOT:
+		_socket_item = inventory.equipped.get(slot_id) as ItemData
 	_refresh_equipment()
 	_refresh_grid()
+	_update_footer()
 
 
 func _focus_bag_from_equipment() -> void:
@@ -681,6 +1149,7 @@ func _focus_bag_from_equipment() -> void:
 	var target := bag_row * GRID_COLUMNS + GRID_COLUMNS - 1
 	target = clampi(target, 0, InventoryData.GRID_SIZE - 1)
 	_selected_equip_slot = ""
+	_focus_zone = FOCUS_BAG
 	_refresh_equipment()
 	_select_grid_index(target)
 
@@ -694,9 +1163,44 @@ func _move_equipment_focus(delta_x: int, delta_y: int) -> void:
 	if delta_x < 0 and column == 0:
 		_focus_bag_from_equipment()
 		return
+	if delta_y > 0 and _mode == MODE_NONE and _current_item_has_sockets():
+		_focus_sockets_on_current_item()
+		return
 	var next_column := clampi(column + delta_x, 0, EQUIP_COLUMNS - 1)
 	var next_row := clampi(row + delta_y, 0, EQUIP_ROWS - 1)
 	_focus_equipment_slot(InventoryData.EQUIP_SLOTS[next_row * EQUIP_COLUMNS + next_column])
+
+
+func _move_socket_focus(delta_x: int, delta_y: int) -> void:
+	if detail_panel == null:
+		return
+	var count := detail_panel.get_socket_row_count()
+	if count <= 0:
+		return
+	if delta_x < 0:
+		_focus_zone = FOCUS_BAG
+		_selected_equip_slot = ""
+		_refresh_all()
+		return
+	if delta_x > 0:
+		var slot := ""
+		if _socket_item:
+			for sid in InventoryData.EQUIP_SLOTS:
+				if inventory.equipped.get(sid) == _socket_item:
+					slot = sid
+					break
+		if slot != "":
+			_focus_equipment_slot(slot)
+		return
+	_selected_socket_row = clampi(_selected_socket_row + delta_y, 0, count - 1)
+	var row := detail_panel.get_socket_row_at(_selected_socket_row)
+	_socket_kind = str(row.get("kind", ""))
+	_socket_index = int(row.get("index", 0))
+	detail_panel.set_selected_socket(_socket_kind, _socket_index)
+	# When pick_slot with pending uid and user confirms via equip key later.
+	if _mode == MODE_PICK_SLOT and not _pick_mod_uid.is_empty() and delta_y == 0:
+		pass
+	_update_footer()
 
 
 func _cycle_tab(direction: int) -> void:

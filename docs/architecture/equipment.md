@@ -1,11 +1,11 @@
 # 장비 · 룬 · 보석 · 공명
 
 주무기 소켓에 룬·보석을 두고 `ResonanceService`가 `skills`를 채운다. 전투는 그 결과만 소비한다.  
-후속(희귀도 경제·책장 격자·인벤 소켓 UI·특수 방): [`docs/design/equipment.md`](../design/equipment.md).
+후속(희귀도 경제·책장 격자·특수 방): [`docs/design/equipment.md`](../design/equipment.md).
 
-**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 직접 꽂는 UI는 없음.
+**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 소켓에 꽂고 뺄 수 있다. 양손 무기는 `off_hand`를 비우고, 보조를 끼면 양손을 해제한다.
 
-관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md).
+관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md) · [`docs/design/shop.md`](../design/shop.md).
 
 ---
 
@@ -20,7 +20,7 @@
 | 등록 | [`card_registration_service.gd`](../../data/equipment/card_registration_service.gd) |
 | 제단 | [`ui/village/registration_altar.tscn`](../../ui/village/registration_altar.tscn) |
 | 가방 | [`InventoryData.runes`](../../ui/inventory/resources/inventory_data.gd) / `gems` |
-| 장비 필드 | [`ItemData.socket_layout`](../../ui/inventory/resources/item_data.gd) · `socketed` · 호환 태그 |
+| 장비 필드 | [`ItemData.socket_layout`](../../ui/inventory/resources/item_data.gd) · `two_handed` · `socketed` · 호환 태그 |
 | 샘플 | [`item_bootstrap.gd`](../../ui/inventory/resources/item_bootstrap.gd) · 카탈로그 기본 장비는 [`item_defaults.gd`](../../ui/inventory/resources/item_defaults.gd) |
 
 `ItemCategory`에 `RUNE`/`GEM` 없음. 5×6 격자는 `ItemData`만.
@@ -41,7 +41,8 @@ equipped.main_hand.skills
 CombatSession 기술 게이지 + 마나 자동 발동
 ```
 
-룬은 `main_hand`만. `off_hand`는 보석·접두사. HUD 4칸 소스 = `main_hand.skills`.
+룬은 `main_hand`만. `off_hand`는 보석·접두사. HUD 4칸 소스 = `main_hand.skills`.  
+양손(`ItemData.two_handed`, 클레이모어·필드 파이크): 장착 시 주·보조를 모두 해제. 착용 중 보조를 끼면 양손이 가방으로 가고 주무기 칸은 빈다.
 
 | 공명 | 의미 |
 |------|------|
@@ -56,8 +57,14 @@ CombatSession 기술 게이지 + 마나 자동 발동
 
 ## 소켓 UI
 
-인벤 **상세**에 `SocketLayout.describe()`만 표시 ([`item_detail_panel.gd`](../../ui/inventory/components/item_detail_panel.gd)).  
-꽂기·빼기는 `InventoryData.socket_rune` / `socket_gem` API. 시작 인벤에는 룬·보석이 없고, 개발 오버레이·서비스 API로 꽂는다.
+인벤 **상세**에 소켓 행(`SocketRow`)을 표시한다 ([`item_detail_panel.gd`](../../ui/inventory/components/item_detail_panel.gd) · [`socket_row.gd`](../../ui/inventory/components/socket_row.gd)).
+
+| 흐름 | 조작 |
+|------|------|
+| 장비 → MOD | 빈 소켓 확인 → 호환 룬/보석만 강조 → 꽂기. 찬 소켓 확인 → 빼기 |
+| MOD → 장비 | SOCKET → 호환 장비만 강조 → 빈 칸 1개면 즉시, 여러 개면 소켓 행에서 선택 |
+
+호환은 `ResonanceService.can_socket_*`. 꽂기/빼기 후 `rebuild_main_hand_skills` + HUD만 `refresh_hud` (인벤 선택 유지).
 
 ---
 
@@ -91,6 +98,17 @@ CombatSession 기술 게이지 + 마나 자동 발동
 SocketLayout.for_rarity(equip_slot, rarity) -> SocketLayout
 InventoryData.socket_rune(equip_slot, rune_uid, index) -> bool
 InventoryData.socket_gem(equip_slot, gem_uid, kind, index) -> bool
+InventoryData.socket_rune_on_item(item, rune_uid, index) -> bool
+InventoryData.socket_gem_on_item(item, gem_uid, kind, index) -> bool
+InventoryData.unsocket(item, kind, index) -> bool
+InventoryData.find_socket(uid) -> Dictionary
+InventoryData.is_uid_socketed(uid) -> bool
+InventoryData.list_socket_rows(item) -> Array[Dictionary]
+InventoryData.equip_from_bag(grid_index) -> bool
+InventoryData.can_equip_from_bag(grid_index) -> bool
+InventoryData.equipped_in_same_slot(item) -> ItemData
+ItemData.is_two_handed() -> bool
+ItemData.apply_rarity(rarity) -> void
 ResonanceService.evaluate(...) -> ResonanceResult
 ResonanceService.rebuild_main_hand_skills(inventory, rune_cat, gem_cat) -> ResonanceResult
 CardRegistrationService.list_registerable(inventory) -> Array

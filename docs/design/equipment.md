@@ -1,9 +1,9 @@
 # 장비 · 룬 · 보석 · 공명 — 후속 설계
 
 **현황(구조):** [`docs/architecture/equipment.md`](../architecture/equipment.md).  
-이 문서는 **미구현** 로드맵만 다룬다 (희귀도 경제, 책장 격자, 인벤 소켓 UI, 특수 방).
+이 문서는 **미구현** 로드맵만 다룬다 (희귀도 경제, 책장 격자, 특수 방). 인벤 소켓 UI는 구현됨.
 
-관련: [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (기술 4칸) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비).
+관련: [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (기술 4칸) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비) · [`shop.md`](shop.md) (골드 가격. `eq.economy`와 분리).
 
 ---
 
@@ -40,7 +40,8 @@ NRFW에서 가져올 것은 **희귀도 = 슬롯 구성**이다. Focus 바, 패�
 | **선행 B** | `slot_N_run.json` | 구현됨 (기본) — [`save-load.md`](save-load.md) v2 | — |
 | **eq.persist** | 런에 소켓·룬·보석 인스턴스 | 구현됨 | 선행 B |
 | **eq.register** | 마을 제단, 책장, 메타 카드 | 제단 구현됨 — 책장 격자 UI는 후속 | 메타 JSON은 v1 슬롯으로 가능 |
-| **eq.economy** | 희귀도별 슬롯·인챈트 소비 튜닝 | 설계만 | eq.gems |
+| **인벤 소켓 UI** | 장비↔MOD 양방향 꽂기/빼기 | 구현됨 → [`architecture/equipment.md`](../architecture/equipment.md) | eq.runes / eq.gems |
+| **eq.economy** | 희귀도별 슬롯·인챈트 소비 튜닝 (골드 아님 — [`shop.md`](shop.md)) | 설계만 | eq.gems |
 | **map v2** | 룬 제단·보석 광맥 등 `room_type` | 설계만 — [`map.md`](map.md) | — |
 
 ---
@@ -65,7 +66,7 @@ ATB 자동 전투
 
 | 역할 | 현재 |
 |------|------|
-| `ItemData` | `id`, `category`, `rarity`, `equip_slot`, `attack`/`attack_bonus`, `defense`/`defense_bonus`, `scales_with`(String), `affixes`/`skills`(`Array[Dictionary]`) |
+| `ItemData` | `id`, `category`, `rarity`, `equip_slot`, `two_handed`, `attack`/`attack_bonus`, `defense`/`defense_bonus`, `scales_with`(String), `affixes`/`skills`(`Array[Dictionary]`) |
 | `InventoryData` | `slots` 30칸, `EQUIP_SLOTS`, 재화, 퀵 아이템/음식 |
 | `ItemCatalog` | 템플릿 `id` → 인스턴스 복제. 세이브는 `id` + 오버라이드 |
 | `CombatStatsBuilder` | 속성 + 장착 방어 + `affixes` 합산의 **유일 경로** |
@@ -106,7 +107,7 @@ ATB 자동 전투
 # 유지: id, display_name, item_type, category, rarity, icon, tier,
 # attack, attack_bonus, defense, defense_bonus, scales_with,
 # skills (Array[Dictionary]), affixes (Array[Dictionary]),
-# cost, gain, flavor_text, required_stat, required_value,
+# cost, gain (오버라이드. 공식은 shop.md), flavor_text, required_stat, required_value,
 # durability, weight, stackable, quantity, equip_slot
 
 @export var socket_layout: SocketLayout
@@ -341,7 +342,7 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 ## 구현 순서
 
-1~7은 구현됨 ([`architecture/equipment.md`](../architecture/equipment.md)). 남은 것은 8과 특수 방.
+1~7과 인벤 소켓 UI는 구현됨 ([`architecture/equipment.md`](../architecture/equipment.md)). 남은 것은 8과 특수 방.
 
 1. **현황 확인** — `ItemData`, `EQUIP_SLOTS`, 빌더, HUD `skills`, 세이브 `id`+오버라이드.  
 2. **선행 A** — stats v1.3. 부트스트랩 무기 `skills` 이름으로 게이지·마나·스킵을 검증. 룬 없음.  
@@ -350,6 +351,7 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 5. **eq.gems** — `GemData`, `ResonanceService`, UI에 4상태. 빌더와 수치 중복 없는지 검증.  
 6. **eq.register** — 마을 제단, 메타 카드. 책장 격자 UI는 후속.  
 7. **선행 B → eq.persist** — 런 JSON에 `runes`/`gems`/socketed.  
+7b. **인벤 소켓 UI** — 장비↔MOD 꽂기/빼기.  
 8. **eq.economy** — 희귀도별 칸, 인챈트 시 가방으로 반환 UX. 슬롯 수 ≠ 전투력.
 
 ---
@@ -367,6 +369,8 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 - 등록 uid를 다시 장착할 수 없는가. 전멸이 메타 카드를 지우지 않는가.
 - 일반 책장 등록이 상위 책장을 열지 않는가.
 - 고정 시드에서 보상·발견이 재현되는가.
+- 인벤에서 호환 룬만 주무기 소켓에 들어가고, 빼면 `skills`가 되돌아가는가.
+- 양손 장착 시 주·보조가 가방으로 가고, 가방이 가득하면 장착이 거부되는가.
 
 ---
 
@@ -374,15 +378,16 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 | 문서 | 점 |
 |------|----|
-| [`architecture/inventory.md`](../architecture/inventory.md) | 가방 UI. 소켓·룬은 [`architecture/equipment.md`](../architecture/equipment.md) |
+| [`architecture/inventory.md`](../architecture/inventory.md) | 가방 UI·소켓 행·양손·ATK/DEF 비교. 데이터는 [`architecture/equipment.md`](../architecture/equipment.md) |
 | [`architecture/equipment.md`](../architecture/equipment.md) | 구현 현황 |
 | [`stats.md`](stats.md) | 접두사 = 스탯, 기술 = 행동. 룬은 v1.3 게이지의 데이터 소스. 보석은 `AFFIX_FIELDS`에 가산하지 않음 |
 | [`combat.md`](combat.md) | 세션은 `ResonanceResult`만 소비. 마을 책장은 전투 타일/카드가 아님 |
 | [`hud.md`](hud.md) | 기술 4칸·자동 발동 유지. 전투 중 룬 버튼 없음 |
 | [`save-load.md`](save-load.md) | 등록 카드는 메타. 소켓·룬·보석 인스턴스는 메타 인벤 + 런 스냅샷. 던전 이어하기는 후속 |
-| [`village.md`](village.md) | 제단 구현됨. 책장 격자·여관은 후속. 게시판과 별개 |
+| [`village.md`](village.md) | 제단 구현됨. 책장 격자·여관·상점은 후속. 게시판과 별개 |
+| [`shop.md`](shop.md) | 골드 가격. `eq.economy`(소켓·인챈트)와 분리 |
 | [`map.md`](map.md) | `START`/`NORMAL`/`BOSS` 유지. 특수 방은 v2 |
-| [`loot.md`](loot.md) | 방 `win` 장비. 룬·보석은 loot v1.1 |
+| [`loot.md`](loot.md) | 방 `win` 3택1. 룬·보석은 loot v1.1 |
 
 ---
 

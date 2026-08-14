@@ -64,13 +64,21 @@ func set_selected(is_selected: bool) -> void:
 
 
 func _apply_visual_state() -> void:
+	remove_theme_stylebox_override("panel")
 	if _selected:
 		theme_type_variation = &"InventorySlotSelected"
-	elif _hovered:
+	elif _hovered and _item == null:
 		theme_type_variation = &"EquipmentSlotHover"
 	else:
 		theme_type_variation = &"EquipmentSlot"
-	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
+		if _item:
+			var style := StyleBoxFlat.new()
+			style.bg_color = Color(0.08, 0.08, 0.09, 0.85) if _hovered else Color(0.05, 0.05, 0.06, 0.8)
+			style.border_color = _item.get_rarity_color()
+			style.set_border_width_all(1)
+			style.set_content_margin_all(6)
+			add_theme_stylebox_override("panel", style)
+	var color := UIColors.GOLD if _selected else _item_text_color()
 	name_label.add_theme_color_override("font_color", color)
 	empty_label.add_theme_color_override(
 		"font_color",
@@ -78,10 +86,21 @@ func _apply_visual_state() -> void:
 	)
 
 
+func _item_text_color() -> Color:
+	if _item == null:
+		return UIColors.TEXT_MAIN
+	if _item.rarity == ItemData.ItemRarity.COMMON:
+		return UIColors.TEXT_MAIN
+	return _item.get_rarity_color()
+
+
 func _on_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		slot_pressed.emit(slot_id)
-		if event.double_click:
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			slot_pressed.emit(slot_id)
+			if event.double_click:
+				slot_activated.emit(slot_id)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			slot_activated.emit(slot_id)
 
 
