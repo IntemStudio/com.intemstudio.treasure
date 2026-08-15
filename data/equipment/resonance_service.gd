@@ -1,6 +1,14 @@
 class_name ResonanceService
 extends RefCounted
 
+const ACTIVE_KINDS: Array[String] = ["strike", "combo", "aoe"]
+const PASSIVE_KINDS: Array[String] = [
+	"heal", "ward", "thorns", "buff", "debuff", "counter", "convert"
+]
+const HUD_RUNE_SLOTS: Array[String] = [
+	"main_hand", "off_hand", "head", "chest", "legs"
+]
+
 
 func evaluate(
 	equipment: ItemData,
@@ -71,9 +79,9 @@ func rebuild_main_hand_skills(
 
 	var runes_by_uid := _index_runes(inventory)
 	var gems_by_uid := _index_gems(inventory)
-	var rune_data: RuneData = null
-	var core_gem: GemData = null
-	var aux_gems: Array[GemData] = []
+	var runes: Array = [null, null]
+	var cores: Array = [null, null]
+	var auxes: Array = [[], []]
 
 	for entry in main.socketed:
 		if not entry is Dictionary:
@@ -81,31 +89,91 @@ func rebuild_main_hand_skills(
 		var d: Dictionary = entry
 		var kind := str(d.get("kind", ""))
 		var uid := str(d.get("instance_uid", ""))
-		if kind == "rune" and rune_data == null:
+		var index := int(d.get("index", 0))
+		if index < 0 or index > 1:
+			continue
+		if kind == "rune" and runes[index] == null:
 			var ri: RuneInstance = runes_by_uid.get(uid) as RuneInstance
 			if ri and rune_catalog and not ri.registered:
-				rune_data = rune_catalog.get_rune(ri.rune_id)
-		elif kind == "core_gem" and core_gem == null:
+				runes[index] = rune_catalog.get_rune(ri.rune_id)
+		elif kind == "core_gem" and cores[index] == null:
 			var gi: GemInstance = gems_by_uid.get(uid) as GemInstance
 			if gi and gem_catalog and not gi.registered:
-				core_gem = gem_catalog.get_gem(gi.gem_id)
+				cores[index] = gem_catalog.get_gem(gi.gem_id)
 		elif kind == "aux_gem":
 			var agi: GemInstance = gems_by_uid.get(uid) as GemInstance
 			if agi and gem_catalog and not agi.registered:
 				var g := gem_catalog.get_gem(agi.gem_id)
 				if g:
-					aux_gems.append(g)
+					(auxes[index] as Array).append(g)
 
-	if rune_data == null:
+	if runes[0] == null and runes[1] == null:
 		# Keep bootstrap / intrinsic skills when no rune socketed.
 		return ResonanceResult.base_only(main.skills.duplicate(true), "No rune socketed.")
 
-	var result := evaluate(main, rune_data, core_gem, aux_gems)
-	if result.state == ResonanceResult.State.INACTIVE:
-		main.skills = _empty_skills()
-	else:
-		main.skills = _pad_skills(result.skills)
-	return result
+	var combined: Array[Dictionary] = []
+	var last: ResonanceResult = ResonanceResult.inactive("No rune socketed.")
+	for i in 2:
+		var rune_i: RuneData = runes[i] as RuneData
+		if rune_i == null:
+			continue
+		var aux_i: Array[GemData] = []
+		for g in auxes[i] as Array:
+			if g is GemData:
+				aux_i.append(g as GemData)
+		last = evaluate(main, rune_i, cores[i] as GemData, aux_i)
+		if last.state == ResonanceResult.State.INACTIVE:
+			continue
+		if last.skills.size() > 0 and last.skills[0] is Dictionary:
+			combined.append((last.skills[0] as Dictionary).duplicate(true))
+
+	if combined.is_empty():
+		main.skills = []
+		return ResonanceResult.inactive("Equipment and rune are incompatible.")
+	main.skills = combined
+	return last
+
+
+func list_equipped_rune_skills(
+	inventory: InventoryData,
+	rune_catalog: RuneCatalog,
+	gem_catalog: GemCatalog
+) -> Array:
+	var out: Array = []
+	if inventory == null:
+		return out
+	var runes_by_uid := _index_runes(inventory)
+	var gems_by_uid := _index_gems(inventory)
+	for slot in HUD_RUNE_SLOTS:
+		var item: ItemData = inventory.equipped.get(slot) as ItemData
+		if item == null:
+			continue
+		item.ensure_socket_layout()
+		var rune_cap := item.socket_layout.rune_slots if item.socket_layout else 0
+		for i in range(rune_cap):
+			var rune := _socketed_rune_at(item, i, runes_by_uid, rune_catalog)
+			if rune == null:
+				continue
+			if slot == "main_hand":
+				var core := _socketed_core_at(item, i, gems_by_uid, gem_catalog)
+				var aux_i: Array[GemData] = _socketed_aux_at(item, i, gems_by_uid, gem_catalog)
+				var result := evaluate(item, rune, core, aux_i)
+				if result.state == ResonanceResult.State.INACTIVE:
+					continue
+				if result.skills.size() > 0 and result.skills[0] is Dictionary:
+					out.append((result.skills[0] as Dictionary).duplicate(true))
+			else:
+				out.append(rune.to_skill_dict())
+	return out
+
+
+static func slots_for_rune_kind(kind: String) -> PackedStringArray:
+	var k := kind if not kind.is_empty() else "strike"
+	if ACTIVE_KINDS.has(k):
+		return PackedStringArray(["main_hand"])
+	if PASSIVE_KINDS.has(k):
+		return PackedStringArray(["off_hand", "head", "chest", "legs"])
+	return PackedStringArray()
 
 
 func can_socket_rune(equipment: ItemData, rune: RuneData) -> bool:
@@ -117,11 +185,15 @@ func can_socket_gem(equipment: ItemData, gem: GemData) -> bool:
 
 
 func _supports_rune(equipment: ItemData, rune: RuneData) -> bool:
-	if equipment.equip_slot != "main_hand":
-		return false
 	equipment.ensure_socket_layout()
 	if equipment.socket_layout == null or equipment.socket_layout.rune_slots <= 0:
 		return false
+	var slot := equipment.equip_slot
+	var kind := rune.skill_kind if not rune.skill_kind.is_empty() else "strike"
+	if not slots_for_rune_kind(kind).has(slot):
+		return false
+	if slot != "main_hand":
+		return true
 	if rune.required_equipment_tags.is_empty():
 		return true
 	for tag in rune.required_equipment_tags:
@@ -185,24 +257,67 @@ func _index_gems(inventory: InventoryData) -> Dictionary:
 	return out
 
 
-func _empty_skills() -> Array[Dictionary]:
-	return [
-		{"button": "X", "name": ""},
-		{"button": "Y", "name": ""},
-		{"button": "B", "name": ""},
-		{"button": "A", "name": ""},
-	]
+func _socketed_rune_at(
+	item: ItemData,
+	index: int,
+	runes_by_uid: Dictionary,
+	rune_catalog: RuneCatalog
+) -> RuneData:
+	var uid := _socket_uid(item, "rune", index)
+	if uid.is_empty() or rune_catalog == null:
+		return null
+	var ri: RuneInstance = runes_by_uid.get(uid) as RuneInstance
+	if ri == null or ri.registered:
+		return null
+	return rune_catalog.get_rune(ri.rune_id)
 
 
-func _pad_skills(skills: Array) -> Array[Dictionary]:
-	var buttons := ["X", "Y", "B", "A"]
-	var out: Array[Dictionary] = []
-	for i in 4:
-		if i < skills.size() and skills[i] is Dictionary:
-			var d: Dictionary = (skills[i] as Dictionary).duplicate(true)
-			if not d.has("button"):
-				d["button"] = buttons[i]
-			out.append(d)
-		else:
-			out.append({"button": buttons[i], "name": ""})
+func _socketed_core_at(
+	item: ItemData,
+	index: int,
+	gems_by_uid: Dictionary,
+	gem_catalog: GemCatalog
+) -> GemData:
+	var uid := _socket_uid(item, "core_gem", index)
+	if uid.is_empty() or gem_catalog == null:
+		return null
+	var gi: GemInstance = gems_by_uid.get(uid) as GemInstance
+	if gi == null or gi.registered:
+		return null
+	return gem_catalog.get_gem(gi.gem_id)
+
+
+func _socketed_aux_at(
+	item: ItemData,
+	index: int,
+	gems_by_uid: Dictionary,
+	gem_catalog: GemCatalog
+) -> Array[GemData]:
+	var out: Array[GemData] = []
+	if item == null or gem_catalog == null:
+		return out
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) != "aux_gem" or int(d.get("index", -1)) != index:
+			continue
+		var gi: GemInstance = gems_by_uid.get(str(d.get("instance_uid", ""))) as GemInstance
+		if gi == null or gi.registered:
+			continue
+		var g := gem_catalog.get_gem(gi.gem_id)
+		if g:
+			out.append(g)
 	return out
+
+
+func _socket_uid(item: ItemData, kind: String, index: int) -> String:
+	if item == null:
+		return ""
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
+			return str(d.get("instance_uid", ""))
+	return ""

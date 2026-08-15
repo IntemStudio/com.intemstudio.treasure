@@ -96,6 +96,7 @@ func _ensure_panels() -> void:
 		_item_detail = DETAIL_SCENE.instantiate() as ItemDetailPanel
 		content_host.add_child(_item_detail)
 		_item_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_item_detail.set_gold_price(ItemDetailPanel.GoldPrice.HIDDEN)
 		_flatten_inner_panel(_item_detail)
 		_ignore_mouse_tree(_item_detail)
 	if _modifier_detail == null:
@@ -128,6 +129,7 @@ func _offer_rarity(offer: Dictionary) -> ItemData.ItemRarity:
 func _apply_visual_state() -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.92)
+	style.anti_aliasing = false
 	style.set_content_margin_all(10)
 	var rarity_color := ItemData.color_for_rarity(_rarity)
 	if _selected:

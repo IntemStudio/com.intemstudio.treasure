@@ -2,7 +2,7 @@ class_name ItemData
 extends Resource
 
 enum ItemCategory { WEAPON, ARMOR, CONSUMABLE, MATERIAL, TOOL }
-enum ItemRarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
+enum ItemRarity { COMMON, UNCOMMON, RARE, LEGENDARY }
 
 @export var id: String = ""
 @export var display_name: String = ""
@@ -51,12 +51,40 @@ enum ItemRarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 func ensure_socket_layout() -> void:
 	if socket_layout != null:
 		return
-	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	socket_layout = SocketLayout.for_slot(equip_slot)
 
 
 func apply_rarity(new_rarity: ItemRarity) -> void:
 	rarity = new_rarity
-	socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	socket_layout = SocketLayout.for_slot(equip_slot)
+	trim_socketed_to_layout()
+
+
+func trim_socketed_to_layout() -> void:
+	ensure_socket_layout()
+	if socket_layout == null:
+		socketed = []
+		return
+	var kept: Array[Dictionary] = []
+	for entry in socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		var kind := str(d.get("kind", ""))
+		var index := int(d.get("index", -1))
+		var cap := 0
+		match kind:
+			"rune":
+				cap = socket_layout.rune_slots
+			"core_gem":
+				cap = socket_layout.core_gem_slots
+			"aux_gem":
+				cap = socket_layout.aux_gem_slots
+			_:
+				continue
+		if index >= 0 and index < cap:
+			kept.append(d)
+	socketed = kept
 
 
 func is_two_handed() -> bool:
@@ -72,8 +100,6 @@ static func color_for_rarity(r: ItemRarity) -> Color:
 			return UIColors.RARITY_UNCOMMON
 		ItemRarity.RARE:
 			return UIColors.RARITY_RARE
-		ItemRarity.EPIC:
-			return UIColors.RARITY_EPIC
 		ItemRarity.LEGENDARY:
 			return UIColors.RARITY_LEGENDARY
 		_:
@@ -85,13 +111,15 @@ func get_rarity_color() -> Color:
 
 
 func rarity_locale_key() -> String:
-	match rarity:
+	return locale_key_for_rarity(rarity)
+
+
+static func locale_key_for_rarity(r: ItemRarity) -> String:
+	match r:
 		ItemRarity.UNCOMMON:
 			return "UNCOMMON"
 		ItemRarity.RARE:
 			return "RARE"
-		ItemRarity.EPIC:
-			return "EPIC"
 		ItemRarity.LEGENDARY:
 			return "LEGENDARY"
 		_:

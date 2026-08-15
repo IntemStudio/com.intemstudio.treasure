@@ -3,7 +3,7 @@
 **현황(가격):** [`docs/architecture/shop.md`](../architecture/shop.md) (`shop.price`).  
 상점 NPC는 마을 v2 ([`village.md`](village.md)).
 
-관련: [`village.md`](village.md) (상점 위치) · [`loot.md`](loot.md) (장비는 던전 3택1) · [`equipment.md`](equipment.md) (`eq.economy`는 소켓·인챈트, 골드가 아님) · [`inventory.md`](../architecture/inventory.md) (상세 표시) · [`save-load.md`](save-load.md) (가격 미저장) · [`hud.md`](hud.md) (재화는 TopBar).
+관련: [`village.md`](village.md) (상점 위치) · [`loot.md`](loot.md) (장비는 던전 3택1) · [`equipment.md`](equipment.md) (소켓 수 ≠ 골드. `eq.economy` 폐기) · [`inventory.md`](../architecture/inventory.md) (상세 표시) · [`save-load.md`](save-load.md) (가격 미저장) · [`hud.md`](hud.md) (재화는 TopBar).
 
 ---
 
@@ -26,7 +26,7 @@
 | 7 | 게시판 `reward_mult`는 가격에 쓰지 않는다. 드랍에도 쓰지 않음 ([`loot.md`](loot.md)). |
 | 8 | 장비의 본줄은 던전 3택1. 상점은 보급(소모품·재료·도구)과 소량 장비. 판매는 골드 싱크. |
 | 9 | 상점 마크업(`shop_buy_mult`)은 상점 상수. 아이템 필드가 아니다. |
-| 10 | `eq.economy`(희귀도별 소켓·인챈트)와 골드는 분리한다. |
+| 10 | 소켓 수(부위 고정)와 골드는 분리한다. `eq.economy`는 폐기. |
 
 ---
 
@@ -48,7 +48,7 @@ ItemCatalog 템플릿 (rarity, tier, equip_slot, attack/defense, affixes)
         ↓
 ShopPricing.buy_price(item) / sell_price(item)
         ↓
-인벤 상세 Cost / Gain
+인벤 상세 판매 가격 / 상점 구매 가격 / 룻 숨김
         ↓ (마을 v2)
 상점 거래 → InventoryData.currencies.gold
 ```
@@ -56,7 +56,7 @@ ShopPricing.buy_price(item) / sell_price(item)
 | 역할 | 현재 |
 |------|------|
 | `ItemData.cost` / `gain` | 기본 0. 특수 가격만 오버라이드 |
-| 상세 | `ShopPricing.buy_price` / `sell_price` |
+| 상세 | `set_gold_price`: 인벤 판매가, 상점 구매가, 룻 숨김 |
 | 골드 | `InventoryData.currencies.gold` 시작 1250. TopBar만 |
 | 세이브 | `id` + quantity / rarity / affixes / durability. 가격 없음 |
 | 상점 | 없음 |
@@ -67,7 +67,7 @@ ShopPricing.buy_price(item) / sell_price(item)
 
 ## 공식
 
-시작 골드 1250 기준. 한 번에 커먼 몇 개 또는 에픽 하나.
+시작 골드 1250 기준. 한 번에 커먼 몇 개 또는 전설 하나.
 
 ```text
 slot_base:
@@ -81,7 +81,7 @@ slot_base:
   MATERIAL         8
   (슬롯 없음)     20
 
-rarity_mult: COMMON 1.0 / UNCOMMON 1.6 / RARE 2.4 / EPIC 3.6 / LEGENDARY 5.5
+rarity_mult: COMMON 1.0 / UNCOMMON 1.6 / RARE 2.4 / LEGENDARY 5.5
 tier_mult:   1 + 0.35 * (tier - 1)
 stat_term:   attack + attack_bonus + defense + defense_bonus
 affix_term:  12 * affixes.size()
@@ -101,7 +101,7 @@ SELL_RATIO  = 0.4
 | Iron Longsword | COMMON | ~96 | ~38 |
 | Field Pike | UNCOMMON | ~163 | ~65 |
 | Widow's Needle | RARE | ~278 | ~111 |
-| Warplate | EPIC | ~432 | ~172 |
+| Warplate | LEGENDARY | 594 | 237 |
 | Health Potion | COMMON | ~15 | 안 팜 또는 ~6 |
 
 상점에서 살 때 `buy * shop_buy_mult`. 기본 배수는 `1.0`. 판매 플립으로 루트를 대체하지 않게 마크업은 올리지, 판매 비율은 내리지 않는다.
@@ -189,10 +189,10 @@ ShopService.sell(inventory, grid_index, qty) -> { ok, gold }
 | 문서 | 바꿀 점 |
 |------|---------|
 | [`village.md`](village.md) | v2 상점이 `ShopPricing`을 호출. 인벤 탭에 거래 없음 |
-| [`equipment.md`](equipment.md) | `cost`/`gain` 유지는 오버라이드. `eq.economy` ≠ 골드 |
+| [`equipment.md`](equipment.md) | `cost`/`gain` 유지는 오버라이드. 소켓 수 ≠ 골드. `eq.economy` 폐기 |
 | [`loot.md`](loot.md) | `reward_mult`는 가격에도 금지 |
 | [`save-load.md`](save-load.md) | 아이템 JSON에 가격 키 추가 금지 |
-| [`inventory.md`](../architecture/inventory.md) | 상세 Cost/Gain은 서비스 결과 |
+| [`inventory.md`](../architecture/inventory.md) | 상세 골드: 인벤 판매 / 상점 구매 / 룻 숨김 |
 
 ---
 

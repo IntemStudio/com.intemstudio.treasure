@@ -176,13 +176,16 @@ func _try_auto_skill(hero: Dictionary) -> void:
 	var skills: Array = hero.get("skills", []) as Array
 	var mana := int(hero.get("mana", 0))
 	hero["last_skill_index"] = -1
-	for i in range(mini(4, skills.size())):
+	for i in range(skills.size()):
 		var entry: Variant = skills[i]
 		if not entry is Dictionary:
 			continue
 		var skill: Dictionary = entry
 		var skill_name := str(skill.get("name", "")).strip_edges()
 		if skill_name.is_empty():
+			continue
+		var kind := str(skill.get("kind", "strike"))
+		if not ResonanceService.ACTIVE_KINDS.has(kind):
 			continue
 		var cost := int(skill.get("mana_cost", 0))
 		if mana < cost:

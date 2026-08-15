@@ -56,7 +56,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 6. 틱: `regen_per_sec`, 스태미나 재생. 공격/반격/회피 비용. 0이면 Tired
 
 히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).  
-기술: 평타 ATB와 별도 `skill_atb`. 가득 차면 `main_hand.skills`에서 마나가 되는 첫 칸을 자동 발동. 부족하면 평타만 ([`equipment.md`](equipment.md) · HUD 충전 바).
+기술: 평타 ATB와 별도 `skill_atb`. 가득 차면 `list_equipped_rune_skills` 목록에서 마나가 되는 첫 **액티브**(`strike`/`combo`/`aoe`)를 자동 발동. 패시브는 건너뜀. 부족하면 평타만 ([`equipment.md`](equipment.md) · HUD 충전 바).
 
 | 결과 | 처리 |
 |------|------|
@@ -122,4 +122,4 @@ signal action_resolved(payload)
 
 ## 디버그
 
-DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 소켓 재구성). `[서가]` 탭: 룬/보석 판 `open_cards` 전 칸 해금 (`CardRegistrationService.open_all_on_shelf`).
+DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 색·가격, 소켓은 부위로 다시 찍고 넘친 칸 트림). `[서가]` 탭: 룬/보석 판 `open_cards` 전 칸 해금 (`CardRegistrationService.open_all_on_shelf`).

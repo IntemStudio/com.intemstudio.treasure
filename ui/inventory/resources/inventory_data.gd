@@ -374,8 +374,6 @@ func _clear_socket_refs(uid: String) -> void:
 
 
 func socket_rune(equip_slot: String, rune_uid: String, index: int = 0) -> bool:
-	if equip_slot != "main_hand":
-		return false
 	return socket_rune_on_item(equipped.get(equip_slot) as ItemData, rune_uid, index)
 
 
@@ -384,13 +382,15 @@ func socket_gem(equip_slot: String, gem_uid: String, kind: String, index: int = 
 
 
 func socket_rune_on_item(item: ItemData, rune_uid: String, index: int = 0) -> bool:
-	if item == null or item.equip_slot != "main_hand":
+	if item == null:
 		return false
 	var ri := find_rune(rune_uid)
 	if ri == null or ri.registered:
 		return false
 	item.ensure_socket_layout()
-	if item.socket_layout == null or index < 0 or index >= item.socket_layout.rune_slots:
+	if item.socket_layout == null or item.socket_layout.rune_slots <= 0:
+		return false
+	if index < 0 or index >= item.socket_layout.rune_slots:
 		return false
 	_set_socket(item, "rune", index, rune_uid)
 	return true
@@ -467,12 +467,14 @@ func list_socket_rows(item: ItemData) -> Array[Dictionary]:
 	if item.socket_layout == null:
 		return out
 	var layout: SocketLayout = item.socket_layout
-	for i in range(layout.rune_slots):
-		out.append(_socket_row_dict(item, "rune", i))
-	for i in range(layout.core_gem_slots):
-		out.append(_socket_row_dict(item, "core_gem", i))
-	for i in range(layout.aux_gem_slots):
-		out.append(_socket_row_dict(item, "aux_gem", i))
+	var n := maxi(layout.rune_slots, maxi(layout.core_gem_slots, layout.aux_gem_slots))
+	for i in range(n):
+		if i < layout.rune_slots:
+			out.append(_socket_row_dict(item, "rune", i))
+		if i < layout.core_gem_slots:
+			out.append(_socket_row_dict(item, "core_gem", i))
+		if i < layout.aux_gem_slots:
+			out.append(_socket_row_dict(item, "aux_gem", i))
 	return out
 
 

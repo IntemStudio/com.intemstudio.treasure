@@ -140,8 +140,7 @@ func _apply_visual_state() -> void:
 	else:
 		theme_type_variation = &"InventorySlot"
 		if _has_entry:
-			var style := StyleBoxFlat.new()
-			style.bg_color = UIColors.SLOT_BG
+			var style := get_theme_stylebox("panel", &"InventorySlot").duplicate() as StyleBoxFlat
 			if _shelf_state == CardRegistrationService.CellState.SHELF_LOCKED:
 				style.border_color = UIColors.MAP_LOCKED
 			elif _shelf_state == CardRegistrationService.CellState.FOG:
@@ -152,8 +151,6 @@ func _apply_visual_state() -> void:
 				style.border_color = UIColors.SLOT_BG_SOLID
 			else:
 				style.border_color = ItemData.color_for_rarity(_rarity)
-			style.set_border_width_all(2 if _selected else 1)
-			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else UIColors.TEXT_MAIN
 	if (

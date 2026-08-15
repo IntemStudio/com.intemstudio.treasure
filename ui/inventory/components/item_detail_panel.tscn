@@ -111,23 +111,20 @@ theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 theme_override_font_sizes/font_size = 13
 text = ""
 
-[node name="SkillSlots" type="VBoxContainer" parent="DetailRoot"]
-unique_name_in_owner = true
-layout_mode = 2
-
 [node name="ResourceCost" type="HBoxContainer" parent="DetailRoot"]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="CostLabel" type="Label" parent="DetailRoot/ResourceCost"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Cost 23"
+text = "Buy Price 23 Gold"
 
 [node name="GainLabel" type="Label" parent="DetailRoot/ResourceCost"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
-text = "Gain 9"
+text = "Sell Price 9 Gold"
 
 [node name="AffixList" type="VBoxContainer" parent="DetailRoot"]
 unique_name_in_owner = true

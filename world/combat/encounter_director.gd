@@ -122,17 +122,11 @@ func _collect_hero_skills() -> Array:
 	if ui_manager == null or ui_manager.inventory_data == null:
 		return []
 	var service := ResonanceService.new()
-	var result := service.rebuild_main_hand_skills(
+	return service.list_equipped_rune_skills(
 		ui_manager.inventory_data,
 		RuneCatalog.new(),
 		GemCatalog.new()
 	)
-	if result.skills.is_empty():
-		var main: ItemData = ui_manager.inventory_data.equipped.get("main_hand") as ItemData
-		if main:
-			return main.skills.duplicate(true)
-		return []
-	return result.skills.duplicate(true)
 
 
 func _pick_encounter(room: RoomData) -> EncounterDef:

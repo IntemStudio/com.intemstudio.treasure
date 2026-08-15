@@ -56,7 +56,6 @@ Const는 `Color(r,g,b,a)` float (hex는 아래 표). `Color.html`은 const에서
 | COMMON | `RARITY_COMMON` | `#7c6f64` |
 | UNCOMMON | `RARITY_UNCOMMON` | `#b8bb26` |
 | RARE | `RARITY_RARE` | `#83a598` |
-| EPIC | `RARITY_EPIC` | `#fe8019` |
 | LEGENDARY | `RARITY_LEGENDARY` | `#fabd2f` |
 
 호출은 `ItemData.color_for_rarity` / `item.get_rarity_color()`만. UI 위젯에 희귀도 match를 두지 않는다.
@@ -67,7 +66,7 @@ Const는 `Color(r,g,b,a)` float (hex는 아래 표). `Color.html`은 const에서
 
 | 파일 | 맞춤 |
 |------|------|
-| [`ui/shared/themes/ui_theme.tres`](../../ui/shared/themes/ui_theme.tres) | 슬롯/장비 StyleBox + Label = `TEXT_MAIN` |
+| [`ui/shared/themes/ui_theme.tres`](../../ui/shared/themes/ui_theme.tres) | 슬롯/장비 StyleBox + Label = `TEXT_MAIN`. 슬롯 테두리 2px, `anti_aliasing` off. 런타임은 duplicate 후 `border_color`만. |
 | [`ui/inventory/themes/inventory_theme.tres`](../../ui/inventory/themes/inventory_theme.tres) | Label |
 | [`ui/stats/themes/stats_theme.tres`](../../ui/stats/themes/stats_theme.tres) | 행 선택 + progress `GOLD` / `HP_FILL` |
 

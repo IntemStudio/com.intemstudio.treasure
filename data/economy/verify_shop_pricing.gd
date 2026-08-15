@@ -65,8 +65,8 @@ func _test_known_prices() -> int:
 		])
 		return 1
 	var plate := catalog.get_item("warplate")
-	if ShopPricing.buy_price(plate) != 432 or ShopPricing.sell_price(plate) != 172:
-		push_error("warplate want 432/172 got %d/%d" % [
+	if ShopPricing.buy_price(plate) != 594 or ShopPricing.sell_price(plate) != 237:
+		push_error("warplate want 594/237 got %d/%d" % [
 			ShopPricing.buy_price(plate), ShopPricing.sell_price(plate)
 		])
 		return 1

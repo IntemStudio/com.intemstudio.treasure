@@ -4,7 +4,7 @@
 이 문서는 **미구현** 로드맵만 다룬다.
 
 방 안 ATB·머리 위 HP/ATB·배속/후퇴·승패·적 수별 진형은 구현됨.  
-관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 마을 책장 ≠ 전투 카드) · [`loot.md`](loot.md) (방 `win` 장비) · [`game-log.md`](game-log.md) (인게임 텍스트 로그).
+관련: [`map.md`](map.md) (`cleared` 런 세이브) · [`hud.md`](hud.md) (퀵/기술 실사용) · [`village.md`](village.md) (전멸 → 마을) · [`stats.md`](stats.md) (속성→`CombatStats`) · [`equipment.md`](equipment.md) (공명은 세션 밖, 액티브만 게이지 발동, 마을 책장 ≠ 전투 카드) · [`loot.md`](loot.md) (방 `win` 장비) · [`game-log.md`](game-log.md) (인게임 텍스트 로그).
 
 ---
 

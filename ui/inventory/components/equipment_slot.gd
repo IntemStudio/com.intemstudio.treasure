@@ -89,15 +89,13 @@ func _apply_visual_state() -> void:
 	else:
 		theme_type_variation = &"EquipmentSlot"
 		if _item:
-			var style := StyleBoxFlat.new()
+			var style := get_theme_stylebox("panel", &"EquipmentSlot").duplicate() as StyleBoxFlat
 			style.bg_color = (
 				UIColors.with_alpha(UIColors.PANEL_BG, 0.85)
 				if _hovered
 				else UIColors.with_alpha(UIColors.SLOT_BG_SOLID, 0.80)
 			)
 			style.border_color = _item.get_rarity_color()
-			style.set_border_width_all(1)
-			style.set_content_margin_all(6)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else _item_text_color()
 	if _item == null and not _selected:

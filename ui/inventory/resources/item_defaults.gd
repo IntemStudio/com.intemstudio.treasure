@@ -86,12 +86,11 @@ static func create_manor_mail() -> ItemData:
 static func create_warplate() -> ItemData:
 	return _armor(
 		"warplate", "Warplate", "Chest Armor",
-		ItemData.ItemRarity.EPIC, "chest", 24, 22.0,
+		ItemData.ItemRarity.LEGENDARY, "chest", 24, 22.0,
 		[&"armor", &"defense", &"heavy"],
 		[
 			_affix("retaliation", 2.5, "+2.5 Retaliation"),
 			_affix("defense", 4.0, "+4 Defense"),
-			_affix("attack_speed", -0.06, "-6% Attack Speed", false),
 		]
 	)
 
@@ -253,11 +252,10 @@ static func create_ossuary_band() -> ItemData:
 static func create_cinder_loop() -> ItemData:
 	return _ring(
 		"cinder_loop", "Cinder Loop",
-		ItemData.ItemRarity.EPIC, "ring_2",
+		ItemData.ItemRarity.LEGENDARY, "ring_2",
 		[&"ring", &"fire"],
 		[
 			_affix("magic_damage", 5.0, "+5 Magic Damage"),
-			_affix("evasion", -0.04, "-4% Evasion", false),
 		]
 	)
 
@@ -346,7 +344,7 @@ static func _armor(
 	item.equip_slot = equip_slot
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
-	item.socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	item.socket_layout = SocketLayout.for_slot(equip_slot)
 	return item
 
 
@@ -385,7 +383,7 @@ static func _weapon(
 	item.compatible_rune_tags = rune_tags
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
-	item.socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	item.socket_layout = SocketLayout.for_slot(equip_slot)
 	return item
 
 
@@ -409,7 +407,7 @@ static func _ring(
 	item.equip_slot = equip_slot
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
-	item.socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	item.socket_layout = SocketLayout.for_slot(equip_slot)
 	return item
 
 
@@ -432,5 +430,5 @@ static func _tool(
 	item.weight = weight
 	item.equip_slot = equip_slot
 	item.compatible_gem_tags = gem_tags
-	item.socket_layout = SocketLayout.for_rarity(equip_slot, rarity)
+	item.socket_layout = SocketLayout.for_slot(equip_slot)
 	return item

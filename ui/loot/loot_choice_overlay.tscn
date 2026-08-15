@@ -46,14 +46,18 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(1440, 800)
 layout_mode = 2
 
-[node name="Main" type="VBoxContainer" parent="Safe/Center/Sheet"]
+[node name="Main" type="Control" parent="Safe/Center/Sheet"]
 layout_mode = 2
-theme_override_constants/separation = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="TopBand" type="PanelContainer" parent="Safe/Center/Sheet/Main"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 72.0
+grow_horizontal = 2
 
 [node name="TopColumn" type="VBoxContainer" parent="Safe/Center/Sheet/Main/TopBand"]
 layout_mode = 2
@@ -83,27 +87,16 @@ theme_override_font_sizes/font_size = 14
 text = "Select one offer"
 horizontal_alignment = 1
 
-[node name="MidBand" type="Control" parent="Safe/Center/Sheet/Main"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-clip_contents = true
-
-[node name="CardsHost" type="HBoxContainer" parent="Safe/Center/Sheet/Main/MidBand"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 18
-alignment = 1
-
 [node name="BottomBand" type="PanelContainer" parent="Safe/Center/Sheet/Main"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -72.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="Footer" type="VBoxContainer" parent="Safe/Center/Sheet/Main/BottomBand"]
 layout_mode = 2
@@ -113,6 +106,7 @@ alignment = 1
 
 [node name="StatusLabel" type="Label" parent="Safe/Center/Sheet/Main/BottomBand/Footer"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.984, 0.286, 0.204, 1)
 text = ""
@@ -123,4 +117,39 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 42)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 text = "Take"
+
+[node name="MidBand" type="MarginContainer" parent="Safe/Center/Sheet/Main"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="CardsPad" type="MarginContainer" parent="Safe/Center/Sheet/Main/MidBand"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 16
+
+[node name="CardsHost" type="HBoxContainer" parent="Safe/Center/Sheet/Main/MidBand/CardsPad"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+alignment = 1

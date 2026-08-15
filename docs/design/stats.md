@@ -46,7 +46,7 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 | `CombatStats` | Loop Hero 전투 필드 + 스태미나 | 구현. 빌더가 채움 |
 | `CombatRules` | 방어 곡선, ATB, 스태미나 비용, Magic HP·반격 규칙 | 구현. 세션이 소비 |
 | `ItemData.affixes` | 접두사 | `id`/`value`/`text` |
-| `ItemData.skills` | 무기 기술 4칸 | HUD + 게이지 자동 발동. 룬이 채움 ([`equipment.md`](equipment.md)) |
+| `ItemData.skills` | 주무기 액티브 세트(최대 2) | HUD는 `list_equipped_rune_skills`. 게이지는 액티브만 ([`equipment.md`](equipment.md)) |
 
 ---
 
@@ -183,12 +183,12 @@ Footer **Insight**: 선택한 속성이 올리는 능력치 설명 (`ATTR_DESC_*
 
 ## v1.3 — 기술·마나
 
-무기 `skills` 4칸·HUD 행은 유지한다. 전투 중 **수동 입력은 없다**.
+무기 `skills`(주무기 액티브 세트)와 HUD 장착 룬 행은 유지한다. 전투 중 **수동 입력은 없다**.
 
-- 평타 ATB와 별도 **기술 게이지**. 가득 차면 슬롯 순서로 발동, `mana` 소모
+- 평타 ATB와 별도 **기술 게이지**. 가득 차면 액티브만 슬롯 순서로 발동, `mana` 소모
 - 마나 부족이면 건너뛰고 평타만
 - 위력: 무기 Base + INT(공격기) / Faith(유지기)
-- HUD 4칸: 이름 + 충전. 키 바인딩은 탐험 소모품만 ([`hud.md`](hud.md) v1.1)
+- HUD 0~6칸: 이름 + 충전. 패시브는 표시만. 키 바인딩은 탐험 소모품만 ([`hud.md`](hud.md) v1.1)
 
 접두사 = 스탯. 기술 = 행동.
 

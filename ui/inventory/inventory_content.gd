@@ -83,6 +83,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_DISABLED
 	UIPopupLayout.apply_slot_grid_pad(%ItemGridPad)
 	UIPopupLayout.apply_slot_grid_pad(%EquipmentLayoutPad)
+	_apply_right_scroll_gutter()
 	_build_category_tabs()
 	_build_grid()
 	_build_equipment_slots()
@@ -199,6 +200,14 @@ func _update_footer() -> void:
 	_footer.set_prompts(prompts)
 
 
+func _apply_right_scroll_gutter() -> void:
+	var bar: VScrollBar = %RightScroll.get_v_scroll_bar()
+	var width := 12
+	if bar:
+		width = maxi(int(ceili(bar.get_combined_minimum_size().x)), 12)
+	%RightScrollGutter.add_theme_constant_override("margin_right", width)
+
+
 func _build_category_tabs() -> void:
 	for child in category_tabs.get_children():
 		child.queue_free()
@@ -217,6 +226,9 @@ func _build_grid() -> void:
 	_slots.clear()
 	for i in range(InventoryData.GRID_SIZE):
 		var slot: InventorySlot = SLOT_SCENE.instantiate()
+		# Keep 80px — FILL stretches grid cells and eats 1px borders.
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		item_grid.add_child(slot)
 		slot.setup(i)
 		slot.slot_pressed.connect(_on_slot_pressed)

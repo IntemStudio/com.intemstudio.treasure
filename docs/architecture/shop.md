@@ -3,7 +3,7 @@
 구매·판매가는 `ShopPricing`이 희귀도·티어·슬롯·스탯·접두사 수로 계산한다.  
 후속(마을 상점 NPC·접두사 롤러): [`docs/design/shop.md`](../design/shop.md).
 
-**현황:** `shop.price`. 인벤·룻 상세 Cost/Gain은 서비스 결과. 거래 UI 없음.
+**현황:** `shop.price`. 인벤 상세는 `판매 가격 N골드`만. 구매가는 상점 후보(`구매 가격 N골드`). 룻 카드는 골드 숨김. 거래 UI 없음.
 
 관련: [`inventory.md`](inventory.md) · [`village.md`](village.md) · [`loot.md`](loot.md) · [`equipment.md`](equipment.md) · [`save-load.md`](save-load.md).
 
@@ -29,7 +29,10 @@ ItemCatalog 인스턴스 (rarity, tier, slot, stats, affixes, cost/gain)
         ↓
 ShopPricing.buy_price / sell_price
         ↓
-ItemDetailPanel Cost / Gain  (인벤 + 룻 카드)
+ItemDetailPanel.set_gold_price
+  인벤 → 판매 가격 N골드 (`sell_price`)
+  상점 → 구매 가격 N골드 (`buy_price`)  (NPC 후속)
+  룻  → 숨김
 ```
 
 세이브 JSON에 가격 키 없음. 로드 후 카탈로그 + 인스턴스 오버라이드로 재계산.
@@ -41,7 +44,7 @@ ItemDetailPanel Cost / Gain  (인벤 + 룻 카드)
 ```
 slot_base: head/legs 40, chest 60, main_hand 80, off_hand 50,
            ring_* 45, tool_* 25, CONSUMABLE 15, MATERIAL 8, else 20
-rarity_mult: COMMON 1.0 / UNCOMMON 1.6 / RARE 2.4 / EPIC 3.6 / LEGENDARY 5.5
+rarity_mult: COMMON 1.0 / UNCOMMON 1.6 / RARE 2.4 / LEGENDARY 5.5
 tier_mult: 1 + 0.35 * (tier - 1)
 buy  = cost > 0 ? cost : round((slot_base + stats + 12 * affixes) * rarity * tier)
 sell = gain > 0 ? gain : floor(buy * ratio)
@@ -74,4 +77,4 @@ ShopPricing.can_sell(item, inventory) -> bool
 - 상점 NPC, `ShopService.buy/sell`, 인벤 탭 거래
 - 은화·룬/보석 골드 매매
 - 게시판 `reward_mult` (가격·드랍 모두 금지)
-- `eq.economy` (소켓·인챈트. 골드 아님)
+- 소켓 수 변경 (부위 고정. 골드 아님)

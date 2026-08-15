@@ -64,6 +64,7 @@ static func item_from_dict(d: Dictionary, catalog: ItemCatalog) -> ItemData:
 	var item := catalog.get_item(item_id)
 	item.quantity = int(d.get("quantity", 1))
 	if d.has("rarity"):
+		# Old saves: COMMON..EPIC..LEGENDARY (0..4). EPIC dropped; 3+ → LEGENDARY.
 		var rarity := clampi(int(d["rarity"]), 0, int(ItemData.ItemRarity.LEGENDARY))
 		item.apply_rarity(rarity as ItemData.ItemRarity)
 	if d.has("durability_max"):
@@ -95,6 +96,7 @@ static func item_from_dict(d: Dictionary, catalog: ItemCatalog) -> ItemData:
 				skills.append((entry as Dictionary).duplicate(true))
 		item.skills = skills
 	item.ensure_socket_layout()
+	item.trim_socketed_to_layout()
 	return item
 
 

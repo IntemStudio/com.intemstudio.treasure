@@ -1,7 +1,6 @@
 class_name ActionBar
 extends VBoxContainer
 
-const SKILL_COUNT := 4
 const HUD_SLOT_SCENE := preload("res://ui/hud/components/hud_slot.tscn")
 
 @onready var skill_row: HBoxContainer = %SkillRow
@@ -13,17 +12,13 @@ var _off_slot: HudSlot
 var _item_slot: HudSlot
 var _food_slot: HudSlot
 var _pending_inventory: InventoryData
+var _resonance := ResonanceService.new()
+var _rune_catalog := RuneCatalog.new()
+var _gem_catalog := GemCatalog.new()
 
 
 func _ready() -> void:
-	_skill_slots.clear()
-	for child in skill_row.get_children():
-		child.queue_free()
-	for i in SKILL_COUNT:
-		var slot: HudSlot = HUD_SLOT_SCENE.instantiate()
-		skill_row.add_child(slot)
-		_skill_slots.append(slot)
-
+	_clear_skill_slots()
 	_main_slot = %MainSlot
 	_off_slot = %OffSlot
 	_item_slot = %ItemSlot
@@ -48,20 +43,19 @@ func set_inventory(inventory: InventoryData) -> void:
 	_off_slot.set_item(off_hand)
 	_item_slot.set_item(inventory.quick_item)
 	_food_slot.set_item(inventory.quick_food)
-	_set_skills(main_hand)
+	_set_skills(_resonance.list_equipped_rune_skills(inventory, _rune_catalog, _gem_catalog))
 
 
-func _set_skills(main_hand: ItemData) -> void:
-	var skills: Array = []
-	if main_hand:
-		skills = main_hand.skills
-	for i in SKILL_COUNT:
-		var slot := _skill_slots[i]
-		if i < skills.size() and skills[i] is Dictionary:
-			var entry: Dictionary = skills[i]
-			slot.set_skill(str(entry.get("name", "")))
-		else:
-			slot.clear()
+func _set_skills(skills: Array) -> void:
+	_clear_skill_slots()
+	for entry in skills:
+		if not entry is Dictionary:
+			continue
+		var skill: Dictionary = entry
+		var slot: HudSlot = HUD_SLOT_SCENE.instantiate()
+		skill_row.add_child(slot)
+		slot.set_skill(str(skill.get("name", "")))
+		_skill_slots.append(slot)
 
 
 func set_skill_charge(ratio: float, active_index: int = -1) -> void:
@@ -78,9 +72,16 @@ func clear_skill_charge() -> void:
 		slot.set_charge(0.0, false)
 
 
+func _clear_skill_slots() -> void:
+	if skill_row:
+		for child in skill_row.get_children():
+			skill_row.remove_child(child)
+			child.free()
+	_skill_slots.clear()
+
+
 func _clear_all() -> void:
-	for slot in _skill_slots:
-		slot.clear()
+	_clear_skill_slots()
 	if _main_slot:
 		_main_slot.clear()
 	if _off_slot:

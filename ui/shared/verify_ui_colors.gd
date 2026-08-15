@@ -52,7 +52,6 @@ func _test_rarity() -> int:
 		[ItemData.ItemRarity.COMMON, UIColors.RARITY_COMMON],
 		[ItemData.ItemRarity.UNCOMMON, UIColors.RARITY_UNCOMMON],
 		[ItemData.ItemRarity.RARE, UIColors.RARITY_RARE],
-		[ItemData.ItemRarity.EPIC, UIColors.RARITY_EPIC],
 		[ItemData.ItemRarity.LEGENDARY, UIColors.RARITY_LEGENDARY],
 	]
 	var failed := 0
@@ -83,6 +82,30 @@ func _test_ui_theme() -> int:
 	else:
 		push_error("InventorySlotSelected missing StyleBoxFlat")
 		failed += 1
+	for type_name in [
+		"InventorySlot",
+		"InventorySlotHover",
+		"InventorySlotSelected",
+		"EquipmentSlot",
+		"EquipmentSlotHover",
+	]:
+		var box: StyleBox = theme.get_stylebox("panel", type_name)
+		if not (box is StyleBoxFlat):
+			push_error("%s missing StyleBoxFlat" % type_name)
+			failed += 1
+			continue
+		var flat := box as StyleBoxFlat
+		if flat.anti_aliasing:
+			push_error("%s slot StyleBox anti_aliasing must be off" % type_name)
+			failed += 1
+		if (
+			flat.border_width_left != 2
+			or flat.border_width_top != 2
+			or flat.border_width_right != 2
+			or flat.border_width_bottom != 2
+		):
+			push_error("%s slot StyleBox border must be 2px" % type_name)
+			failed += 1
 	return failed
 
 

@@ -74,8 +74,8 @@ Plague,Plague,역병 저항
 Empty,Empty,비어있음
 Select an item,Select an item,아이템을 선택하세요
 Scales with: %s,Scales with: %s,관련 능력치: %s
-Cost %d,Cost %d,비용 %d
-Gain %d,Gain %d,획득 %d
+Buy Price %d Gold,Buy Price %d Gold,구매 가격 %d골드
+Sell Price %d Gold,Sell Price %d Gold,판매 가격 %d골드
 Weight %.1f,Weight %.1f,무게 %.1f
 Light,Light,가벼움
 Normal,Normal,보통
@@ -361,7 +361,6 @@ Tool,Tool,도구
 +10 Magic HP,+10 Magic HP,+10 마법 체력
 +2.5 Retaliation,+2.5 Retaliation,+2.5 보복
 +4 Defense,+4 Defense,+4 방어
--6% Attack Speed,-6% Attack Speed,-6% 공격 속도
 +1.2 Retaliation,+1.2 Retaliation,+1.2 보복
 +8% Evasion,+8% Evasion,+8% 회피
 +5% Attack Speed,+5% Attack Speed,+5% 공격 속도
@@ -376,7 +375,6 @@ Tool,Tool,도구
 +0.6 Regen/sec,+0.6 Regen/sec,+0.6 재생/초
 +12 Magic HP,+12 Magic HP,+12 마법 체력
 +5 Magic Damage,+5 Magic Damage,+5 마법 피해
--4% Evasion,-4% Evasion,-4% 회피
 Rune of Flurry,Rune of Flurry,질주의 룬
 Rune of the Tide,Rune of the Tide,밀물의 룬
 Rune of Hymns,Rune of Hymns,찬가의 룬
@@ -451,14 +449,18 @@ LOOT_TYPE_ARMOR,Reward: Armor,보상: 방어구
 LOOT_TYPE_RUNE,Reward: Rune,보상: 룬
 LOOT_TYPE_GEM,Reward: Gem,보상: 보석
 LOOT_TYPE_NONE,Reward,보상
-RUNE_BLURB,"Slot this Rune into a compatible weapon to gain the %s Rune Attack.","호환 무기에 이 룬을 장착하면 %s 룬 공격을 얻습니다."
+RUNE_BLURB_ACTIVE,"Slot this Rune into a weapon to gain the %s Rune Attack.","주무기에 이 룬을 장착하면 %s 룬 공격을 얻습니다."
+RUNE_BLURB_PASSIVE,"Slot this Rune into off-hand or armor to gain the %s effect.","보조무기나 갑옷에 이 룬을 장착하면 %s 효과를 얻습니다."
 GEM_BLURB,Can be used to infuse weapons and armor.,무기와 방어구에 주입할 수 있습니다.
 GEM_BLURB_SUFFIX,"Can be used to infuse weapons and armor. Skills gain: %s","무기와 방어구에 주입할 수 있습니다. 기술 접미사: %s"
 Cost,Cost,비용
 Attack,Attack,공격
+Effect,Effect,효과
+Fits,Fits,장착 부위
 Skill kind,Skill kind,기술 종류
 Applies To,Applies To,적용 대상
 Slot effects,Slot effects,슬롯 효과
+GEM_INFUSE,Infusion,주입 효과
 COMMON,Common,일반
 UNCOMMON,Uncommon,고급
 RARE,Rare,희귀
@@ -596,6 +598,64 @@ GEM_FX_EXTRA_HIT_ON_SKILL,Extra hit on skill,기술 추가 타격
 GEM_FX_FANG_HOLD,Fang hold,송곳니 유지
 GEM_FX_NAME_FIND,Name finds,이름 탐색
 GEM_FX_SEAL_ECHO,Seal echo,봉인 메아리
+GEM_FX_LIFESTEAL_ON_SKILL_DESC,"Skill hits restore 25% of damage dealt as Life.","기술이 적중하면 준 피해의 25%를 생명력으로 되돌립니다."
+GEM_FX_CHAIN_HIT_DESC,"Skill hits also deal 35% of that damage to other foes.","기술이 적중하면 다른 적에게도 그 피해의 35%를 줍니다."
+GEM_FX_PIERCE_FLAG_DESC,"Skill hits also deal 35% of that damage to other foes.","기술이 적중하면 다른 적에게도 그 피해의 35%를 줍니다."
+GEM_FX_CHILL_ON_SKILL_DESC,Skill hits apply chill.,기술이 적중하면 냉각을 겁니다.
+GEM_FX_FROST_SHELL_DESC,Taking a hit raises a frost shell.,피격 시 서리 갑피를 얻습니다.
+GEM_FX_ROOT_ON_SKILL_DESC,Skill hits can root the target.,기술이 적중하면 대상을 속박할 수 있습니다.
+GEM_FX_ROOT_ON_HIT_DESC,Being hit can root the attacker.,피격 시 공격자를 속박할 수 있습니다.
+GEM_FX_FOREST_FIND_DESC,Improves finds while searching the grove.,숲을 수색할 때 발견이 좋아집니다.
+GEM_FX_ON_EVADE_THORN_DESC,Evading an attack returns thorns.,공격을 회피하면 가시 피해를 돌립니다.
+GEM_FX_PLAGUE_ON_SKILL_DESC,Skill hits apply plague.,기술이 적중하면 역병을 겁니다.
+GEM_FX_PLAGUE_WARD_DESC,Wards against incoming plague.,들어오는 역병을 막아 냅니다.
+GEM_FX_LINGER_PLAGUE_DESC,Plague on foes lasts longer.,적의 역병이 더 오래 남습니다.
+GEM_FX_FIRE_INFUSION_DESC,Infuses the resonated skill with fire.,공명된 기술에 화염을 입힙니다.
+GEM_FX_VOLCANO_FIND_DESC,Improves finds near volcanic ground.,화산 지대에서 발견이 좋아집니다.
+GEM_FX_WARD_ON_SKILL_DESC,Using the skill raises a ward.,기술을 쓰면 수호막이 생깁니다.
+GEM_FX_SANCTUM_AEGIS_DESC,A sanctum aegis answers incoming hits.,피격에 성소의 방패로 응합니다.
+GEM_FX_HYMN_HOLD_DESC,Keeps hymn effects from fading as quickly.,성가 효과가 더 오래 유지됩니다.
+GEM_FX_ASH_ON_SKILL_DESC,Skill hits scatter ash.,기술이 적중하면 재를 흩뿌립니다.
+GEM_FX_ASH_SHROUD_DESC,A shroud of ash dulls incoming hits.,재의 장막이 들어오는 타격을 무디게 합니다.
+GEM_FX_BLOOD_HOLD_DESC,Blood effects linger longer.,피 효과가 더 오래 남습니다.
+GEM_FX_MANOR_FIND_DESC,Improves finds while searching the manor.,장원을 수색할 때 발견이 좋아집니다.
+GEM_FX_ELECTRIC_ON_SKILL_DESC,Skill hits apply electric.,기술이 적중하면 전격을 겁니다.
+GEM_FX_MANA_ON_HIT_TAKEN_DESC,Taking a hit restores some Mana.,피격 시 마나를 일부 회복합니다.
+GEM_FX_SKILL_GAUGE_NUDGE_DESC,Skills charge a little faster.,기술 게이지가 조금 더 빨리 찹니다.
+GEM_FX_HEAT_ON_SKILL_DESC,Skill hits apply heat.,기술이 적중하면 열을 겁니다.
+GEM_FX_HEAL_AMP_ON_SKILL_DESC,Healing from skills is stronger.,기술의 치유가 더 강해집니다.
+GEM_FX_RETALIATION_HEAT_DESC,Retaliation also applies heat.,보복 타격에 열이 붙습니다.
+GEM_FX_COLD_ON_SKILL_DESC,Skill hits apply cold.,기술이 적중하면 냉기를 겁니다.
+GEM_FX_SHATTER_WINDOW_DESC,Opens a window to shatter chilled foes.,냉각된 적을 파쇄할 틈을 엽니다.
+GEM_FX_COLD_SHELL_DESC,Taking a hit raises a cold shell.,피격 시 냉기 갑피를 얻습니다.
+GEM_FX_PLAGUE_ON_HIT_TAKEN_DESC,Attackers may catch plague.,공격자에게 역병이 옮을 수 있습니다.
+GEM_FX_FINISHER_PLAGUE_DESC,Finishing a foe spreads plague.,적을 처치하면 역병이 퍼집니다.
+GEM_FX_RETALIATION_ON_SKILL_DESC,The skill answers with retaliation.,기술이 보복으로 응수합니다.
+GEM_FX_THORNS_AURA_DESC,Nearby attackers take thorns.,가까이 오는 공격자에게 가시 피해를 줍니다.
+GEM_FX_REFLECT_FLAG_DESC,Reflects a portion of incoming damage.,들어오는 피해 일부를 반사합니다.
+GEM_FX_DAMAGE_ALL_ON_SKILL_DESC,The skill also hits every foe.,기술이 모든 적에게도 피해를 줍니다.
+GEM_FX_ECHO_HOLD_DESC,Echo effects linger longer.,메아리 효과가 더 오래 남습니다.
+GEM_FX_OPENING_STRIKE_DESC,The first skill hit in a fight hits harder.,전투 첫 기술 타격이 더 강해집니다.
+GEM_FX_DAWN_HOLD_DESC,Dawn effects linger longer.,여명 효과가 더 오래 남습니다.
+GEM_FX_HEAL_ON_COUNTER_DESC,A counter restores some Life.,반격하면 생명력을 일부 회복합니다.
+GEM_FX_COUNTER_WARD_DESC,Counters also raise a ward.,반격 시 수호막이 생깁니다.
+GEM_FX_SLOW_ON_SKILL_DESC,Skill hits slow the target.,기술이 적중하면 대상을 둔화합니다.
+GEM_FX_MIRE_STANCE_DESC,A mire stance slows those who close in.,수렁 태세가 다가오는 적을 늦춥니다.
+GEM_FX_SWAMP_FIND_DESC,Improves finds while searching the swamp.,늪을 수색할 때 발견이 좋아집니다.
+GEM_FX_MARK_ON_SKILL_DESC,Skill hits mark the target.,기술이 적중하면 대상에 표식을 남깁니다.
+GEM_FX_MARKED_CRIT_FLAG_DESC,Attacks against marked foes can crit more often.,표식이 있는 적에게 치명타가 더 잘 납니다.
+GEM_FX_GHOST_HP_ON_SKILL_DESC,The skill grants a little ghost Life.,기술이 유령 체력을 조금 줍니다.
+GEM_FX_PHANTOM_SHELL_DESC,A phantom shell soaks a hit.,환영 갑피가 타격을 한 번 받아 냅니다.
+GEM_FX_MANA_ON_KILL_DESC,Defeating a foe restores some Mana.,적을 처치하면 마나를 일부 회복합니다.
+GEM_FX_STILL_HOLD_DESC,Stillwater effects linger longer.,고요 효과가 더 오래 남습니다.
+GEM_FX_EXECUTE_BELOW_DESC,Skills deal more to foes low on Life.,생명력이 낮은 적에게 기술이 더 아픕니다.
+GEM_FX_WIDOW_HOLD_DESC,Widow effects linger longer.,과부의 효과가 더 오래 남습니다.
+GEM_FX_STUN_ON_SKILL_DESC,Skill hits can stun the target.,기술이 적중하면 대상을 기절시킬 수 있습니다.
+GEM_FX_ROOTED_STANCE_DESC,A rooted stance resists being moved.,뿌리 태세가 밀려남을 버팁니다.
+GEM_FX_EXTRA_HIT_ON_SKILL_DESC,The skill strikes an extra time.,기술이 한 번 더 때립니다.
+GEM_FX_FANG_HOLD_DESC,Fang effects linger longer.,송곳니 효과가 더 오래 남습니다.
+GEM_FX_NAME_FIND_DESC,Improves finds when a name is near.,이름이 가까운 곳에서 발견이 좋아집니다.
+GEM_FX_SEAL_ECHO_DESC,Sealed names echo a little farther.,봉인한 이름이 조금 더 멀리 울립니다.
 Rune of Surging,Rune of Surging,서지의 룬
 Rune of Chains,Rune of Chains,연쇄의 룬
 Rune of Plague,Rune of Plague,역병의 룬

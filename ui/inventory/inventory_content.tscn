@@ -125,7 +125,7 @@ theme_override_constants/margin_bottom = 8
 [node name="ItemGrid" type="GridContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/ItemGridPad"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 5
@@ -178,19 +178,25 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="RightInner" type="VBoxContainer" parent="Body/RightColumn/RightScroll"]
+[node name="RightScrollGutter" type="MarginContainer" parent="Body/RightColumn/RightScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 12
+
+[node name="RightInner" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="EquipmentTitle" type="Label" parent="Body/RightColumn/RightScroll/RightInner"]
+[node name="EquipmentTitle" type="Label" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Equipped"
 horizontal_alignment = 0
 
-[node name="EquipmentLayoutPad" type="MarginContainer" parent="Body/RightColumn/RightScroll/RightInner"]
+[node name="EquipmentLayoutPad" type="MarginContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -199,27 +205,27 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="EquipmentLayout" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner/EquipmentLayoutPad"]
+[node name="EquipmentLayout" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/EquipmentLayoutPad"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="AttributeList" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner"]
+[node name="AttributeList" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="WeightBlock" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightInner"]
+[node name="WeightBlock" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="WeightTitle" type="Label" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
+[node name="WeightTitle" type="Label" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/WeightBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "WEIGHT"
 
-[node name="WeightBar" type="ProgressBar" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
+[node name="WeightBar" type="ProgressBar" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/WeightBlock"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
@@ -227,7 +233,7 @@ max_value = 80.0
 value = 42.4
 show_percentage = false
 
-[node name="LoadIndicator" type="Label" parent="Body/RightColumn/RightScroll/RightInner/WeightBlock"]
+[node name="LoadIndicator" type="Label" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/WeightBlock"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Normal (53%)"

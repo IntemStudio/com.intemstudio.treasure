@@ -38,7 +38,7 @@ DevOverlay 크롬: 딤·패널 테두리·제목 = `MAP_START` (청록). 플레�
 | 좌상 | XP(흰) → 마나(주황) → HP(빨강) + `EXP/MP/HP 현재/최대` (`tr`: 경험치/마나/체력) |
 | 우상 | 지역명 · `AppVersion` **위**, 그 아래 미니맵 (안개 격자) |
 | 좌중 | `[인벤토리]` `[맵]` `[스탯]` `[설정]` (마을에선 HUD 자체 숨김) |
-| 좌하 | 기술 4칸(상) + 주무기·보조·아이템·음식(하) |
+| 좌하 | 장착 룬 0~6칸(상) + 주무기·보조·소모품·요리(하) |
 | 우하 | 게임 로그 (배속/후퇴 **위**) |
 | 상단 중앙 | 방 `win` 전리품 토스트 (~3초, [`loot.md`](loot.md)) |
 | 중앙 | 없음 |
@@ -58,7 +58,7 @@ GameHud (CanvasLayer)
     │   └── MiniMap
     ├── MenuNav                 # [인벤토리]/[맵]/[스탯]/[설정]
     ├── ActionBar
-    │   ├── SkillRow (HudSlot × 4)
+    │   ├── SkillRow (HudSlot × 꽂힌 룬 수, 0~6)
     │   └── EquipRow (Main / Off / Item / Food)
     └── GameLogView
 ```
@@ -75,7 +75,7 @@ GameHud (CanvasLayer)
 | 지역 | `UIManager.location_id` → `set_location` |
 | 버전 | `AppVersion.MAJOR/MINOR/PATCH` (세이브 `version`과 별개) |
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
-| 기술 | `equipped.main_hand.skills` (최대 4). 전투 중 게이지 충전 표시. 자동 발동 ([`equipment.md`](equipment.md)) |
+| 기술 | `ResonanceService.list_equipped_rune_skills` (장착 부위 꽂힌 룬만, 최대 6). 전투 중 게이지 충전. 마나 되는 첫 **액티브** 자동 발동 ([`equipment.md`](equipment.md) · [`combat.md`](combat.md)) |
 | 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. 이름 텍스트만 (아이콘 없음) |
 | 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot |
 | 토스트 | `UIManager.show_loot_toast` → `LootToast` |

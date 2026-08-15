@@ -87,8 +87,6 @@ static func _rarity_mult(rarity: ItemData.ItemRarity) -> float:
 			return 1.6
 		ItemData.ItemRarity.RARE:
 			return 2.4
-		ItemData.ItemRarity.EPIC:
-			return 3.6
 		ItemData.ItemRarity.LEGENDARY:
 			return 5.5
 		_:

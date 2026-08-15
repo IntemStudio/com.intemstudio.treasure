@@ -38,7 +38,7 @@ static func create_claymore() -> ItemData:
 	item.two_handed = true
 	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
 	item.compatible_gem_tags = [&"weapon", &"element", &"condition"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 
@@ -57,7 +57,7 @@ static func create_blood_rusted_sword() -> ItemData:
 	item.equip_slot = "main_hand"
 	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
 	item.compatible_gem_tags = [&"weapon", &"element"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 
@@ -73,7 +73,7 @@ static func create_iron_helm() -> ItemData:
 	item.weight = 5.2
 	item.equip_slot = "head"
 	item.compatible_gem_tags = [&"armor", &"defense"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 
@@ -89,7 +89,7 @@ static func create_chain_chest() -> ItemData:
 	item.weight = 11.0
 	item.equip_slot = "chest"
 	item.compatible_gem_tags = [&"armor", &"defense"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 
@@ -148,7 +148,7 @@ static func create_fishing_rod() -> ItemData:
 	item.weight = 3.5
 	item.equip_slot = "tool_1"
 	item.compatible_gem_tags = [&"tool", &"explore"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 
@@ -169,7 +169,7 @@ static func create_rare_dagger() -> ItemData:
 	item.weight = 4.2
 	item.equip_slot = "off_hand"
 	item.compatible_gem_tags = [&"weapon", &"off_hand", &"element"]
-	item.socket_layout = SocketLayout.for_rarity(item.equip_slot, item.rarity)
+	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
 	return item
 
 

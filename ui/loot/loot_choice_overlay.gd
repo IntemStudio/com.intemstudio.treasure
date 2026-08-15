@@ -163,16 +163,21 @@ func _sync_take_enabled() -> void:
 		return
 	if _offers.is_empty():
 		take_button.disabled = true
-		if status_label:
-			status_label.text = tr("No rewards")
+		_set_status(tr("No rewards"))
 		return
 	var offer: Dictionary = _offers[_index]
 	var blocked := false
 	if LootService.offer_needs_inventory_slot(offer) and _ui_manager and _ui_manager.inventory_data:
 		blocked = LootService.offer_inventory_full(_ui_manager.inventory_data, offer)
 	take_button.disabled = blocked
-	if status_label:
-		status_label.text = tr("LOOT_INVENTORY_FULL") if blocked else ""
+	_set_status(tr("LOOT_INVENTORY_FULL") if blocked else "")
+
+
+func _set_status(text: String) -> void:
+	if status_label == null:
+		return
+	status_label.text = text
+	status_label.visible = not text.is_empty()
 
 
 func _on_take_pressed() -> void:

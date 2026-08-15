@@ -38,22 +38,28 @@ func set_rune(rune: RuneData) -> void:
 	if rune == null:
 		clear()
 		return
+	var kind := rune.skill_kind if not rune.skill_kind.is_empty() else "strike"
+	var active := ResonanceService.ACTIVE_KINDS.has(kind)
 	name_label.text = tr(rune.display_name)
 	kind_label.text = tr("Rune")
 	rarity_label.text = ""
-	blurb_label.text = tr("RUNE_BLURB") % tr(rune.skill_name)
+	var blurb_key := "RUNE_BLURB_ACTIVE" if active else "RUNE_BLURB_PASSIVE"
+	blurb_label.text = tr(blurb_key) % tr(rune.skill_name)
 	var lines: PackedStringArray = []
-	lines.append(_row(tr("Type"), tr(_skill_kind_label(rune.skill_kind))))
+	lines.append(_row(tr("Type"), tr(_skill_kind_label(kind))))
 	lines.append(_row(tr("Cost"), str(rune.mana_cost)))
+	lines.append(_row(tr("Fits"), _format_rune_slots(kind)))
 	lines.append("")
-	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.RARITY_RARE), tr("Attack")])
+	var section := tr("Attack") if active else tr("Effect")
+	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.RARITY_RARE), section])
 	lines.append("  %s" % tr(rune.skill_name))
-	lines.append("  %s: %s" % [tr("Skill kind"), tr(_skill_kind_label(rune.skill_kind))])
-	var skill_desc := _skill_kind_desc(rune.skill_kind)
+	lines.append("  %s: %s" % [tr("Skill kind"), tr(_skill_kind_label(kind))])
+	var skill_desc := _skill_kind_desc(kind)
 	if not skill_desc.is_empty():
 		lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), skill_desc])
 	lines.append("")
-	lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
+	if active:
+		lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
 	lines.append(_row(tr("Resonance"), _format_reso_tags(rune.resonance_tags)))
 	body_label.text = "\n".join(lines)
 
@@ -72,13 +78,16 @@ func set_gem(gem: GemData) -> void:
 	var lines: PackedStringArray = []
 	lines.append(_row(tr("Type"), tr(_gem_type_label(String(gem.gem_type)))))
 	lines.append("")
-	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.GOLD), tr("Slot effects")])
+	lines.append("[color=%s]%s[/color]" % [UIColors.html(UIColors.GOLD), tr("GEM_INFUSE")])
 	var effect_rows := _grouped_slot_effects(gem.slot_effects)
 	if effect_rows.is_empty():
 		lines.append("  —")
 	else:
 		for row in effect_rows:
 			lines.append("  %s: %s" % [row["slot"], row["effect"]])
+			var desc := str(row.get("desc", ""))
+			if not desc.is_empty():
+				lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), desc])
 	lines.append("")
 	lines.append(_row(tr("Resonance"), _format_reso_tags(gem.resonance_tags)))
 	body_label.text = "\n".join(lines)
@@ -111,11 +120,25 @@ func _grouped_slot_effects(slot_effects: Dictionary) -> Array[Dictionary]:
 		seen_labels[label] = effect_text
 		if not by_label.has(label):
 			order.append(label)
-			by_label[label] = effect_text
+			by_label[label] = {"effect": effect_text, "desc": _effect_desc(effect_key)}
 	var rows: Array[Dictionary] = []
 	for label in order:
-		rows.append({"slot": label, "effect": by_label[label]})
+		var packed: Dictionary = by_label[label]
+		rows.append({
+			"slot": label,
+			"effect": packed["effect"],
+			"desc": packed["desc"],
+		})
 	return rows
+
+
+func _format_rune_slots(kind: String) -> String:
+	var parts: PackedStringArray = []
+	for slot in ResonanceService.slots_for_rune_kind(kind):
+		parts.append(tr(_slot_label(slot)))
+	if parts.is_empty():
+		return "—"
+	return ", ".join(parts)
 
 
 func _format_equip_tags(tags: Array[StringName]) -> String:
@@ -137,17 +160,7 @@ func _format_reso_tags(tags: Array[StringName]) -> String:
 
 
 func _rarity_text(rarity: ItemData.ItemRarity) -> String:
-	match rarity:
-		ItemData.ItemRarity.UNCOMMON:
-			return tr("UNCOMMON")
-		ItemData.ItemRarity.RARE:
-			return tr("RARE")
-		ItemData.ItemRarity.EPIC:
-			return tr("EPIC")
-		ItemData.ItemRarity.LEGENDARY:
-			return tr("LEGENDARY")
-		_:
-			return tr("COMMON")
+	return tr(ItemData.locale_key_for_rarity(rarity))
 
 
 func _skill_kind_label(kind: String) -> String:
@@ -211,3 +224,9 @@ func _effect_label(effect: String) -> String:
 	if translated != key:
 		return translated
 	return effect.replace("_", " ")
+
+
+func _effect_desc(effect: String) -> String:
+	var key := "GEM_FX_%s_DESC" % effect.to_upper()
+	var translated := tr(key)
+	return translated if translated != key else ""

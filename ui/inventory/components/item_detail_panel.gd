@@ -5,8 +5,9 @@ signal socket_row_pressed(kind: String, index: int)
 signal socket_row_activated(kind: String, index: int)
 
 const AFFIX_SCENE := preload("res://ui/inventory/components/affix_line.tscn")
-const SKILL_SCENE := preload("res://ui/inventory/components/skill_slot_row.tscn")
 const SOCKET_SCENE := preload("res://ui/inventory/components/socket_row.tscn")
+
+enum GoldPrice { HIDDEN, BUY, SELL }
 
 @onready var item_name_label: Label = %ItemName
 @onready var rarity_label: Label = %RarityLabel
@@ -18,7 +19,7 @@ const SOCKET_SCENE := preload("res://ui/inventory/components/socket_row.tscn")
 @onready var defense_value: Label = %DefenseValue
 @onready var defense_delta_label: Label = %DefenseBonus
 @onready var scaling_label: Label = %ScalingLabel
-@onready var skill_slots: VBoxContainer = %SkillSlots
+@onready var resource_cost: HBoxContainer = %ResourceCost
 @onready var cost_label: Label = %CostLabel
 @onready var gain_label: Label = %GainLabel
 @onready var affix_list: VBoxContainer = %AffixList
@@ -32,6 +33,7 @@ const SOCKET_SCENE := preload("res://ui/inventory/components/socket_row.tscn")
 
 var _item: ItemData
 var _compare_with: ItemData
+var _gold_price: GoldPrice = GoldPrice.SELL
 var _inventory: InventoryData
 var _rune_catalog: RuneCatalog
 var _gem_catalog: GemCatalog
@@ -59,6 +61,11 @@ func bind_socket_context(
 	_inventory = inventory
 	_rune_catalog = rune_catalog
 	_gem_catalog = gem_catalog
+
+
+func set_gold_price(kind: GoldPrice) -> void:
+	_gold_price = kind
+	_refresh_gold_labels()
 
 
 func set_resonance_state(state_key: String) -> void:
@@ -112,13 +119,11 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 			socket_header.text = ""
 		if resonance_label:
 			resonance_label.text = ""
-		cost_label.text = ""
-		gain_label.text = ""
+		_refresh_gold_labels()
 		flavor_text.text = ""
 		requirements_label.text = ""
 		durability_bar.value = 0
 		weight_label.text = ""
-		_clear_container(skill_slots)
 		_clear_container(affix_list)
 		_clear_socket_rows()
 		return
@@ -142,8 +147,7 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 		scaling_label.text = tr("Scales with: %s") % CharacterStats.get_attribute_label(item.scales_with)
 	else:
 		scaling_label.text = ""
-	cost_label.text = tr("Cost %d") % ShopPricing.buy_price(item)
-	gain_label.text = tr("Gain %d") % ShopPricing.sell_price(item)
+	_refresh_gold_labels()
 	flavor_text.text = tr(item.flavor_text) if not item.flavor_text.is_empty() else ""
 	requirements_label.text = "%s %d" % [
 		CharacterStats.get_attribute_label(item.required_stat),
@@ -152,7 +156,6 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 	durability_bar.max_value = item.durability_max
 	durability_bar.value = item.durability
 	weight_label.text = tr("Weight %.1f") % item.weight
-	_populate_skills(item)
 	_populate_affixes(item)
 	_populate_sockets(item)
 	_refresh_resonance_label()
@@ -167,12 +170,15 @@ func _populate_sockets(item: ItemData) -> void:
 	if _inventory:
 		rows = _inventory.list_socket_rows(item)
 	elif item.socket_layout:
-		for i in range(item.socket_layout.rune_slots):
-			rows.append({"kind": "rune", "index": i, "instance_uid": ""})
-		for i in range(item.socket_layout.core_gem_slots):
-			rows.append({"kind": "core_gem", "index": i, "instance_uid": ""})
-		for i in range(item.socket_layout.aux_gem_slots):
-			rows.append({"kind": "aux_gem", "index": i, "instance_uid": ""})
+		var layout: SocketLayout = item.socket_layout
+		var n := maxi(layout.rune_slots, maxi(layout.core_gem_slots, layout.aux_gem_slots))
+		for i in range(n):
+			if i < layout.rune_slots:
+				rows.append({"kind": "rune", "index": i, "instance_uid": ""})
+			if i < layout.core_gem_slots:
+				rows.append({"kind": "core_gem", "index": i, "instance_uid": ""})
+			if i < layout.aux_gem_slots:
+				rows.append({"kind": "aux_gem", "index": i, "instance_uid": ""})
 	if rows.is_empty():
 		socket_header.text = ""
 		return
@@ -205,6 +211,25 @@ func _populate_sockets(item: ItemData) -> void:
 		_socket_rows.append(row)
 
 
+func _refresh_gold_labels() -> void:
+	if cost_label == null or gain_label == null:
+		return
+	var show_buy := _item != null and _gold_price == GoldPrice.BUY
+	var show_sell := _item != null and _gold_price == GoldPrice.SELL
+	cost_label.visible = show_buy
+	gain_label.visible = show_sell
+	if show_buy:
+		cost_label.text = tr("Buy Price %d Gold") % ShopPricing.buy_price(_item)
+	else:
+		cost_label.text = ""
+	if show_sell:
+		gain_label.text = tr("Sell Price %d Gold") % ShopPricing.sell_price(_item)
+	else:
+		gain_label.text = ""
+	if resource_cost:
+		resource_cost.visible = show_buy or show_sell
+
+
 func _refresh_resonance_label() -> void:
 	if resonance_label == null:
 		return
@@ -226,17 +251,6 @@ func _on_socket_row_pressed(kind: String, index: int) -> void:
 func _on_socket_row_activated(kind: String, index: int) -> void:
 	set_selected_socket(kind, index)
 	socket_row_activated.emit(kind, index)
-
-
-func _populate_skills(item: ItemData) -> void:
-	_clear_container(skill_slots)
-	var skills := item.skills.duplicate()
-	while skills.size() < 4:
-		skills.append({"button": ["X", "Y", "B", "A"][skills.size()], "name": ""})
-	for skill_data in skills:
-		var row: SkillSlotRow = SKILL_SCENE.instantiate()
-		skill_slots.add_child(row)
-		row.setup(str(skill_data.get("button", "")), str(skill_data.get("name", "")))
 
 
 func _populate_affixes(item: ItemData) -> void:

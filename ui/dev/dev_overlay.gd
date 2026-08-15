@@ -6,7 +6,6 @@ const _RARITY_KEYS: Array[String] = [
 	"COMMON",
 	"UNCOMMON",
 	"RARE",
-	"EPIC",
 	"LEGENDARY",
 ]
 const _SLOT_GROUPS: Array[String] = [

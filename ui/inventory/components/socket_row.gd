@@ -79,11 +79,8 @@ func _apply_visual_state() -> void:
 	else:
 		theme_type_variation = &"InventorySlot"
 		if _filled:
-			var style := StyleBoxFlat.new()
-			style.bg_color = UIColors.SLOT_BG
+			var style := get_theme_stylebox("panel", &"InventorySlot").duplicate() as StyleBoxFlat
 			style.border_color = ItemData.color_for_rarity(_rarity)
-			style.set_border_width_all(1)
-			style.set_content_margin_all(4)
 			add_theme_stylebox_override("panel", style)
 	var color := UIColors.GOLD if _selected else UIColors.TEXT_MUTED
 	if kind_label:
