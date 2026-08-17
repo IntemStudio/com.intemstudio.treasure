@@ -85,8 +85,8 @@ Sheet 내부 **상·중·하**: 상단은 좌·우·상(테두리 안쪽) flush,
 
 | 등급 | 크기 | 상수 | 예 |
 |------|------|------|-----|
-| Sheet | 1440×800 | `SHEET_SIZE` | MenuShell(인벤/맵/스탯/설정/소문/서가 각각), 룻 선택, 타이틀 설정 |
+| Sheet | 1440×800 | `SHEET_SIZE` | MenuShell(인벤/맵/스탯/설정/소문/서가/대장간 각각), 룻 선택, 타이틀 설정 |
 | Dialog | 760×480 | `DIALOG_SIZE` | DevOverlay |
 
 소스: [`ui/shared/ui_popup_layout.gd`](../../ui/shared/ui_popup_layout.gd).  
-마을 `VillageShell`은 허브 크롬(상·하·로그)만. 소문/서가는 MenuShell Sheet.
+마을 `VillageShell`은 허브 크롬(상·하·로그)만. 소문/서가/대장간은 MenuShell Sheet.

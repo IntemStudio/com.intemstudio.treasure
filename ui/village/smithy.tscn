@@ -1,0 +1,196 @@
+[gd_scene load_steps=6 format=3 uid="uid://smithy_village"]
+
+[ext_resource type="Script" path="res://ui/village/smithy.gd" id="1"]
+[ext_resource type="Theme" path="res://ui/inventory/themes/inventory_theme.tres" id="2"]
+[ext_resource type="PackedScene" uid="uid://item_detail_panel" path="res://ui/inventory/components/item_detail_panel.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://ui/loot/modifier_detail_panel.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://inventory_slot" path="res://ui/inventory/components/inventory_slot.tscn" id="5"]
+
+[node name="Smithy" type="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme = ExtResource("2")
+script = ExtResource("1")
+
+[node name="Body" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+theme_override_constants/separation = 24
+
+[node name="LeftColumn" type="VBoxContainer" parent="Body"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.15
+theme_override_constants/separation = 0
+
+[node name="LeftScroll" type="ScrollContainer" parent="Body/LeftColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="LeftInner" type="VBoxContainer" parent="Body/LeftColumn/LeftScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="HintLabel" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+text = "Fit runes and gems into gear."
+
+[node name="EquipmentTitle" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+text = "Equipped"
+
+[node name="EquipmentLayoutPad" type="MarginContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="EquipmentLayout" type="VBoxContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/EquipmentLayoutPad"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BagTitle" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+text = "Equipment"
+
+[node name="ItemGridPad" type="MarginContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ItemGrid" type="GridContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/ItemGridPad"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 5
+
+[node name="CenterColumn" type="VBoxContainer" parent="Body"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="CenterScroll" type="ScrollContainer" parent="Body/CenterColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="CenterInner" type="VBoxContainer" parent="Body/CenterColumn/CenterScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="BenchRow" type="HBoxContainer" parent="Body/CenterColumn/CenterScroll/CenterInner"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ItemSlot" parent="Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="ModSlot" parent="Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="ItemDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ModifierDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightColumn" type="VBoxContainer" parent="Body"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="RightScroll" type="ScrollContainer" parent="Body/RightColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="RightScrollGutter" type="MarginContainer" parent="Body/RightColumn/RightScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 12
+
+[node name="RightInner" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ModTitle" type="Label" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+text = "Rune/Gem 0"
+
+[node name="ModGridPad" type="MarginContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ModGrid" type="GridContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/ModGridPad"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 5

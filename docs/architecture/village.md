@@ -1,6 +1,6 @@
 # 마을 허브 / 도전 게시판
 
-프로필 선택 후 **마을**이 플레이 허브. 걸어다니지 않는다. 상·하·우 프레임이 상시이고, 소문·서가·인벤·스탯·설정은 각각 `MenuShell` Sheet 팝업. 도전 확정 뒤에만 던전 맵을 생성한다.  
+프로필 선택 후 **마을**이 플레이 허브. 걸어다니지 않는다. 상·하·우 프레임이 상시이고, 소문·서가·대장간·인벤·스탯·설정은 각각 `MenuShell` Sheet 팝업. 도전 확정 뒤에만 던전 맵을 생성한다.  
 후속(이어하기 던전 복귀·여관·상점): [`docs/design/village.md`](../design/village.md). 서가: [`equipment.md`](equipment.md) · [`docs/design/bookshelf.md`](../design/bookshelf.md). 상점 가격: [`shop.md`](shop.md).
 
 ---
@@ -13,6 +13,7 @@
 | 마을 셸 | [`ui/village/village_shell.tscn`](../../ui/village/village_shell.tscn) + [`village_shell.gd`](../../ui/village/village_shell.gd) |
 | 도전 메뉴 | [`ui/village/challenge_board.tscn`](../../ui/village/challenge_board.tscn) + [`challenge_board.gd`](../../ui/village/challenge_board.gd) |
 | 서가 | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) + [`bookshelf.gd`](../../ui/village/bookshelf.gd) |
+| 대장간 | [`ui/village/smithy.tscn`](../../ui/village/smithy.tscn) + [`smithy.gd`](../../ui/village/smithy.gd) |
 | 길이 정의 | [`data/village/challenge_def.gd`](../../data/village/challenge_def.gd) |
 | 원정 파라미터 | [`SaveManager`](../../autoload/save_manager.gd) `pending_run` + `save_run` |
 | 프로필 진입 | [`profile_select.gd`](../../scenes/title/profile_select.gd) → `village.tscn` |
@@ -29,12 +30,12 @@ Village (Node2D)
 │   ├── Board            # 장식
 │   └── Altar            # 장식
 ├── Camera2D
-├── UIManager            # MenuShell Sheet: 인벤/맵/스탯/설정/소문/서가
+├── UIManager            # MenuShell Sheet: 인벤/맵/스탯/설정/소문/서가/대장간
 └── ChallengeHost (CanvasLayer 0)
     └── VillageShell
         ├── TopBar
         ├── GameLogView
-        └── HubNav       # [소문] [서가] [인벤토리] [스탯] [설정] → open_tab
+        └── HubNav       # [소문] [서가] [대장간] [인벤토리] [스탯] [설정] → open_tab
 ```
 
 전투 노드 없음. 미니맵·Map·GameHud는 허브에서 숨김.
@@ -50,7 +51,7 @@ Village (Node2D)
 | 오른쪽 | `GameLogView` (`UIManager.game_log`) |
 | 가운데 | `VillageRoom` 배경 |
 
-소문·서가·인벤·스탯·설정은 각각 `UIManager.open_tab` → `MenuShell` Sheet (제목만, 탭 순환 없음).
+소문·서가·대장간·인벤·스탯·설정은 각각 `UIManager.open_tab` → `MenuShell` Sheet (제목만, 탭 순환 없음).
 
 ---
 
@@ -104,7 +105,7 @@ SaveManager.set_pending_run(params) / take_pending_run() / clear_pending_run()
 SaveManager.save_run / clear_run
 UIManager.set_hub_mode(bool)            # GameHud 숨김, LOCATION_VILLAGE
 UIManager.set_challenge_board_open(bool)   # 룻 선택 오버레이 등
-UIManager.open_tab(BOARD|SHELF|INVENTORY|STATS|SETTINGS)
+UIManager.open_tab(BOARD|SHELF|SMITHY|INVENTORY|STATS|SETTINGS)
 UIManager.refresh_bookshelf()
 UIManager.return_to_village()   # clear_run, save slot, keep current_slot, village.tscn
 VillageShell.refresh_bookshelf()  # → UIManager

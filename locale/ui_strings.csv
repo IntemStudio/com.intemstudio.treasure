@@ -287,6 +287,7 @@ DEV_ENCOUNTER_FAILED,Failed to start encounter,조우 시작 실패
 DEV_FORCED_WIN,Forced win,강제 승리
 DEV_FORCED_RETREAT,Forced retreat,강제 후퇴
 Sockets,Sockets,소켓
+SOCKET_EFFECTS,Effects,효과
 SOCKET,SOCKET,소켓
 UNSOCKET,UNSOCKET,빼기
 SOCKETED,SOCKETED,장착
@@ -328,6 +329,9 @@ SHELF_LOCKED,Locked,잠김
 SHELF_LOCKED_HINT,"This shelf is not open yet.","아직 열리지 않은 서가입니다."
 SHELF_FOG,Unknown rune or gem,알 수 없는 룬·보석
 SHELF_EMPTY,Empty place,빈 칸
+SMITHY_LABEL,Smithy,대장간
+SMITHY_HINT,"Place gear and a rune or gem on the bench, then inject.","장비와 룬·보석을 작업대에 올린 뒤 주입하세요."
+SMITHY_INJECT,Inject,주입
 Skill,Skill,기술
 Mana cost,Mana cost,마나 비용
 Type,Type,유형

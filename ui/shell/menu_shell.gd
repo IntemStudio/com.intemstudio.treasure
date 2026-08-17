@@ -3,7 +3,7 @@ extends CanvasLayer
 signal closed
 signal tab_changed(tab: int)
 
-enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5 }
+enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6 }
 
 const INVENTORY_CONTENT_PATH := "res://ui/inventory/inventory_content.tscn"
 const MAP_CONTENT_PATH := "res://ui/map/map_content.tscn"
@@ -11,6 +11,7 @@ const STATS_CONTENT_PATH := "res://ui/stats/stats_content.tscn"
 const SETTINGS_CONTENT_PATH := "res://ui/settings/settings_content.tscn"
 const BOARD_CONTENT_PATH := "res://ui/village/challenge_board.tscn"
 const SHELF_CONTENT_PATH := "res://ui/village/bookshelf.tscn"
+const SMITHY_CONTENT_PATH := "res://ui/village/smithy.tscn"
 
 const TITLE_KEYS := {
 	Tab.INVENTORY: "Inventory",
@@ -19,6 +20,7 @@ const TITLE_KEYS := {
 	Tab.SETTINGS: "Settings",
 	Tab.BOARD: "BOARD_LABEL",
 	Tab.SHELF: "SHELF_LABEL",
+	Tab.SMITHY: "SMITHY_LABEL",
 }
 
 @onready var top_bar: TopBar = %TopBar
@@ -39,6 +41,7 @@ var _stats_content: Control
 var _settings_content: Control
 var _board_content: Control
 var _shelf_content: Control
+var _smithy_content: Control
 var _contents: Dictionary = {}
 var _wired: bool = false
 
@@ -90,6 +93,7 @@ func _mount_contents() -> void:
 	_settings_content = _instantiate_content(load(SETTINGS_CONTENT_PATH) as PackedScene)
 	_board_content = _instantiate_content(load(BOARD_CONTENT_PATH) as PackedScene)
 	_shelf_content = _instantiate_content(load(SHELF_CONTENT_PATH) as PackedScene)
+	_smithy_content = _instantiate_content(load(SMITHY_CONTENT_PATH) as PackedScene)
 
 	for content in [
 		_inventory_content,
@@ -98,6 +102,7 @@ func _mount_contents() -> void:
 		_settings_content,
 		_board_content,
 		_shelf_content,
+		_smithy_content,
 	]:
 		if content == null:
 			continue
@@ -113,6 +118,7 @@ func _mount_contents() -> void:
 		Tab.SETTINGS: _settings_content,
 		Tab.BOARD: _board_content,
 		Tab.SHELF: _shelf_content,
+		Tab.SMITHY: _smithy_content,
 	}
 
 
@@ -150,6 +156,7 @@ func _wire_contents() -> void:
 		or _settings_content == null
 		or _board_content == null
 		or _shelf_content == null
+		or _smithy_content == null
 	):
 		return
 	if footer == null:
@@ -161,6 +168,7 @@ func _wire_contents() -> void:
 	_settings_content.setup(_ui_manager, footer)
 	_board_content.setup(_ui_manager, footer)
 	_shelf_content.setup(_ui_manager, footer)
+	_smithy_content.setup(_ui_manager, footer)
 	_wired = true
 
 
@@ -216,6 +224,7 @@ func _sync_chrome(tab: int) -> void:
 		and tab != Tab.SETTINGS
 		and tab != Tab.BOARD
 		and tab != Tab.SHELF
+		and tab != Tab.SMITHY
 	)
 	top_bar.set_status_visible(show_status)
 	if show_status:

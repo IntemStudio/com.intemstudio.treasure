@@ -4,6 +4,7 @@ extends Control
 const HUB_NAV: Array[Dictionary] = [
 	{"tab": UIManager.Tab.BOARD, "key": "BOARD_LABEL"},
 	{"tab": UIManager.Tab.SHELF, "key": "SHELF_LABEL"},
+	{"tab": UIManager.Tab.SMITHY, "key": "SMITHY_LABEL"},
 	{"tab": UIManager.Tab.INVENTORY, "key": "Inventory"},
 	{"tab": UIManager.Tab.STATS, "key": "Stats"},
 	{"tab": UIManager.Tab.SETTINGS, "key": "Settings"},

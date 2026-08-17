@@ -1,7 +1,7 @@
 # 마을 허브 / 도전 게시판
 
 **미구현 후속:** 이어하기 던전 복귀 · 후퇴=원정 포기 · 여관/상점.  
-**현황(구조):** [`docs/architecture/village.md`](../architecture/village.md) — `VillageShell` + `MenuShell` Sheet(소문·서가·인벤·스탯·설정). 걸어다니기·월드 존 클릭·제단 단독 UI는 **폐기**.  
+**현황(구조):** [`docs/architecture/village.md`](../architecture/village.md) — `VillageShell` + `MenuShell` Sheet(소문·서가·대장간·인벤·스탯·설정). 걸어다니기·월드 존 클릭·제단 단독 UI는 **폐기**.  
 서가: [`bookshelf.md`](bookshelf.md) (`shelf.v3`). 상점 가격: [`shop.md`](shop.md) (`shop.price` 구현, NPC는 후속).  
 세계관(단독 보물 사냥꾼·마을=쉼터): [`world.md`](world.md). DD 햄릿은 **허브 UX 참고**만.  
 런 파일: [`save-load.md`](save-load.md) v2. 층 생성: [`map.md`](map.md). 전투 종료: [`combat.md`](combat.md).
@@ -67,6 +67,7 @@
 | 마을 셸 | [`ui/village/village_shell.tscn`](../../ui/village/village_shell.tscn) |
 | 소문 | [`ui/village/challenge_board.tscn`](../../ui/village/challenge_board.tscn) — MenuShell `Tab.BOARD` |
 | 서가 | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) — `Tab.SHELF` |
+| 대장간 | [`ui/village/smithy.tscn`](../../ui/village/smithy.tscn) — `Tab.SMITHY` (허브만) |
 | 원정 파라미터 | [`data/village/challenge_def.gd`](../../data/village/challenge_def.gd) · `SaveManager.pending_run` |
 | 게임 진입 | [`profile_select.gd`](../../scenes/title/profile_select.gd) → `village.tscn` |
 | 던전 기동 | [`dungeon.gd`](../../scenes/dungeon/dungeon.gd) — `take_pending_run`으로 `generate` |

@@ -44,7 +44,7 @@ NRFW에서 가져오지 않은 것: 희귀도=슬롯 구성, Focus 바, 패링, 
 | **shelf.v1** | `unlocked_shelves` 룻 · 제단 분리 | 대체됨 | |
 | **shelf.v2** | 희귀도 단 · E1 · open_cards | 대체 → shelf.v3 | |
 | **shelf.v3** | 룬/보석 판 · 시드 `#1` · 희귀도/E1 없음 | 구현됨 — [`bookshelf.md`](bookshelf.md) | eq.register |
-| **인벤 소켓 UI** | 장비↔MOD 양방향 꽂기/빼기 | 구현됨 → [`architecture/equipment.md`](../architecture/equipment.md) | eq.runes / eq.gems |
+| **인벤 소켓 UI** | 장비↔MOD 양방향 꽂기/빼기 | 대장간 Sheet로 이동 → [`architecture/equipment.md`](../architecture/equipment.md) | eq.runes / eq.gems |
 | **eq.economy** | 희귀도별 슬롯·인챈트 | **폐기** | — |
 | **패시브 훅** | 갑옷·방패 룬의 게이지 외 전투 효과 | 설계만 | eq.runes |
 | **map v2** | 룬 제단·보석 광맥 등 `room_type` | 설계만 — [`map.md`](map.md) | — |
@@ -293,6 +293,7 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 ```text
 던전: 획득 → 장착 또는 InventoryData.runes/gems 보관
+마을 대장간: 장비 소켓에 룬·보석 꽂기/빼기
 마을 서가: 확인창 → 개체 제거 → 장비 유지 → skills/공명 갱신
          → registered_cards + 인접 open_cards
 ```
@@ -355,7 +356,7 @@ card 등록: 개체 소모 + 영구 기록 + 인접 OPEN
 5. **eq.gems** — `GemData`, `ResonanceService`.  
 6. **eq.register → shelf.v3** — 룬/보석 판 · `open_cards` · 시드 `#1` — [`bookshelf.md`](bookshelf.md).  
 7. **선행 B → eq.persist** — 런 JSON에 `runes`/`gems`/socketed.  
-7b. **인벤 소켓 UI** — 장비↔MOD 꽂기/빼기.  
+7b. **소켓 UI** — 마을 대장간에서 장비↔MOD 꽂기/빼기. 인벤은 표시만.  
 8. **eq.economy** — 폐기. 칸 수는 부위 고정.  
 9. **패시브 훅** — 갑옷·방패 룬의 전투 효과 (HUD 표시는 구현됨).
 

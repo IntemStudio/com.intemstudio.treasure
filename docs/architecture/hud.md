@@ -81,7 +81,7 @@ GameHud (CanvasLayer)
 | 토스트 | `UIManager.show_loot_toast` → `LootToast` |
 
 `UIManager.apply_save_game` / 메뉴 닫힘 / 전투 승패 후 `refresh_character_views` 시 `GameHud.refresh`.  
-소켓 꽂기/빼기는 `UIManager.refresh_hud`만 (인벤 선택 유지, [`equipment.md`](equipment.md)).  
+소켓 꽂기/빼기는 마을 대장간에서 `UIManager.refresh_hud` ([`equipment.md`](equipment.md)).  
 `popup_visibility_changed(true)` → HUD 숨김. `set_combat_active`는 HUD를 숨기지 않는다.  
 `bind_dungeon` / `unbind_dungeon` → `bind_floor_map` / `unbind_floor_map`.  
 미니맵 클릭 → `map_open_requested` → Map 탭. **전투 중이면 무시** ([`minimap.md`](minimap.md)).

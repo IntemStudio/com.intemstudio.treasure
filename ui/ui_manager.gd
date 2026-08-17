@@ -6,7 +6,7 @@ const DEV_OVERLAY_SCENE := preload("res://ui/dev/dev_overlay.tscn")
 const GAME_HUD_SCENE := preload("res://ui/hud/game_hud.tscn")
 const LOOT_CHOICE_SCENE := preload("res://ui/loot/loot_choice_overlay.tscn")
 
-enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5 }
+enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6 }
 
 signal input_device_changed(using_gamepad: bool)
 signal popup_visibility_changed(is_open: bool)
@@ -251,12 +251,15 @@ func open_tab(tab: int) -> void:
 		and tab != Tab.SETTINGS
 		and tab != Tab.BOARD
 		and tab != Tab.SHELF
+		and tab != Tab.SMITHY
 	):
 		return
 	if hub_mode and tab == Tab.MAP:
 		return
+	if not hub_mode and tab == Tab.SMITHY:
+		return
 	_active_tab = tab
-	if tab != Tab.BOARD and tab != Tab.SHELF:
+	if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY:
 		_last_tab = tab
 	_shell.open_tab(tab, character_stats, inventory_data)
 	_menu_open = true
@@ -298,9 +301,10 @@ func _on_tab_changed(tab: int) -> void:
 		or tab == Tab.SETTINGS
 		or tab == Tab.BOARD
 		or tab == Tab.SHELF
+		or tab == Tab.SMITHY
 	):
 		_active_tab = tab
-		if tab != Tab.BOARD and tab != Tab.SHELF:
+		if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY:
 			_last_tab = tab
 
 
