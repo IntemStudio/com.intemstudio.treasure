@@ -246,6 +246,21 @@ func _index_runes(inventory: InventoryData) -> Dictionary:
 	for ri in inventory.runes:
 		if ri is RuneInstance:
 			out[(ri as RuneInstance).instance_uid] = ri
+	for item in _gear_from_inventory(inventory):
+		for entry in item.socketed:
+			if not entry is Dictionary:
+				continue
+			var d: Dictionary = entry
+			var rune_id := str(d.get("rune_id", ""))
+			if rune_id.is_empty():
+				continue
+			var inst := RuneInstance.from_dict({
+				"instance_uid": str(d.get("instance_uid", "")),
+				"rune_id": rune_id,
+				"registered": bool(d.get("registered", false)),
+			})
+			if inst:
+				out[inst.instance_uid] = inst
 	return out
 
 
@@ -254,6 +269,38 @@ func _index_gems(inventory: InventoryData) -> Dictionary:
 	for gi in inventory.gems:
 		if gi is GemInstance:
 			out[(gi as GemInstance).instance_uid] = gi
+	for item in _gear_from_inventory(inventory):
+		for entry in item.socketed:
+			if not entry is Dictionary:
+				continue
+			var d: Dictionary = entry
+			var gem_id := str(d.get("gem_id", ""))
+			if gem_id.is_empty():
+				continue
+			var inst := GemInstance.from_dict({
+				"instance_uid": str(d.get("instance_uid", "")),
+				"gem_id": gem_id,
+				"registered": bool(d.get("registered", false)),
+			})
+			if inst:
+				out[inst.instance_uid] = inst
+	return out
+
+
+func _gear_from_inventory(inventory: InventoryData) -> Array[ItemData]:
+	var out: Array[ItemData] = []
+	if inventory == null:
+		return out
+	for slot_id in InventoryData.EQUIP_SLOTS:
+		var item: ItemData = inventory.equipped.get(slot_id) as ItemData
+		if item:
+			out.append(item)
+	for key in InventoryData.BAG_KEYS:
+		if not inventory.bags.has(key) or not inventory.bags[key] is Array:
+			continue
+		for item in inventory.bags[key]:
+			if item is ItemData:
+				out.append(item as ItemData)
 	return out
 
 

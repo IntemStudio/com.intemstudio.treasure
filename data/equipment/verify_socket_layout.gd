@@ -135,6 +135,19 @@ func _test_two_set_gems() -> int:
 	if not inventory.socket_gem_on_item(sword, g1.instance_uid, "core_gem", 1):
 		push_error("socket core 1 failed")
 		return 1
+	if inventory.find_rune(r0.instance_uid) != null or inventory.find_gem(g0.instance_uid) != null:
+		push_error("socketed rune/gem must leave the bag")
+		return 1
+	if inventory.modifier_count() != 0:
+		push_error("bag modifiers want 0 after socket got %d" % inventory.modifier_count())
+		return 1
+	var rune0_id := ""
+	for entry in sword.socketed:
+		if str(entry.get("kind", "")) == "rune" and int(entry.get("index", -1)) == 0:
+			rune0_id = str(entry.get("rune_id", ""))
+	if rune0_id != "counter_verse":
+		push_error("socketed rune_id want counter_verse got %s" % rune0_id)
+		return 1
 	var service := ResonanceService.new()
 	service.rebuild_main_hand_skills(inventory, rune_cat, gem_cat)
 	if str(sword.skills[0].get("gem_id", "")) != "bloodstone":
@@ -218,5 +231,14 @@ func _test_equipped_rune_list() -> int:
 		return 1
 	if ResonanceService.ACTIVE_KINDS.has(str(listed[1].get("kind", ""))):
 		push_error("chest hymn must not be active kind")
+		return 1
+	if inventory.find_rune(r0.instance_uid) != null or inventory.find_rune(r1.instance_uid) != null:
+		push_error("equipped runes must not stay in the bag")
+		return 1
+	if not inventory.unsocket(sword, "rune", 0):
+		push_error("unsocket sword rune failed")
+		return 1
+	if inventory.find_rune(r0.instance_uid) == null:
+		push_error("unsocket must return rune to the bag")
 		return 1
 	return 0

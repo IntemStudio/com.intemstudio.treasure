@@ -11,6 +11,8 @@ func _initialize() -> void:
 	failed += _test_faith_refund()
 	failed += _test_slot_io()
 	failed += _test_no_run_or_locale_keys()
+	failed += _test_socketed_not_in_bag()
+	failed += _test_legacy_socketed_migrate()
 	if failed == 0:
 		print("SAVE_V1_VERIFY_OK")
 		quit(0)
@@ -154,5 +156,77 @@ func _test_no_run_or_locale_keys() -> int:
 		return 1
 	if not data.has("version") or not data.has("meta") or not data.has("character") or not data.has("inventory"):
 		push_error("missing required keys")
+		return 1
+	return 0
+
+
+func _test_socketed_not_in_bag() -> int:
+	var catalog := ItemCatalog.new()
+	var character: CharacterStats = load("res://ui/stats/resources/character_stats.tres").duplicate(true)
+	var inventory := InventoryData.new()
+	var sword := catalog.get_item("iron_longsword")
+	inventory.equipped["main_hand"] = sword
+	var ri := RuneInstance.create("counter_verse")
+	if not inventory.try_add_rune(ri):
+		push_error("try_add_rune failed")
+		return 1
+	if not inventory.socket_rune_on_item(sword, ri.instance_uid, 0):
+		push_error("socket failed")
+		return 1
+	var data := SaveSerializer.to_dict(character, inventory, {})
+	var saved_runes: Array = (data.get("inventory", {}) as Dictionary).get("runes", [])
+	if not saved_runes.is_empty():
+		push_error("saved runes[] must omit socketed")
+		return 1
+	var save := SaveSerializer.from_dict(data, catalog)
+	if save.inventory.find_rune(ri.instance_uid) != null:
+		push_error("loaded bag still has socketed rune")
+		return 1
+	var loaded: ItemData = save.inventory.equipped.get("main_hand") as ItemData
+	if loaded == null or loaded.socketed.is_empty():
+		push_error("loaded sword missing socketed")
+		return 1
+	if str(loaded.socketed[0].get("rune_id", "")) != "counter_verse":
+		push_error("loaded socketed missing rune_id")
+		return 1
+	if loaded.skills.is_empty():
+		push_error("loaded sword skills empty")
+		return 1
+	return 0
+
+
+func _test_legacy_socketed_migrate() -> int:
+	var catalog := ItemCatalog.new()
+	var ri := RuneInstance.create("counter_verse")
+	var data := {
+		"version": 1,
+		"meta": {},
+		"character": {},
+		"inventory": {
+			"bags": {},
+			"equipped": {
+				"main_hand": {
+					"id": "iron_longsword",
+					"socketed": [{
+						"kind": "rune",
+						"index": 0,
+						"instance_uid": ri.instance_uid,
+					}],
+				},
+			},
+			"runes": [ri.to_dict()],
+			"gems": [],
+		},
+	}
+	var save := SaveSerializer.from_dict(data, catalog)
+	if save.inventory.find_rune(ri.instance_uid) != null:
+		push_error("legacy migrate left rune in bag")
+		return 1
+	var sword: ItemData = save.inventory.equipped.get("main_hand") as ItemData
+	if sword == null or sword.socketed.is_empty():
+		push_error("legacy migrate missing socketed")
+		return 1
+	if str(sword.socketed[0].get("rune_id", "")) != "counter_verse":
+		push_error("legacy migrate missing rune_id on item")
 		return 1
 	return 0

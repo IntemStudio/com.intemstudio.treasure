@@ -11,4 +11,5 @@ size_flags_horizontal = 3
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+autowrap_mode = 3
 text = "Affix"

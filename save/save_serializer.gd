@@ -282,6 +282,7 @@ static func _inventory_from_dict(d: Dictionary, catalog: ItemCatalog) -> Invento
 			var gi := GemInstance.from_dict(entry as Dictionary)
 			if gi and inventory.can_add_modifier():
 				inventory.gems.append(gi)
+	inventory.ensure_socketed_on_items()
 
 	var service := ResonanceService.new()
 	service.rebuild_main_hand_skills(inventory, RuneCatalog.new(), GemCatalog.new())

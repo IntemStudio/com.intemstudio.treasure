@@ -19,7 +19,7 @@ const EQUIP_SLOTS: Array[String] = [
 	"ring_1", "ring_2", "tool_1", "tool_2",
 ]
 
-## Per-tab item bags (each GRID_SIZE). Modifiers use runes[]/gems[] capped at GRID_SIZE total.
+## Per-tab item bags (each GRID_SIZE). Loose runes[]/gems[] capped at GRID_SIZE. Socketed instances live on ItemData.socketed.
 @export var bags: Dictionary = {}
 @export var equipped: Dictionary = {
 	"head": null,
@@ -38,6 +38,7 @@ const EQUIP_SLOTS: Array[String] = [
 }
 @export var quick_item: ItemData
 @export var quick_food: ItemData
+var _socket_normalize: bool = false
 @export var current_category: ItemData.ItemCategory = ItemData.ItemCategory.WEAPON
 @export var sort_mode: String = "time"
 
@@ -73,6 +74,8 @@ func ensure_grid_size() -> void:
 			if bag.size() > GRID_SIZE:
 				bag.resize(GRID_SIZE)
 		bags[key] = bag
+	if not _socket_normalize:
+		ensure_socketed_on_items()
 
 
 func get_bag(bag_key: String) -> Array:
@@ -326,21 +329,37 @@ func try_add_gem(gi: GemInstance) -> bool:
 
 
 func remove_rune_uid(uid: String) -> RuneInstance:
+	var ri := _take_rune_from_bag(uid)
+	if ri:
+		_clear_socket_refs(uid)
+	return ri
+
+
+func remove_gem_uid(uid: String) -> GemInstance:
+	var gi := _take_gem_from_bag(uid)
+	if gi:
+		_clear_socket_refs(uid)
+	return gi
+
+
+func _take_rune_from_bag(uid: String) -> RuneInstance:
+	if uid.is_empty():
+		return null
 	for i in range(runes.size()):
 		var ri: RuneInstance = runes[i] as RuneInstance
 		if ri and ri.instance_uid == uid:
 			runes.remove_at(i)
-			_clear_socket_refs(uid)
 			return ri
 	return null
 
 
-func remove_gem_uid(uid: String) -> GemInstance:
+func _take_gem_from_bag(uid: String) -> GemInstance:
+	if uid.is_empty():
+		return null
 	for i in range(gems.size()):
 		var gi: GemInstance = gems[i] as GemInstance
 		if gi and gi.instance_uid == uid:
 			gems.remove_at(i)
-			_clear_socket_refs(uid)
 			return gi
 	return null
 
@@ -355,22 +374,58 @@ func _iter_bag_items() -> Array[ItemData]:
 	return out
 
 
-func _clear_socket_refs(uid: String) -> void:
+func _gear_items() -> Array[ItemData]:
+	var out: Array[ItemData] = []
 	for slot_id in EQUIP_SLOTS:
 		var item: ItemData = equipped.get(slot_id) as ItemData
+		if item:
+			out.append(item)
+	for key in BAG_KEYS:
+		if not bags.has(key) or not bags[key] is Array:
+			continue
+		for item in bags[key]:
+			if item is ItemData:
+				out.append(item as ItemData)
+	return out
+
+
+## Move socketed instances out of runes[]/gems[] onto ItemData.socketed. Old saves keep uid-only rows until this runs.
+func ensure_socketed_on_items() -> void:
+	if _socket_normalize:
+		return
+	_socket_normalize = true
+	for item in _gear_items():
 		if item == null:
 			continue
+		for entry in item.socketed:
+			if not entry is Dictionary:
+				continue
+			var d: Dictionary = entry
+			var uid := str(d.get("instance_uid", ""))
+			if uid.is_empty():
+				continue
+			if str(d.get("rune_id", "")).is_empty():
+				var ri := find_rune(uid)
+				if ri:
+					d["rune_id"] = ri.rune_id
+					d["registered"] = ri.registered
+			if str(d.get("gem_id", "")).is_empty():
+				var gi := find_gem(uid)
+				if gi:
+					d["gem_id"] = gi.gem_id
+					d["registered"] = gi.registered
+			_take_rune_from_bag(uid)
+			_take_gem_from_bag(uid)
+	_socket_normalize = false
+
+
+func _clear_socket_refs(uid: String) -> void:
+	for item in _gear_items():
 		var kept: Array[Dictionary] = []
 		for entry in item.socketed:
 			if entry is Dictionary and str(entry.get("instance_uid", "")) != uid:
 				kept.append(entry)
 		item.socketed = kept
-	for item in _iter_bag_items():
-		var kept2: Array[Dictionary] = []
-		for entry in item.socketed:
-			if entry is Dictionary and str(entry.get("instance_uid", "")) != uid:
-				kept2.append(entry)
-		item.socketed = kept2
 
 
 func socket_rune(equip_slot: String, rune_uid: String, index: int = 0) -> bool:
@@ -392,7 +447,10 @@ func socket_rune_on_item(item: ItemData, rune_uid: String, index: int = 0) -> bo
 		return false
 	if index < 0 or index >= item.socket_layout.rune_slots:
 		return false
-	_set_socket(item, "rune", index, rune_uid)
+	if not _socket_uid_on_item(item, "rune", index).is_empty():
+		return false
+	_set_socket(item, "rune", index, rune_uid, ri.rune_id, "", ri.registered)
+	_take_rune_from_bag(rune_uid)
 	return true
 
 
@@ -413,7 +471,10 @@ func socket_gem_on_item(item: ItemData, gem_uid: String, kind: String, index: in
 			return false
 	else:
 		return false
-	_set_socket(item, kind, index, gem_uid)
+	if not _socket_uid_on_item(item, kind, index).is_empty():
+		return false
+	_set_socket(item, kind, index, gem_uid, "", gi.gem_id, gi.registered)
+	_take_gem_from_bag(gem_uid)
 	return true
 
 
@@ -421,18 +482,45 @@ func unsocket(item: ItemData, kind: String, index: int) -> bool:
 	if item == null:
 		return false
 	var next: Array[Dictionary] = []
-	var removed := false
+	var pulled: Dictionary = {}
 	for entry in item.socketed:
 		if not entry is Dictionary:
 			continue
 		var d: Dictionary = entry
 		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
-			removed = true
+			pulled = d
 			continue
 		next.append(d)
-	if not removed:
+	if pulled.is_empty():
+		return false
+	if not _return_socket_entry_to_bag(pulled):
 		return false
 	item.socketed = next
+	return true
+
+
+func _return_socket_entry_to_bag(entry: Dictionary) -> bool:
+	var uid := str(entry.get("instance_uid", ""))
+	var rune_id := str(entry.get("rune_id", ""))
+	if not rune_id.is_empty():
+		if find_rune(uid):
+			return true
+		var ri := RuneInstance.from_dict({
+			"instance_uid": uid,
+			"rune_id": rune_id,
+			"registered": bool(entry.get("registered", false)),
+		})
+		return try_add_rune(ri)
+	var gem_id := str(entry.get("gem_id", ""))
+	if not gem_id.is_empty():
+		if find_gem(uid):
+			return true
+		var gi := GemInstance.from_dict({
+			"instance_uid": uid,
+			"gem_id": gem_id,
+			"registered": bool(entry.get("registered", false)),
+		})
+		return try_add_gem(gi)
 	return true
 
 
@@ -491,14 +579,36 @@ func empty_socket_rows(item: ItemData, kind_filter: String = "") -> Array[Dictio
 
 func _socket_row_dict(item: ItemData, kind: String, index: int) -> Dictionary:
 	var uid := ""
+	var rune_id := ""
+	var gem_id := ""
 	for entry in item.socketed:
 		if not entry is Dictionary:
 			continue
 		var d: Dictionary = entry
 		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
 			uid = str(d.get("instance_uid", ""))
+			rune_id = str(d.get("rune_id", ""))
+			gem_id = str(d.get("gem_id", ""))
 			break
-	return {"kind": kind, "index": index, "instance_uid": uid}
+	return {
+		"kind": kind,
+		"index": index,
+		"instance_uid": uid,
+		"rune_id": rune_id,
+		"gem_id": gem_id,
+	}
+
+
+func _socket_uid_on_item(item: ItemData, kind: String, index: int) -> String:
+	if item == null:
+		return ""
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
+			return str(d.get("instance_uid", ""))
+	return ""
 
 
 func _find_socket_on_item(item: ItemData, uid: String) -> Dictionary:
@@ -516,7 +626,15 @@ func _find_socket_on_item(item: ItemData, uid: String) -> Dictionary:
 	return {}
 
 
-func _set_socket(item: ItemData, kind: String, index: int, uid: String) -> void:
+func _set_socket(
+	item: ItemData,
+	kind: String,
+	index: int,
+	uid: String,
+	rune_id: String,
+	gem_id: String,
+	registered: bool
+) -> void:
 	_clear_socket_refs(uid)
 	var next: Array[Dictionary] = []
 	for entry in item.socketed:
@@ -528,7 +646,17 @@ func _set_socket(item: ItemData, kind: String, index: int, uid: String) -> void:
 		if str(d.get("instance_uid", "")) == uid:
 			continue
 		next.append(d)
-	next.append({"kind": kind, "index": index, "instance_uid": uid})
+	var payload := {
+		"kind": kind,
+		"index": index,
+		"instance_uid": uid,
+		"registered": registered,
+	}
+	if not rune_id.is_empty():
+		payload["rune_id"] = rune_id
+	if not gem_id.is_empty():
+		payload["gem_id"] = gem_id
+	next.append(payload)
 	item.socketed = next
 
 

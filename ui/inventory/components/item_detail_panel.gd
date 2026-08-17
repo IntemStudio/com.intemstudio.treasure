@@ -31,6 +31,8 @@ enum GoldPrice { HIDDEN, BUY, SELL }
 @onready var socket_header: Label = %SocketHeader
 @onready var socket_list: VBoxContainer = %SocketList
 @onready var resonance_label: Label = %ResonanceLabel
+@onready var effect_header: Label = %EffectHeader
+@onready var effect_list: VBoxContainer = %EffectList
 
 var _item: ItemData
 var _compare_with: ItemData
@@ -42,6 +44,7 @@ var _resonance_key: String = ""
 var _selected_socket_kind: String = ""
 var _selected_socket_index: int = -1
 var _socket_rows: Array[SocketRow] = []
+var _resonance := ResonanceService.new()
 
 
 func _ready() -> void:
@@ -130,6 +133,7 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 		weight_label.text = ""
 		_clear_container(affix_list)
 		_clear_socket_rows()
+		_clear_socket_effects()
 		return
 
 	item_name_label.text = tr(item.display_name).to_upper()
@@ -166,6 +170,7 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 	weight_label.text = tr("Weight %.1f") % item.weight
 	_populate_affixes(item)
 	_populate_sockets(item)
+	_populate_socket_effects(item)
 	_refresh_resonance_label()
 
 
@@ -195,24 +200,31 @@ func _populate_sockets(item: ItemData) -> void:
 		var kind := str(row_data.get("kind", ""))
 		var index := int(row_data.get("index", 0))
 		var uid := str(row_data.get("instance_uid", ""))
+		var rune_id := str(row_data.get("rune_id", ""))
+		var gem_id := str(row_data.get("gem_id", ""))
 		var display := ""
 		var rarity := ItemData.ItemRarity.COMMON
 		var icon: Texture2D = null
-		if not uid.is_empty() and _inventory:
-			if kind == "rune":
+		if kind == "rune":
+			if rune_id.is_empty() and not uid.is_empty() and _inventory:
 				var ri := _inventory.find_rune(uid)
-				if ri and _rune_catalog:
-					var rd := _rune_catalog.get_rune(ri.rune_id)
-					if rd:
-						display = tr(rd.display_name)
-						icon = rd.icon
-			else:
+				if ri:
+					rune_id = ri.rune_id
+			if not rune_id.is_empty() and _rune_catalog:
+				var rd := _rune_catalog.get_rune(rune_id)
+				if rd:
+					display = tr(rd.display_name)
+					icon = rd.icon
+		elif not uid.is_empty() or not gem_id.is_empty():
+			if gem_id.is_empty() and _inventory:
 				var gi := _inventory.find_gem(uid)
-				if gi and _gem_catalog:
-					var gd := _gem_catalog.get_gem(gi.gem_id)
-					if gd:
-						display = tr(gd.display_name)
-						icon = gd.icon
+				if gi:
+					gem_id = gi.gem_id
+			if not gem_id.is_empty() and _gem_catalog:
+				var gd := _gem_catalog.get_gem(gem_id)
+				if gd:
+					display = tr(gd.display_name)
+					icon = gd.icon
 		var row: SocketRow = SOCKET_SCENE.instantiate()
 		socket_list.add_child(row)
 		row.setup(kind, index, display, rarity, icon)
@@ -220,6 +232,148 @@ func _populate_sockets(item: ItemData) -> void:
 		row.row_activated.connect(_on_socket_row_activated)
 		row.set_selected(kind == _selected_socket_kind and index == _selected_socket_index)
 		_socket_rows.append(row)
+
+
+func _populate_socket_effects(item: ItemData) -> void:
+	_clear_socket_effects()
+	if effect_list == null or item == null:
+		return
+	_ensure_catalogs()
+	item.ensure_socket_layout()
+	var lines: Array[Dictionary] = []
+	var seen: Dictionary = {}
+	var rune_cap := item.socket_layout.rune_slots if item.socket_layout else 0
+	for i in range(rune_cap):
+		var rune := _socketed_rune(item, i)
+		if rune == null:
+			continue
+		var skill := tr(rune.skill_name) if not rune.skill_name.is_empty() else tr(rune.display_name)
+		if item.equip_slot == "main_hand":
+			var core := _socketed_core(item, i)
+			var auxes := _socketed_aux(item, i)
+			var result := _resonance.evaluate(item, rune, core, auxes)
+			if result.state != ResonanceResult.State.INACTIVE:
+				if core and not core.skill_name_suffix.is_empty():
+					skill += tr(core.skill_name_suffix)
+				for aux in auxes:
+					if aux and not aux.skill_name_suffix.is_empty():
+						var extra := tr(aux.skill_name_suffix)
+						if not skill.ends_with(extra):
+							skill += extra
+		var kind := rune.skill_kind if not rune.skill_kind.is_empty() else "strike"
+		var line := "%s — %s" % [skill, _skill_kind_label(kind)]
+		if seen.has(line):
+			continue
+		seen[line] = true
+		lines.append({"text": line, "desc": _skill_kind_desc(kind)})
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var kind := str(entry.get("kind", ""))
+		if kind != "core_gem" and kind != "aux_gem":
+			continue
+		var gem := _gem_from_entry(entry)
+		if gem == null:
+			continue
+		var fx := _gem_slot_effect_row(gem, item.equip_slot)
+		var fx_text := str(fx.get("text", ""))
+		if fx_text.is_empty() or seen.has(fx_text):
+			continue
+		seen[fx_text] = true
+		lines.append(fx)
+	if effect_header:
+		effect_header.text = tr("SOCKET_EFFECTS") if not lines.is_empty() else ""
+	for line in lines:
+		var row: AffixLine = AFFIX_SCENE.instantiate()
+		effect_list.add_child(row)
+		row.setup(str(line.get("text", "")), true, str(line.get("desc", "")))
+
+
+func _ensure_catalogs() -> void:
+	if _rune_catalog == null:
+		_rune_catalog = RuneCatalog.new()
+	if _gem_catalog == null:
+		_gem_catalog = GemCatalog.new()
+
+
+func _socketed_rune(item: ItemData, index: int) -> RuneData:
+	var rune_id := _socket_field(item, "rune", index, "rune_id")
+	if rune_id.is_empty() or _rune_catalog == null:
+		return null
+	return _rune_catalog.get_rune(rune_id)
+
+
+func _socketed_core(item: ItemData, index: int) -> GemData:
+	return _gem_from_ids(_socket_field(item, "core_gem", index, "gem_id"))
+
+
+func _socketed_aux(item: ItemData, index: int) -> Array[GemData]:
+	var out: Array[GemData] = []
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) != "aux_gem" or int(d.get("index", -1)) != index:
+			continue
+		var gem := _gem_from_entry(d)
+		if gem:
+			out.append(gem)
+	return out
+
+
+func _socket_field(item: ItemData, kind: String, index: int, key: String) -> String:
+	for entry in item.socketed:
+		if not entry is Dictionary:
+			continue
+		var d: Dictionary = entry
+		if str(d.get("kind", "")) == kind and int(d.get("index", -1)) == index:
+			return str(d.get(key, ""))
+	return ""
+
+
+func _gem_from_entry(entry: Dictionary) -> GemData:
+	return _gem_from_ids(str(entry.get("gem_id", "")))
+
+
+func _gem_from_ids(gem_id: String) -> GemData:
+	if gem_id.is_empty() or _gem_catalog == null:
+		return null
+	return _gem_catalog.get_gem(gem_id)
+
+
+func _gem_slot_effect_row(gem: GemData, equip_slot: String) -> Dictionary:
+	var raw := str(gem.slot_effects.get(equip_slot, ""))
+	if raw.is_empty():
+		return {}
+	var key := "GEM_FX_%s" % raw.to_upper()
+	var translated := tr(key)
+	var text := translated if translated != key else raw.replace("_", " ")
+	var desc_key := "%s_DESC" % key
+	var desc := tr(desc_key)
+	if desc == desc_key:
+		desc = ""
+	return {"text": text, "desc": desc}
+
+
+func _skill_kind_label(kind: String) -> String:
+	var id := kind if not kind.is_empty() else "strike"
+	var key := "SKILL_KIND_%s" % id.to_upper()
+	var translated := tr(key)
+	return translated if translated != key else id
+
+
+func _skill_kind_desc(kind: String) -> String:
+	var id := kind if not kind.is_empty() else "strike"
+	var key := "SKILL_KIND_%s_DESC" % id.to_upper()
+	var translated := tr(key)
+	return translated if translated != key else ""
+
+
+func _clear_socket_effects() -> void:
+	if effect_header:
+		effect_header.text = ""
+	if effect_list:
+		_clear_container(effect_list)
 
 
 func _refresh_gold_labels() -> void:
@@ -270,7 +424,19 @@ func _populate_affixes(item: ItemData) -> void:
 		var row: AffixLine = AFFIX_SCENE.instantiate()
 		affix_list.add_child(row)
 		var text := str(affix.get("text", ""))
-		row.setup(tr(text) if not text.is_empty() else "", bool(affix.get("positive", true)))
+		row.setup(
+			tr(text) if not text.is_empty() else "",
+			bool(affix.get("positive", true)),
+			_affix_stat_desc(str(affix.get("id", "")))
+		)
+
+
+func _affix_stat_desc(stat_id: String) -> String:
+	if stat_id.is_empty() or not CombatStatsBuilder.AFFIX_FIELDS.has(stat_id):
+		return ""
+	var key := "STAT_DESC_%s" % stat_id
+	var translated := tr(key)
+	return translated if translated != key else ""
 
 
 func _rarity_text_color(item: ItemData) -> Color:

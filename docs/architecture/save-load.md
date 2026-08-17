@@ -51,7 +51,7 @@
 
 - **meta:** slot, created_at, updated_at, play_time_sec, level, **`registered_cards`**, `open_cards`, `unlocked_shelves`(`shelf_rune`,`shelf_gem`), `card_pity` ([`equipment.md`](equipment.md))  
 - **character:** name, level, xp, xp_to_next(저장·표시용, 로드 시 [`LevelProgression`](../../data/progression/level_progression.gd) CSV로 재동기화), hp, attribute_points, attributes, weight_current, weapons(임시). `attributes`는 [`ATTRIBUTE_IDS`](../../ui/stats/resources/character_stats.gd)만 읽고 모르는 키는 버린다. 옛 `faith`가 10을 넘으면 초과분을 `attribute_points`로 환급 (`SAVE_VERSION` 그대로)  
-- **inventory:** currencies, current_category, sort_mode, sparse slots, equipped, **`runes`**, **`gems`**  
+- **inventory:** currencies, current_category, sort_mode, sparse slots, equipped, 미소켓 **`runes`**, **`gems`**. 꽂힌 룬·보석은 장비 `socketed`에만 (`rune_id`/`gem_id`). 옛 세이브는 로드 시 가방에서 떼어 장비로 옮김  
 - **아이템:** `id` + quantity / durability / `socketed` / `rarity` 등 인스턴스 오버라이드 (`ItemCatalog`로 베이스 복제). `rarity`가 있으면 소켓은 `SocketLayout.for_slot`로 재구성한 뒤 `trim_socketed_to_layout` (넘친 uid는 **삭제**, 가방 반환 없음). 옛 세이브 `rarity` 3(EPIC)·4는 `LEGENDARY`로 clamp. `cost` / `gain`은 저장하지 않음 ([`shop.md`](shop.md))
 
 파생 스탯(`general` / `defense` / `hp_max` / `xp_to_next`)은 테이블·공식으로 복원. 요구 XP: [`data/progression/xp_to_next.csv`](../../data/progression/xp_to_next.csv) (D2 곡선 × 0.1).
@@ -90,6 +90,8 @@ SettingsManager.save_settings / reset_settings → user://settings.cfg
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
 - `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV. 기존 런 파일 삭제  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
+- 소켓 인스턴스는 장비 `socketed`에만. 로드 시 `ensure_socketed_on_items`  
+- 검증: `godot --headless --path . -s res://save/verify_save_v1.gd`  
 - 개발 오버레이: 아래 절
 
 ---

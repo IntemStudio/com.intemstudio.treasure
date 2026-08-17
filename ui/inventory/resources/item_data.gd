@@ -47,7 +47,7 @@ const ICON_COLS := 16
 @export var compatible_rune_tags: Array[StringName] = []
 @export var compatible_gem_tags: Array[StringName] = []
 @export var intrinsic_effects: Array[Dictionary] = []
-## Socket contents: [{ "kind": "rune"|"core_gem"|"aux_gem", "index": int, "instance_uid": String }]
+## Socket contents: [{ kind, index, instance_uid, rune_id|gem_id, registered }]. Instance lives here, not in the bag.
 @export var socketed: Array[Dictionary] = []
 
 
