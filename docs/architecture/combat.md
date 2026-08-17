@@ -27,7 +27,10 @@
 | 바인딩 | [`scenes/dungeon/dungeon.gd`](../../scenes/dungeon/dungeon.gd) · [`ui/ui_manager.gd`](../../ui/ui_manager.gd) |
 
 CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.  
-유닛은 방 월드 `Node2D`. 머리 위: 이름 · HP 바 + `현재/최대` · ATB.  
+유닛은 방 월드 `Node2D` (`CombatantActor`).  
+머리 위: HP 바 + `현재/최대` · ATB (이름 없음).  
+본체: 표시명 텍스트 (히어로는 이름 그대로, 적은 `tr(display_name)`).  
+포커스 금테·클릭 히트는 이름 박스. 색 사각형·스프라이트 없음. `body_color` / `sprite`는 유닛 `.tres`에 남음(미표시).  
 피격 시 `unit_hit` → `CombatantActor` 플로팅 데미지.  
 이산 행동 `action_resolved` → 게임 로그 ([`game-log.md`](game-log.md)).
 
@@ -56,7 +59,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 6. 틱: `regen_per_sec`, 스태미나 재생. 공격/반격/회피 비용. 0이면 Tired
 
 히어로 스냅샷: [`CombatStatsBuilder`](../../data/combat/combat_stats_builder.gd) ([`stats.md`](stats.md)).  
-기술: 평타 ATB와 별도 `skill_atb`. 가득 차면 `list_equipped_rune_skills` 목록에서 마나가 되는 첫 **액티브**(`strike`/`combo`/`aoe`)를 자동 발동. 패시브는 건너뜀. 부족하면 평타만 ([`equipment.md`](equipment.md) · HUD 충전 바).
+기술: 평타 ATB와 별도 `skill_atb`. 가득 차면 `list_equipped_rune_skills` 목록에서 마나가 되는 첫 **액티브**(`strike`/`combo`/`aoe`)를 자동 발동. 패시브는 건너뜀. 부족하면 평타만 ([`equipment.md`](equipment.md) · HUD 충전 바). 강타 배율·기술 흡혈·스플래시 비율은 [`CombatRules`](../../data/combat/combat_rules.gd) (`combat_rules.tres`).
 
 | 결과 | 처리 |
 |------|------|
@@ -122,4 +125,4 @@ signal action_resolved(payload)
 
 ## 디버그
 
-DevOverlay `[캐릭터]` 탭: 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 탭: 장비·보석·룬 지급, 장비 희귀도 변경(`ItemData.apply_rarity` → 색·가격, 소켓은 부위로 다시 찍고 넘친 칸 트림). `[서가]` 탭: 룬/보석 판 `open_cards` 전 칸 해금 (`CardRegistrationService.open_all_on_shelf`).
+DevOverlay ([`save-load.md`](save-load.md)): `[캐릭터]` 강제 조우 / 승리 / 패배 / 후퇴. `[아이템]` 부위 하위 탭 격자에서 선택·획득. `[서가]` 룬/보석 판 `open_cards` 전 칸 해금.

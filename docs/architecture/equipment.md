@@ -4,7 +4,7 @@
 후속(패시브 전투 훅·특수 방): [`docs/design/equipment.md`](../design/equipment.md). `eq.economy`(희귀도=소켓)는 **폐기**.  
 서가: [`docs/design/bookshelf.md`](../design/bookshelf.md) (`shelf.v3`).
 
-**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 소켓에 꽂고 뺄 수 있다. 마을 **서가** 탭 룬|보석. 룻은 `open_cards` (시작 각 판 `#1`만. 봉인 시 인접 OPEN). 룬·보석 희귀도 없음. `RuneCatalog` / `GemCatalog`는 서가당 템플릿 25개(card_number 1–25, 5×5).
+**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 인벤에서 룬·보석을 소켓에 꽂고 뺄 수 있다. 마을 **서가** 탭 룬|보석. 룻은 `open_cards` (시작 각 판 `#1`만. 봉인 시 인접 OPEN). 룬·보석 희귀도 없음. `RuneCatalog` / `GemCatalog`는 서가당 템플릿 25개(card_number 1–25, 5×5). DevOverlay `[아이템]`은 부위 하위 탭 격자로 카탈로그 지급 ([`save-load.md`](save-load.md)).
 
 관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md) · [`shop.md`](shop.md) (`cost`/`gain`은 오버라이드. 소켓 수 ≠ 골드).
 
@@ -74,7 +74,7 @@ HUD SkillRow 0~6  +  CombatSession 게이지
 
 ## 소켓 UI
 
-인벤 **상세**에 소켓 행(`SocketRow`)을 표시한다 ([`item_detail_panel.gd`](../../ui/inventory/components/item_detail_panel.gd) · [`socket_row.gd`](../../ui/inventory/components/socket_row.gd)). 무기 행 순서: `rune0`, `core0`, `aux0`, `rune1`, `core1`, `aux1` (`InventoryData.list_socket_rows`).
+인벤 **상세**에 소켓 행(`SocketRow`)을 표시한다 ([`item_detail_panel.gd`](../../ui/inventory/components/item_detail_panel.gd) · [`socket_row.gd`](../../ui/inventory/components/socket_row.gd)). 찬 칸은 `RuneData.icon` / `GemData.icon` (`icon_for_kind` · `icon_for`, 시트는 [`inventory.md`](inventory.md)). 무기 행 순서: `rune0`, `core0`, `aux0`, `rune1`, `core1`, `aux1` (`InventoryData.list_socket_rows`).
 
 | 흐름 | 조작 |
 |------|------|
@@ -87,7 +87,7 @@ HUD SkillRow 0~6  +  CombatSession 게이지
 
 ## 카드 등록 · 서가 (shelf.v3)
 
-`VillageShell` **[서가]** → `UIManager.open_tab(SHELF)` Sheet. 내부 탭 **룬 | 보석**. 제단 단독 UI 없음. 오른쪽 상세는 인벤과 같은 `ModifierDetailPanel` (OPEN·REGISTERED만 능력; FOG는 힌트만). 룬은 `skill_kind`로 장착 부위. 보석은 `slot_effects` 주입 효과+설명. 봉인 상태 문구는 `DetailStatus`.
+`VillageShell` **[서가]** → `UIManager.open_tab(SHELF)` Sheet. 내부 탭 **룬 | 보석**. 제단 단독 UI 없음. 오른쪽 상세는 인벤과 같은 `ModifierDetailPanel` (OPEN·REGISTERED만 능력; FOG는 힌트만). OPEN·REGISTERED 칸은 템플릿 아이콘. 룬은 `skill_kind`로 장착 부위. 보석은 `slot_effects` 주입 효과+설명. 봉인 상태 문구는 `DetailStatus`.
 
 1. 격자 = 5×5, 1칸 1템플릿. 상태: FOG / OPEN / REGISTERED / EMPTY  
 2. 보유·미소켓 uid → 봉인 → `registered_cards`, self+인접 `open_cards` (동 판만)  

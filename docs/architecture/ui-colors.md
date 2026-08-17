@@ -18,7 +18,7 @@ Const는 `Color(r,g,b,a)` float (hex는 아래 표). `Color.html`은 const에서
 2. 알파만 다를 때 새 토큰을 만들지 않는다 → `UIColors.with_alpha(c, a)`.
 3. bbcode hex → `UIColors.html(c)`.
 4. `CLEAR` / `DIM` / `OUTLINE` / `Color.WHITE` / 죽은 액터 `modulate` 알파는 연산자. 팔레트 아님.
-5. **유닛 `body_color`** (`data/combat/units/*.tres`)는 월드 데이터. UI 팔레트에 넣지 않는다.
+5. **유닛 `body_color`** (`data/combat/units/*.tres`)는 월드 데이터. UI 팔레트에 넣지 않는다. 액터는 그리지 않음 — 본체는 표시명 ([`combat.md`](combat.md)).
 6. Theme `.tres` / 씬 bake는 스크립트 상수를 못 읽는다 → **같은 hex를 복제**. verify가 어긋남을 잡는다.
 7. **`MinimapStyle`** 기본값도 `UIColors` / `with_alpha`만. 팔레트 float를 `@export`에 다시 쓰지 않는다.
 8. 왼쪽 선택·포커스 바는 **`UISelectStyle`** (`ui/shared/ui_select_style.gd`). 색은 `UIColors`.

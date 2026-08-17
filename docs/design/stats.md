@@ -44,7 +44,7 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 |----|------|------|
 | `CharacterStats` | 8속성, HP/마나, 표시용 파생 | 구현. 전투 숫자는 빌더 |
 | `CombatStats` | Loop Hero 전투 필드 + 스태미나 | 구현. 빌더가 채움 |
-| `CombatRules` | 방어 곡선, ATB, 스태미나 비용, Magic HP·반격 규칙 | 구현. 세션이 소비 |
+| `CombatRules` | 방어 곡선, ATB, 스태미나 비용, 기술 흡혈/스플래시, Magic HP·반격 규칙 | 구현. 세션이 소비 |
 | `ItemData.affixes` | 접두사 | `id`/`value`/`text` |
 | `ItemData.skills` | 주무기 액티브 세트(최대 2) | HUD는 `list_equipped_rune_skills`. 게이지는 액티브만 ([`equipment.md`](equipment.md)) |
 
@@ -67,7 +67,7 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 | `health` | Health | `max_hp` | — |
 | `stamina` | Stamina | 전투 스태미나 풀·재생. 공격/반격 25, 회피 10. 고갈 → Tired(회피 반감) | 구르기·공격 횟수 바 |
 | `strength` | Strength | 물리 피해, Defense, Retaliation. 힘 스케일 무기 | — |
-| `dexterity` | Dexterity | Attack Speed, Evasion, Crit, Counter. 민첩 스케일 무기 | — |
+| `dexterity` | Dexterity | 민첩 스케일 무기 | — |
 | `intelligence` | Intelligence | Magic Damage, Damage to All, **공격 기술 위력**. 지능 스케일 무기 | — |
 | `faith` | Faith | Vampirism, Regen, Magic HP, **유지 기술 위력**. 신앙 스케일 무기 | — |
 | `focus` | Focus → **Mana** (v1.3 표기) | 기술 자원. `mana_max` / 재생. 기술 ATB가 찰 때 소모 | 100점마다 룬 바 추가, 수동 룬 |
@@ -88,10 +88,10 @@ HUD에 스태미나 바를 상시 두지 않는다. 전투 중 표시는 [`comba
 | 필드 | 주 공급 | 효과 |
 |------|---------|------|
 | `damage_min` / `damage_max` | 무기 total × 스케일 | 평타. Defense에 깎임 |
-| `attack_speed` | DEX + 접두사 + Light | `CombatRules.attacks_per_sec`의 IAS |
-| `evasion` | DEX + 경장갑 + 접두사 | 완전 회피. 스태미나 10 |
-| `crit_chance` / `crit_damage` | DEX + 접두사 | 크리. 방어 무시 여부는 구현 직전 |
-| `counter_chance` | DEX + 접두사 | 피격·회피 시 반격. ATB 리셋 |
+| `attack_speed` | 접두사 (+ Light v2) | `CombatRules.attacks_per_sec`의 IAS |
+| `evasion` | 접두사 (+ 경장갑 v2) | 완전 회피. 스태미나 10 |
+| `crit_chance` / `crit_damage` | 접두사 (`crit_damage` 기본 1.4) | 크리. 방어 무시 여부는 구현 직전 |
+| `counter_chance` | 접두사 | 피격·회피 시 반격. ATB 리셋 |
 | `defense` | STR + 갑옷 + Heavy | Loop Hero 곡선 (`apply_defense`). **NRFW % Armor와 병행하지 않음** |
 | `vampirism` | Faith + 접두사 | 입힌 피해 % 회복 |
 | `regen_per_sec` | Faith + 접두사 | 전투 중·방 이동 중 |
@@ -130,11 +130,11 @@ CombatStatsBuilder.build(character, inventory) -> CombatStats
 |------|----|
 | `max_hp` | `character.hp_max` |
 | `damage_*` | 주무기 total, 구간비 현행 `WEAPON_RANGE_RATIO` |
-| `attack_speed` | `over(dex) * 0.01` + 접두사 |
-| `evasion` | `over(dex) * 0.005` + 접두사 |
-| `crit_chance` | `over(dex) * 0.005` + 접두사 |
+| `attack_speed` | 접두사만 |
+| `evasion` | 접두사만 |
+| `crit_chance` | 접두사만 |
 | `crit_damage` | 기본 1.4 + 접두사 |
-| `counter_chance` | `over(dex) * 0.005` + 접두사 |
+| `counter_chance` | 접두사만 |
 | `defense` | 갑옷 `ItemData.defense` + `over(str) * 1` + 접두사. **`defense.armor` 키를 전투에 그대로 복사하지 않음** |
 | `vampirism` | `over(faith) * 0.005` + 접두사 |
 | `regen_per_sec` | `over(faith) * 0.1` + 접두사 |
@@ -158,7 +158,7 @@ CombatStatsBuilder.build(character, inventory) -> CombatStats
 
 무기 표 유지: Base / Attr Bonus / Other / Total. Attr Bonus는 `scales_with`만.
 
-Footer **Insight**: 선택한 속성이 올리는 능력치 설명 (`ATTR_DESC_*`). 버튼은 v1에 있음.
+설명은 푸터 Insight 버튼이 아니라 왼쪽 `InsightHint` 상시. 속성 `ATTR_DESC_*`, GENERAL/COMBAT/DEFENSE `STAT_DESC_*`. 구현됨 → 구조 문서.
 
 `Focus` → `Mana` 문자열은 [`hud.md`](hud.md) v2와 같이 v1.3에서 HUD와 동시에 바꾼다. v1.1 COMBAT 열은 영문 키 그대로여도 된다.
 

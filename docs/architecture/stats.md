@@ -5,7 +5,7 @@
 후속(Focus→Mana 라벨·무게 전투 보정): [`docs/design/stats.md`](../design/stats.md).  
 기술 게이지·마나 자동 발동은 전투 ([`combat.md`](combat.md) · [`equipment.md`](equipment.md)).
 
-**현황:** v1.1 — COMBAT 열·`CombatStatsBuilder` 표시 소스·Defense 키·Insight 토글.
+**현황:** v1.1 — COMBAT 열·`CombatStatsBuilder` 표시 소스·Defense 키·속성·부가 스탯 설명 상시.
 
 ---
 
@@ -18,9 +18,13 @@
 | 테마 | [`ui/stats/themes/stats_theme.tres`](../../ui/stats/themes/stats_theme.tres) |
 | 데이터 | [`ui/stats/resources/character_stats.gd`](../../ui/stats/resources/character_stats.gd), [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) |
 | 합산 | [`data/combat/combat_stats_builder.gd`](../../data/combat/combat_stats_builder.gd) |
+| 검증 | [`data/combat/verify_combat_stats_builder.gd`](../../data/combat/verify_combat_stats_builder.gd) (`STAT_DESC_*` 키 포함) |
 | 초상화 | [`ui/stats/shaders/hex_portrait.gdshader`](../../ui/stats/shaders/hex_portrait.gdshader) |
+| 문구 | [`locale/ui_strings.csv`](../../locale/ui_strings.csv) — `ATTR_DESC_*` · `STAT_DESC_*` |
 
 공통 TopBar / Footer: [`ui/shared/`](../../ui/shared/).
+
+검증: `godot --headless --path . -s res://data/combat/verify_combat_stats_builder.gd`
 
 패널 계약: `setup(ui_manager, footer)` → `activate(stats, inventory)` / `deactivate()` → Esc·BACK 시 `request_close`.
 
@@ -33,9 +37,9 @@
 | TopBar (셸) | 상단 밴드(72) — 제목만 |
 | Body | 중단 밴드 — expand |
 | Footer (셸) | 하단 밴드(72) — 프롬프트 |
-| Left | 초상화, Attribute Points, 속성 목록 (Health~Equip Load), Insight 시 선택 속성 설명. Body 1/4 |
+| Left | 초상화(`icon.svg`), Attribute Points, 속성 목록 (Health~Equip Load, 시트 아이콘), 선택 속성 또는 부가 스탯 설명. Body 1/4 |
 | Right | GENERAL / COMBAT / DEFENSE / WEIGHT + 무기 데미지 테이블. Body 3/4 |
-| Footer (셸) | LEVEL-UP / INSIGHT / BACK |
+| Footer (셸) | LEVEL-UP / BACK |
 
 ---
 
@@ -48,7 +52,7 @@ StatsContent (Control, stats_theme)
     │   ├── Portrait
     │   ├── PointsRow (< / Attribute Points / value / >)
     │   ├── AttributeList
-    │   └── InsightHint (선택 속성 설명, 토글)
+    │   └── InsightHint (선택 속성 또는 부가 스탯 설명)
     └── RightPanel
         ├── Columns
         │   ├── GeneralCol
@@ -76,8 +80,8 @@ MenuShell (CanvasLayer)
 
 ```
 ui/stats/components/
-  attribute_row.*
-  stat_row.*
+  attribute_row.*   # 투자 행. AttributeRow / Hover / Selected
+  stat_row.*        # GENERAL/COMBAT/DEFENSE. 같은 variation 재사용
   weapon_stat_row.*
 ```
 
@@ -85,16 +89,17 @@ ui/stats/components/
 
 ## 데이터·조작
 
-- **속성:** `CharacterStats.ATTRIBUTE_IDS` (포인트 투자 시 선택 행 기준)
+- **속성:** `CharacterStats.ATTRIBUTE_IDS` (포인트 투자 시 선택 행 기준). 행 아이콘은 `StatsContent._attribute_icon` → `ItemData.sheet_icon` ([`inventory.md`](inventory.md) 아이콘). 초상화는 `icon.svg`
 - **GENERAL:** Life / Stamina / Stamina Regen / Focus / Focus Gain
-- **COMBAT:** `CombatStatsBuilder.build(stats, inventory)` — Damage, Attack Speed, Crit, Magic Damage, Damage to All, Vampirism, Regen, Counter, Evasion, Magic HP, Retaliation. 전투 조우와 **같은** 빌더
+- **COMBAT:** `CombatStatsBuilder.build(stats, inventory)` — Damage, Attack Speed, Crit Chance, Crit Damage, Magic Damage, Damage to All, Vampirism, Regen, Counter, Evasion, Magic HP, Retaliation. 전투 조우와 **같은** 빌더
 - **DEFENSE:** Defense (빌더 값). Poise·원소는 표시하지 않음
-- **Insight:** X로 토글. 왼쪽 목록에서 고른 속성이 올리는 능력치 (`ATTR_DESC_*`)
-- **WEIGHT:** max / current / class label / bar — `weight_current`는 빌더가 장착 무게로 동기화
-- **무기 테이블:** 빌더가 장착 무기 행으로 `stats.weapons`를 덮어씀
-- **푸터 액션:** `level_up`, `insight`(로컬 토글), `close`
+- **설명:** 왼쪽 `InsightHint` 상시. 속성 = `ATTR_DESC_*`, 부가 = `STAT_DESC_*` (수식 숫자는 적지 않음). Insight 토글·푸터 X·`stats_insight` 없음
+- **투자 vs 열람:** 왼쪽 선택 행이 포인트 대상. GENERAL/COMBAT/DEFENSE를 고르면 설명만 바뀜. Enter / LEVEL-UP은 왼쪽 속성에 투자
+- **WEIGHT:** max / current / class label / bar — `weight_current`는 빌더가 장착 무게로 동기화. 설명 열람 없음 (전투 보정은 설계 v2)
+- **무기 테이블:** 빌더가 장착 무기 행으로 `stats.weapons`를 덮어씀. 설명 열람 없음
+- **푸터 액션:** `level_up`, `close`
 - **새 캐릭터:** 레벨 1, XP 0 (`CharacterStats.apply_new_game_start`, `xp_to_next` = CSV 레벨 1 = 50)
 - **전투 XP:** 승리 시 `CharacterStats.add_xp` ([`combat.md`](combat.md)). HUD·스탯은 `UIManager.refresh_character_views`로 갱신
-- **입력:** 상하 속성 선택, Enter 투자, Insight, Esc → `request_close`
+- **입력:** 상하 = 현재 열(속성 또는 부가). 좌우 = 속성 ↔ GENERAL ↔ COMBAT ↔ DEFENSE. 마우스 호버/클릭 `StatRow` = 부가 설명. Enter 투자, Esc → `request_close`
 
 탭 전환은 없다 — 인벤/맵/스탯/설정은 각각 단독 Sheet. Map은 HUD 미니맵·메뉴에서 `open_tab(MAP)`으로만 연다.

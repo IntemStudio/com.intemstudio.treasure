@@ -90,4 +90,35 @@ SettingsManager.save_settings / reset_settings → user://settings.cfg
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
 - `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV. 기존 런 파일 삭제  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
-- 개발 오버레이 (`` ` ``): 탭 `[캐릭터]` / `[아이템]` / `[서가]` / `[세이브 데이터]`. 서가 탭은 룬·보석 판 `open_cards` 전 칸 해금. 세이브 탭은 폴더 경로·열기 + 슬롯 선택 + 레이어별(메타/`slot_N.json`, 런/`slot_N_run.json`, 설정/`settings.cfg`)·모두 저장/삭제(선택 슬롯만). 아이템 탭에서 장비 희귀도를 바꾸면 `apply_rarity`로 색·가격을 바꾸고 소켓은 부위로 다시 찍는다. 메타에 `rarity`를 저장
+- 개발 오버레이: 아래 절
+
+---
+
+## 개발 오버레이
+
+`` ` `` 토글. `UIManager`가 [`ui/dev/dev_overlay.tscn`](../../ui/dev/dev_overlay.tscn)을 `layer = 100`에 붙인다. Dialog `760×480` (`UIPopupLayout.DIALOG_SIZE`). 크롬(딤·테두리·제목) = `MAP_START` ([`hud.md`](hud.md) · [`ui-colors.md`](ui-colors.md)).
+
+| 탭 | 내용 |
+|----|------|
+| 캐릭터 | 강제 레벨 ±, 강제 조우 / 승리 / 패배 / 후퇴 ([`combat.md`](combat.md)) |
+| 아이템 | 카탈로그 지급 (아래) |
+| 서가 | 룬/보석 판 `open_cards` 전 칸 해금 (`CardRegistrationService.open_all_on_shelf`) |
+| 세이브 데이터 | 폴더 경로·열기 + 슬롯 선택 + 레이어별(메타/`slot_N.json`, 런/`slot_N_run.json`, 설정/`settings.cfg`)·모두 저장/삭제(선택 슬롯만) |
+
+### 아이템 탭
+
+부위 하위 탭: 무기·보조·투구·갑옷·다리·반지·도구·보석·룬 (`SLOT_*` / `Gem` / `Rune`). 칸은 해당 카탈로그만 — 인벤처럼 25칸 패딩 없음.
+
+```
+ItemPanel
+├── ItemSubTabRow (HFlow)
+└── ItemBody (HBox)
+    ├── ItemGridScroll → ItemGrid (InventorySlot, columns = 3, 아이콘+이름)
+    └── ItemDetailColumn
+        ├── ItemDetailScroll → ItemDetailPanel | ModifierDetailPanel
+        └── GrantRow → EquipRarityOption + EquipGrantButton
+```
+
+슬롯·상세는 인벤 컴포넌트 재사용 ([`inventory.md`](inventory.md)). 장비 상세는 골드 숨김 (`GoldPrice.HIDDEN`). 보석·룬은 `ModifierDetailPanel`, 희귀도 Option 숨김.
+
+획득: 장비 `try_place_item` (`apply_rarity` → 색·가격, 소켓은 부위로 다시 찍고 넘친 칸 트림) / 보석 `try_add_gem` / 룬 `try_add_rune`. 가방 가득이면 `LOOT_INVENTORY_FULL`. 메타에 `rarity`를 저장.

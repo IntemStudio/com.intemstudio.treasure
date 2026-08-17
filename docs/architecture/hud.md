@@ -75,8 +75,8 @@ GameHud (CanvasLayer)
 | 지역 | `UIManager.location_id` → `set_location` |
 | 버전 | `AppVersion.MAJOR/MINOR/PATCH` (세이브 `version`과 별개) |
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
-| 기술 | `ResonanceService.list_equipped_rune_skills` (장착 부위 꽂힌 룬만, 최대 6). 전투 중 게이지 충전. 마나 되는 첫 **액티브** 자동 발동 ([`equipment.md`](equipment.md) · [`combat.md`](combat.md)) |
-| 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. 이름 텍스트만 (아이콘 없음) |
+| 기술 | `ResonanceService.list_equipped_rune_skills` (장착 부위 꽂힌 룬만, 최대 6). `RuneData.icon_for_kind` + 이름 ([`inventory.md`](inventory.md) 아이콘). 전투 중 게이지 충전. 마나 되는 첫 **액티브** 자동 발동 ([`equipment.md`](equipment.md) · [`combat.md`](combat.md)) |
+| 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. `ItemData.icon` + 이름 |
 | 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot |
 | 토스트 | `UIManager.show_loot_toast` → `LootToast` |
 
