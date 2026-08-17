@@ -3,7 +3,7 @@
 **v1 현황(구조):** [`docs/architecture/stats.md`](../architecture/stats.md)  
 이 문서는 **성장·전투 매핑**과 미구현 UI 열을 다룬다. 스탯 탭 레이아웃·포인트 투자는 구현됨.
 
-성장은 No Rest for the Wicked식 **8속성 투자**. 전투·기술은 Loop Hero식 **자동 ATB 수치**.  
+성장은 No Rest for the Wicked식 **7속성 투자**. 전투·기술은 Loop Hero식 **자동 ATB 수치**.  
 관련: [`combat.md`](combat.md) (세션 공식) · [`hud.md`](hud.md) (HP/마나·기술 칸) · [`village.md`](village.md) (원정 피로) · [`equipment.md`](equipment.md) (룬은 기술 소스, 보석은 접두사와 분리).
 
 ---
@@ -18,7 +18,7 @@
 
 | 단계 | 범위 | 상태 |
 |------|------|------|
-| **v1** | 8속성 투자, GENERAL/DEFENSE/WEIGHT, 무기 표, XP→포인트 | 구현됨 → 구조 문서 |
+| **v1** | 7속성 투자, GENERAL/DEFENSE/WEIGHT, 무기 표, XP→포인트 | 구현됨 → 구조 문서 |
 | **v1.1** | 접두사 수치 키, `CombatStatsBuilder`가 전투 스탯 합산, 스탯 탭 COMBAT 열 | 구현됨 → 구조 문서 |
 | **v1.2** | 세션이 회피·크리·흡혈·반격·리젠·Magic HP·스태미나 적용 | 구현됨 → [`combat.md`](../architecture/combat.md) |
 | **v1.3** | 기술 게이지 + 마나 소모 자동 발동, Focus→Mana 표기 | 게이지·마나 발동 구현됨 — Focus 라벨 정렬은 HUD와 동시 후속 |
@@ -42,7 +42,7 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 
 | 층 | 역할 | 지금 |
 |----|------|------|
-| `CharacterStats` | 8속성, HP/마나, 표시용 파생 | 구현. 전투 숫자는 빌더 |
+| `CharacterStats` | 7속성, HP/마나, 표시용 파생 | 구현. 전투 숫자는 빌더 |
 | `CombatStats` | Loop Hero 전투 필드 + 스태미나 | 구현. 빌더가 채움 |
 | `CombatRules` | 방어 곡선, ATB, 스태미나 비용, 기술 흡혈/스플래시, Magic HP·반격 규칙 | 구현. 세션이 소비 |
 | `ItemData.affixes` | 접두사 | `id`/`value`/`text` |
@@ -52,13 +52,13 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 
 ## v1 — 유지
 
-`ATTRIBUTE_IDS` 8개를 바꾸지 않는다. 레벨당 3포인트, 시작값 10.
+레벨당 3포인트, 시작값 10. 새 투자 속성을 만들지 않는다.
 
-새 투자 속성을 만들지 않는다. Attack Speed·Vampirism 등은 **파생 + 접두사**다.
+Attack Speed·Vampirism·Defense·Magic Damage 등은 **장비**다. 속성은 풀과 무기 스케일만.
 
 ---
 
-## 8속성 — 의미
+## 7속성 — 의미
 
 실시간 액션용 의미는 버린다. 자동전투에 맞게 재정의한다.
 
@@ -66,14 +66,13 @@ CombatStats                   # 전투 스냅샷 (세션만 사용)
 |----|------|---------|----------------------|
 | `health` | Health | `max_hp` | — |
 | `stamina` | Stamina | 전투 스태미나 풀·재생. 공격/반격 25, 회피 10. 고갈 → Tired(회피 반감) | 구르기·공격 횟수 바 |
-| `strength` | Strength | 물리 피해, Defense, Retaliation. 힘 스케일 무기 | — |
+| `strength` | Strength | 힘 스케일 무기 | — |
 | `dexterity` | Dexterity | 민첩 스케일 무기 | — |
-| `intelligence` | Intelligence | Magic Damage, Damage to All, **공격 기술 위력**. 지능 스케일 무기 | — |
-| `faith` | Faith | Vampirism, Regen, Magic HP, **유지 기술 위력**. 신앙 스케일 무기 | — |
+| `intelligence` | Intelligence | 지능 스케일 무기 | — |
 | `focus` | Focus → **Mana** (v1.3 표기) | 기술 자원. `mana_max` / 재생. 기술 ATB가 찰 때 소모 | 100점마다 룬 바 추가, 수동 룬 |
 | `equip_load` | Equip Load | 무게 한도. 등급이 전투 보정 (v2) | 퀵스텝/롤/숄더배시 |
 
-무기 `scales_with`는 STR/DEX/INT/Faith 중 **1~2개**만 받는다. 네 속성에 분산 투자는 자동전투에서 약해지게.
+무기 `scales_with`는 STR/DEX/INT 중 **1개**. 세 속성에 분산 투자는 자동전투에서 약해지게.
 
 원정 피로(횃불·식량, [`village.md`](village.md) v2)는 새 스탯이 아니다. 같은 Stamina의 상한 또는 재생을 깎는다.
 
@@ -92,13 +91,13 @@ HUD에 스태미나 바를 상시 두지 않는다. 전투 중 표시는 [`comba
 | `evasion` | 접두사 (+ 경장갑 v2) | 완전 회피. 스태미나 10 |
 | `crit_chance` / `crit_damage` | 접두사 (`crit_damage` 기본 1.4) | 크리. 방어 무시 여부는 구현 직전 |
 | `counter_chance` | 접두사 | 피격·회피 시 반격. ATB 리셋 |
-| `defense` | STR + 갑옷 + Heavy | Loop Hero 곡선 (`apply_defense`). **NRFW % Armor와 병행하지 않음** |
-| `vampirism` | Faith + 접두사 | 입힌 피해 % 회복 |
-| `regen_per_sec` | Faith + 접두사 | 전투 중·방 이동 중 |
-| `magic_hp` | Faith + 장신구 | 전투마다 리필, HP보다 먼저 |
-| `magic_damage` | INT + 접두사 | 방어 무시 추가 피해 |
-| `damage_all` | INT + 광역 기술/접두사 | 주 타깃 외 간접 피해 |
-| `retaliation` | STR + Heavy + 투구류 | 맞을 때 반사. Defense에 깎임 |
+| `defense` | 갑옷 + Heavy | Loop Hero 곡선 (`apply_defense`). **NRFW % Armor와 병행하지 않음** |
+| `vampirism` | 접두사 | 입힌 피해 % 회복 |
+| `regen_per_sec` | 접두사 | 전투 중·방 이동 중 |
+| `magic_hp` | 장신구·접두사 | 전투마다 리필, HP보다 먼저 |
+| `magic_damage` | 접두사 | 방어 무시 추가 피해 |
+| `damage_all` | 광역 기술/접두사 | 주 타깃 외 간접 피해 |
+| `retaliation` | Heavy + 투구류·접두사 | 맞을 때 반사. Defense에 깎임 |
 
 적 유닛 `.tres`도 같은 `CombatStats`를 쓴다. 히어로만 빌더를 통과한다.
 
@@ -122,32 +121,32 @@ HUD에 스태미나 바를 상시 두지 않는다. 전투 중 표시는 [`comba
 CombatStatsBuilder.build(character, inventory) -> CombatStats
 ```
 
-인벤이 없으면 속성·무기 표만. 있으면 장착 접두사·`attack`/`defense`를 더한다.
+인벤이 없으면 속성·무기 표만. 있으면 장착 접두사·갑옷 `defense`를 더한다.
 
-초안 합산 (10 초과분 `over = attr - 10`):
+합산 (`over = max(0, attr - 10)` 는 **무기 스케일만**):
 
 | 출력 | 식 |
 |------|----|
 | `max_hp` | `character.hp_max` |
-| `damage_*` | 주무기 total, 구간비 현행 `WEAPON_RANGE_RATIO` |
+| `damage_*` | 주무기 total, 구간비 현행 `WEAPON_RANGE_RATIO`. Attr Bonus = `over(scales_with)` |
 | `attack_speed` | 접두사만 |
 | `evasion` | 접두사만 |
 | `crit_chance` | 접두사만 |
 | `crit_damage` | 기본 1.4 + 접두사 |
 | `counter_chance` | 접두사만 |
-| `defense` | 갑옷 `ItemData.defense` + `over(str) * 1` + 접두사. **`defense.armor` 키를 전투에 그대로 복사하지 않음** |
-| `vampirism` | `over(faith) * 0.005` + 접두사 |
-| `regen_per_sec` | `over(faith) * 0.1` + 접두사 |
-| `magic_hp` | `over(faith) * 1` + 접두사 |
-| `magic_damage` | `over(int) * 0.5` + 접두사 |
-| `damage_all` | 접두사·광역 기술 (속성만으로는 0에 가깝게) |
-| `retaliation` | `over(str) * 0.3` + 접두사 |
+| `defense` | 갑옷 `ItemData.defense` + 접두사. **`defense.armor` 키를 전투에 그대로 복사하지 않음** |
+| `vampirism` | 접두사만 |
+| `regen_per_sec` | 접두사만 |
+| `magic_hp` | 접두사만 |
+| `magic_damage` | 접두사만 |
+| `damage_all` | 접두사·광역 기술 |
+| `retaliation` | 접두사만 |
 
 `recalculate_derived`의 `defense["armor"]`는 표시용 Defense로 이름을 바꾼다. 값은 빌더 `defense`와 같게 맞춘다.
 
 ### 스탯 탭 열 (v1.1)
 
-왼쪽 8속성은 유지.
+왼쪽 7속성 (풀 4 + 스케일 STR/DEX/INT).
 
 | 열 | 내용 |
 |----|------|
@@ -187,22 +186,22 @@ CombatStatsBuilder.build(character, inventory) -> CombatStats
 
 - 평타 ATB와 별도 **기술 게이지**. 가득 차면 액티브만 슬롯 순서로 발동, `mana` 소모
 - 마나 부족이면 건너뛰고 평타만
-- 위력: 무기 Base + INT(공격기) / Faith(유지기)
+- 위력: 무기 Base + 룬. 속성에 묶지 않음
 - HUD 0~6칸: 이름 + 충전. 패시브는 표시만. 키 바인딩은 탐험 소모품만 ([`hud.md`](hud.md) v1.1)
 
 접두사 = 스탯. 기술 = 행동.
 
 | 유형 | 스케일 | 전투 |
 |------|--------|------|
-| 강타 | STR | 평타 배율 |
-| 연격 | DEX | 짧은 공속 또는 추가 타 |
-| 광역 | INT | `damage_all` 한 방 |
-| 마법탄 | INT | `magic_damage` |
-| 흡혈 일격 | Faith | 이번 타 흡혈 증가 |
-| 치유/재생 | Faith | Regen 버스트 |
-| 보호막 | Faith | Magic HP |
-| 반격 태세 | DEX/STR | 다음 피격 Counter 확정 |
-| 가시 | STR | 짧은 Retaliation |
+| 강타 | 무기·룬 | 평타 배율 |
+| 연격 | 무기·룬 | 짧은 공속 또는 추가 타 |
+| 광역 | 무기·룬 | `damage_all` 한 방 |
+| 마법탄 | 무기·룬 | `magic_damage` |
+| 흡혈 일격 | 무기·룬 | 이번 타 흡혈 증가 |
+| 치유/재생 | 무기·룬 | Regen 버스트 |
+| 보호막 | 무기·룬 | Magic HP |
+| 반격 태세 | 무기·룬 | 다음 피격 Counter 확정 |
+| 가시 | 무기·룬 | 짧은 Retaliation |
 
 기술 데이터 리소스·밸런스 수치는 구현 직전. 캠프 특성(Loop Hero Trait)은 마을 여관/Insight **이후**.
 

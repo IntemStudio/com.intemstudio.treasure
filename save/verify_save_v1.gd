@@ -8,6 +8,7 @@ func _initialize() -> void:
 	var failed := 0
 	failed += _test_roundtrip()
 	failed += _test_unknown_item()
+	failed += _test_faith_refund()
 	failed += _test_slot_io()
 	failed += _test_no_run_or_locale_keys()
 	if failed == 0:
@@ -93,29 +94,51 @@ func _test_unknown_item() -> int:
 	return 0
 
 
+func _test_faith_refund() -> int:
+	var catalog := ItemCatalog.new()
+	var data := {
+		"version": 1,
+		"meta": {},
+		"character": {
+			"attribute_points": 0,
+			"attributes": {"faith": 18, "strength": 10},
+		},
+		"inventory": {"bags": {}, "equipped": {}},
+	}
+	var save := SaveSerializer.from_dict(data, catalog)
+	if save.character.attributes.has("faith"):
+		push_error("faith must not load")
+		return 1
+	if save.character.attribute_points != 8:
+		push_error("faith refund want 8 got %d" % save.character.attribute_points)
+		return 1
+	return 0
+
+
 func _test_slot_io() -> int:
+	var sm = get_root().get_node("SaveManager")
 	var slot := 0
-	SaveManager.delete_slot(slot)
-	var sg := SaveManager.new_game(slot)
+	sm.delete_slot(slot)
+	var sg: SaveGame = sm.new_game(slot)
 	if sg == null:
 		push_error("new_game failed")
 		return 1
 	sg.character.level = 9
 	sg.character.xp = 11
-	var err := SaveManager.save_game(slot, sg.character, sg.inventory)
+	var err: Error = sm.save_game(slot, sg.character, sg.inventory)
 	if err != OK:
 		push_error("save_game failed")
 		return 1
-	var loaded := SaveManager.load_game(slot)
+	var loaded: SaveGame = sm.load_game(slot)
 	if loaded == null or loaded.character.level != 9 or loaded.character.xp != 11:
 		push_error("load_game mismatch")
 		return 1
-	var info := SaveManager.get_slot_info(slot)
+	var info: Dictionary = sm.get_slot_info(slot)
 	if info.get("status") != "valid":
 		push_error("slot info not valid")
 		return 1
-	SaveManager.delete_slot(slot)
-	if SaveManager.has_save(slot):
+	sm.delete_slot(slot)
+	if sm.has_save(slot):
 		push_error("delete_slot failed")
 		return 1
 	return 0

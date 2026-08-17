@@ -4,13 +4,6 @@ extends RefCounted
 const WEAPON_RANGE_RATIO := 0.85
 const ATTR_BASE := 10
 const SCALE_PER_OVER := 1.0
-
-const OVER_VAMPIRISM := 0.005
-const OVER_REGEN := 0.1
-const OVER_MAGIC_HP := 1.0
-const OVER_MAGIC_DAMAGE := 0.5
-const OVER_RETALIATION := 0.3
-const OVER_DEFENSE := 1.0
 const BASE_CRIT_DAMAGE := 1.4
 
 const AFFIX_FIELDS: Array[String] = [
@@ -36,10 +29,6 @@ static func build(character: CharacterStats, inventory: InventoryData = null) ->
 
 	character.recalculate_derived()
 
-	var over_str := _over(character, "strength")
-	var over_int := _over(character, "intelligence")
-	var over_faith := _over(character, "faith")
-
 	out.max_hp = character.hp_max
 	out.stamina_max = float(character.general.get("stamina", 100))
 	out.stamina_regen = float(character.general.get("stamina_regen", 15.0))
@@ -49,13 +38,13 @@ static func build(character: CharacterStats, inventory: InventoryData = null) ->
 	out.evasion = 0.0
 	out.crit_chance = 0.0
 	out.counter_chance = 0.0
-	out.vampirism = over_faith * OVER_VAMPIRISM
-	out.regen_per_sec = over_faith * OVER_REGEN
-	out.magic_hp = int(round(over_faith * OVER_MAGIC_HP))
-	out.magic_damage = over_int * OVER_MAGIC_DAMAGE
+	out.vampirism = 0.0
+	out.regen_per_sec = 0.0
+	out.magic_hp = 0
+	out.magic_damage = 0.0
 	out.damage_all = 0.0
-	out.retaliation = over_str * OVER_RETALIATION
-	out.defense = over_str * OVER_DEFENSE
+	out.retaliation = 0.0
+	out.defense = 0.0
 
 	var damage_total := 1
 	if inventory != null:

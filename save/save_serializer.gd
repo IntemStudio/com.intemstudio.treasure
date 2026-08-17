@@ -139,6 +139,9 @@ static func _character_from_dict(d: Dictionary) -> CharacterStats:
 		if loaded_attrs.has(key):
 			attrs[key] = int(loaded_attrs[key])
 	character.attributes = attrs
+	var old_faith := int(loaded_attrs.get("faith", 10))
+	if old_faith > 10:
+		character.attribute_points += old_faith - 10
 
 	if d.has("weapons"):
 		var weapons: Array[Dictionary] = []

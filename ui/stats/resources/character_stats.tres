@@ -19,7 +19,6 @@ attributes = {
 "strength": 10,
 "dexterity": 10,
 "intelligence": 10,
-"faith": 10,
 "focus": 10,
 "equip_load": 10
 }
@@ -32,7 +31,7 @@ general = {
 }
 defense = {
 "defense": 0.0,
-"poise": 18,
+"poise": 10,
 "heat": 10,
 "cold": 10,
 "electric": 10,

@@ -160,7 +160,7 @@ static func create_widows_needle() -> ItemData:
 	return _weapon(
 		"widows_needle", "Widow's Needle", "Ritual Dagger",
 		ItemData.ItemRarity.RARE, "main_hand",
-		11, 7, "faith", 5.1, 12,
+		11, 7, "dexterity", 5.1, 12,
 		[&"weapon", &"dagger", &"melee"],
 		[&"weapon", &"condition"],
 		[
@@ -193,7 +193,7 @@ static func create_grave_lantern() -> ItemData:
 	return _weapon(
 		"grave_lantern", "Grave Lantern", "Lantern",
 		ItemData.ItemRarity.RARE, "off_hand",
-		3, 2, "faith", 2.6, 10,
+		3, 2, "intelligence", 2.6, 10,
 		[],
 		[&"off_hand", &"condition"],
 		[

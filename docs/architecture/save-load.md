@@ -50,7 +50,7 @@
 최상위 키: `version`, `meta`, `character`, `inventory` (locale 없음).
 
 - **meta:** slot, created_at, updated_at, play_time_sec, level, **`registered_cards`**, `open_cards`, `unlocked_shelves`(`shelf_rune`,`shelf_gem`), `card_pity` ([`equipment.md`](equipment.md))  
-- **character:** name, level, xp, xp_to_next(저장·표시용, 로드 시 [`LevelProgression`](../../data/progression/level_progression.gd) CSV로 재동기화), hp, attribute_points, attributes, weight_current, weapons(임시)  
+- **character:** name, level, xp, xp_to_next(저장·표시용, 로드 시 [`LevelProgression`](../../data/progression/level_progression.gd) CSV로 재동기화), hp, attribute_points, attributes, weight_current, weapons(임시). `attributes`는 [`ATTRIBUTE_IDS`](../../ui/stats/resources/character_stats.gd)만 읽고 모르는 키는 버린다. 옛 `faith`가 10을 넘으면 초과분을 `attribute_points`로 환급 (`SAVE_VERSION` 그대로)  
 - **inventory:** currencies, current_category, sort_mode, sparse slots, equipped, **`runes`**, **`gems`**  
 - **아이템:** `id` + quantity / durability / `socketed` / `rarity` 등 인스턴스 오버라이드 (`ItemCatalog`로 베이스 복제). `rarity`가 있으면 소켓은 `SocketLayout.for_slot`로 재구성한 뒤 `trim_socketed_to_layout` (넘친 uid는 **삭제**, 가방 반환 없음). 옛 세이브 `rarity` 3(EPIC)·4는 `LEGENDARY`로 clamp. `cost` / `gain`은 저장하지 않음 ([`shop.md`](shop.md))
 

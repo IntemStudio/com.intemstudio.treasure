@@ -91,7 +91,7 @@ ui/stats/components/
 
 - **속성:** `CharacterStats.ATTRIBUTE_IDS` (포인트 투자 시 선택 행 기준). 행 아이콘은 `StatsContent._attribute_icon` → `ItemData.sheet_icon` ([`inventory.md`](inventory.md) 아이콘). 초상화는 `icon.svg`
 - **GENERAL:** Life / Stamina / Stamina Regen / Focus / Focus Gain
-- **COMBAT:** `CombatStatsBuilder.build(stats, inventory)` — Damage, Attack Speed, Crit Chance, Crit Damage, Magic Damage, Damage to All, Vampirism, Regen, Counter, Evasion, Magic HP, Retaliation. 전투 조우와 **같은** 빌더
+- **COMBAT:** `CombatStatsBuilder.build(stats, inventory)` — Damage, Attack Speed, Crit Chance, Crit Damage, Magic Damage, Damage to All, Vampirism, Regen, Counter, Evasion, Magic HP, Retaliation. 전투 조우와 **같은** 빌더. 무기 피해만 속성 스케일, 나머지 필드는 갑옷·접두사
 - **DEFENSE:** Defense (빌더 값). Poise·원소는 표시하지 않음
 - **설명:** 왼쪽 `InsightHint` 상시. 속성 = `ATTR_DESC_*`, 부가 = `STAT_DESC_*` (수식 숫자는 적지 않음). Insight 토글·푸터 X·`stats_insight` 없음
 - **투자 vs 열람:** 왼쪽 선택 행이 포인트 대상. GENERAL/COMBAT/DEFENSE를 고르면 설명만 바뀜. Enter / LEVEL-UP은 왼쪽 속성에 투자

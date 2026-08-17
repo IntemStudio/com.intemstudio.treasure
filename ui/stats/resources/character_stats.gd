@@ -7,7 +7,7 @@ const MIN_LEVEL := 1
 
 const ATTRIBUTE_IDS: Array[String] = [
 	"health", "stamina", "strength", "dexterity",
-	"intelligence", "faith", "focus", "equip_load",
+	"intelligence", "focus", "equip_load",
 ]
 
 const ATTRIBUTE_LABELS: Dictionary = {
@@ -16,7 +16,6 @@ const ATTRIBUTE_LABELS: Dictionary = {
 	"strength": "Strength",
 	"dexterity": "Dexterity",
 	"intelligence": "Intelligence",
-	"faith": "Faith",
 	"focus": "Focus",
 	"equip_load": "Equip Load",
 }
@@ -38,7 +37,6 @@ const ATTRIBUTE_LABELS: Dictionary = {
 	"strength": 10,
 	"dexterity": 10,
 	"intelligence": 10,
-	"faith": 10,
 	"focus": 10,
 	"equip_load": 10,
 }
@@ -53,7 +51,7 @@ const ATTRIBUTE_LABELS: Dictionary = {
 
 @export var defense: Dictionary = {
 	"defense": 0.0,
-	"poise": 18,
+	"poise": 10,
 	"heat": 10,
 	"cold": 10,
 	"electric": 10,
@@ -204,13 +202,13 @@ func _recalculate_derived() -> void:
 	general["stamina_regen"] = 10.0 + int(attributes["stamina"]) * 0.25
 	general["focus"] = 40 + int(attributes["focus"]) * 1
 	general["focus_gain"] = 6.0 + int(attributes["focus"]) * 0.2
-	# Combat Defense comes from CombatStatsBuilder (gear + STR). Keep display keys only.
+	# Combat Defense comes from CombatStatsBuilder (gear). Keep display keys only.
 	if defense.has("armor") and not defense.has("defense"):
 		defense["defense"] = float(defense["armor"])
 	defense.erase("armor")
 	if not defense.has("defense"):
 		defense["defense"] = 0.0
-	defense["poise"] = 10 + int(attributes["faith"]) + int(attributes["strength"]) / 2
+	defense["poise"] = 10
 	weight_max = 60.0 + float(attributes["equip_load"]) * 2.0
 	hp_max = int(general["health"])
 	hp = mini(hp, hp_max)

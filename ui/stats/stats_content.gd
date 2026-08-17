@@ -191,8 +191,6 @@ func _attribute_icon(attr_id: String) -> Texture2D:
 			return ItemData.sheet_icon(1, 41)
 		"intelligence":
 			return ItemData.sheet_icon(8, 0)
-		"faith":
-			return ItemData.sheet_icon(13, 41)
 		"focus":
 			return ItemData.sheet_icon(4, 5)
 		"equip_load":
