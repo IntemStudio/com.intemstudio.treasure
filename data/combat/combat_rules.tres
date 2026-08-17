@@ -5,4 +5,15 @@
 [resource]
 script = ExtResource("1")
 base_attack_interval_sec = 1.5
+skill_interval_sec = 4.0
+strike_damage_mult = 1.6
+skill_lifesteal_ratio = 0.25
+skill_splash_ratio = 0.35
+stamina_cost_attack = 25.0
+stamina_cost_counter = 25.0
+stamina_cost_evade = 10.0
+stamina_gain_on_hit = 10.0
+tired_duration_sec = 6.0
+tired_evasion_mult = 0.5
 min_damage = 1
+target_mode = "sticky"

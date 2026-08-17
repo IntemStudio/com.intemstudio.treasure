@@ -3,16 +3,16 @@ extends Node2D
 
 signal pressed(unit_id: String)
 
-const BODY_SIZE := Vector2(40, 56)
+const NAME_SIZE := Vector2(88, 20)
 const BAR_SIZE := Vector2(56, 8)
 const ATB_SIZE := Vector2(48, 4)
+const GAUGE_STACK := 18.0
 const FLOAT_DURATION := 0.8
 const FLOAT_RISE := 48.0
 const FOCUS_PAD := 4.0
 
 var unit_id: String = ""
 
-var _body: ColorRect
 var _focus_frame: ColorRect
 var _hit: ColorRect
 var _name_label: Label
@@ -31,14 +31,13 @@ func _ready() -> void:
 
 func setup(unit: Dictionary) -> void:
 	unit_id = str(unit.get("id", ""))
-	if _body == null:
+	if _name_label == null:
 		_build()
-	_body.color = unit.get("body_color", UIColors.NEGATIVE)
 	apply_unit(unit)
 
 
 func apply_unit(unit: Dictionary) -> void:
-	if _body == null:
+	if _name_label == null:
 		_build()
 	var alive := bool(unit.get("alive", true))
 	visible = true
@@ -74,7 +73,7 @@ func spawn_damage_float(amount: int) -> void:
 	label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
 	label.add_theme_constant_override("outline_size", 4)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.position = Vector2(-32.0 + randf_range(-8.0, 8.0), -BODY_SIZE.y - 8.0)
+	label.position = Vector2(-32.0 + randf_range(-8.0, 8.0), -NAME_SIZE.y - 8.0)
 	label.size = Vector2(64, 28)
 	_float_host.add_child(label)
 	var tween := create_tween()
@@ -87,7 +86,7 @@ func spawn_damage_float(amount: int) -> void:
 
 
 func _build() -> void:
-	if _body != null:
+	if _name_label != null:
 		return
 
 	_float_host = Node2D.new()
@@ -95,21 +94,9 @@ func _build() -> void:
 	_float_host.z_index = 10
 	add_child(_float_host)
 
-	_name_label = Label.new()
-	_name_label.name = "NameLabel"
-	_name_label.position = Vector2(-44, -BODY_SIZE.y - 36)
-	_name_label.size = Vector2(88, 16)
-	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_name_label.add_theme_font_size_override("font_size", 11)
-	_name_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
-	_name_label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
-	_name_label.add_theme_constant_override("outline_size", 2)
-	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_name_label)
-
 	_hp_bg = ColorRect.new()
 	_hp_bg.name = "HpBg"
-	_hp_bg.position = Vector2(-BAR_SIZE.x * 0.5, -BODY_SIZE.y - 18)
+	_hp_bg.position = Vector2(-BAR_SIZE.x * 0.5, -NAME_SIZE.y - GAUGE_STACK)
 	_hp_bg.size = BAR_SIZE
 	_hp_bg.color = UIColors.BAR_BG
 	_hp_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -138,7 +125,7 @@ func _build() -> void:
 
 	_atb_bg = ColorRect.new()
 	_atb_bg.name = "AtbBg"
-	_atb_bg.position = Vector2(-ATB_SIZE.x * 0.5, -BODY_SIZE.y - 8)
+	_atb_bg.position = Vector2(-ATB_SIZE.x * 0.5, -NAME_SIZE.y - 8)
 	_atb_bg.size = ATB_SIZE
 	_atb_bg.color = UIColors.BAR_BG
 	_atb_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -154,25 +141,30 @@ func _build() -> void:
 
 	_focus_frame = ColorRect.new()
 	_focus_frame.name = "FocusFrame"
-	_focus_frame.position = Vector2(-BODY_SIZE.x * 0.5 - FOCUS_PAD, -BODY_SIZE.y - FOCUS_PAD)
-	_focus_frame.size = BODY_SIZE + Vector2(FOCUS_PAD * 2.0, FOCUS_PAD * 2.0)
+	_focus_frame.position = Vector2(-NAME_SIZE.x * 0.5 - FOCUS_PAD, -NAME_SIZE.y - FOCUS_PAD)
+	_focus_frame.size = NAME_SIZE + Vector2(FOCUS_PAD * 2.0, FOCUS_PAD * 2.0)
 	_focus_frame.color = UIColors.GOLD
 	_focus_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_focus_frame.visible = false
 	add_child(_focus_frame)
 
-	_body = ColorRect.new()
-	_body.name = "Body"
-	_body.position = Vector2(-BODY_SIZE.x * 0.5, -BODY_SIZE.y)
-	_body.size = BODY_SIZE
-	_body.color = UIColors.NEGATIVE
-	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_body)
+	_name_label = Label.new()
+	_name_label.name = "NameLabel"
+	_name_label.position = Vector2(-NAME_SIZE.x * 0.5, -NAME_SIZE.y)
+	_name_label.size = NAME_SIZE
+	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_name_label.add_theme_font_size_override("font_size", 14)
+	_name_label.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	_name_label.add_theme_color_override("font_outline_color", UIColors.with_alpha(UIColors.TEXT_INVERSE, 0.92))
+	_name_label.add_theme_constant_override("outline_size", 2)
+	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_name_label)
 
 	_hit = ColorRect.new()
 	_hit.name = "Hit"
-	_hit.position = Vector2(-44, -BODY_SIZE.y - 36)
-	_hit.size = Vector2(88, BODY_SIZE.y + 36)
+	_hit.position = Vector2(-NAME_SIZE.x * 0.5, -NAME_SIZE.y - GAUGE_STACK)
+	_hit.size = Vector2(NAME_SIZE.x, NAME_SIZE.y + GAUGE_STACK)
 	_hit.color = UIColors.CLEAR
 	_hit.mouse_filter = Control.MOUSE_FILTER_STOP
 	_hit.gui_input.connect(_on_hit_gui_input)

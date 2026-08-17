@@ -13,6 +13,8 @@ extends Resource
 @export var skill_interval_sec: float = 4.0
 @export var skill_atb_full: float = 1.0
 @export var strike_damage_mult: float = 1.6
+@export var skill_lifesteal_ratio: float = 0.25
+@export var skill_splash_ratio: float = 0.35
 
 @export var stamina_max: float = 100.0
 @export var stamina_regen_per_sec: float = 15.0

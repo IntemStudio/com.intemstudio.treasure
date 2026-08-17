@@ -226,7 +226,8 @@ func _resolve_strike_skill(attacker: Dictionary, skill: Dictionary = {}) -> void
 		var heal_amt := _apply_vampirism(attacker, dealt)
 		var skill_flags: Array = skill.get("behavior_flags", []) as Array
 		if skill_flags.has("lifesteal_on_skill") or str(skill.get("gem_id", "")) == "bloodstone":
-			var gem_heal := maxi(1, int(floor(float(dealt) * 0.25)))
+			var steal := rules.skill_lifesteal_ratio if rules else 0.25
+			var gem_heal := maxi(1, int(floor(float(dealt) * steal)))
 			_heal(attacker, gem_heal)
 			heal_amt += gem_heal
 		var flags := PackedStringArray(["skill"])
@@ -243,7 +244,8 @@ func _resolve_strike_skill(attacker: Dictionary, skill: Dictionary = {}) -> void
 		_apply_retaliation(attacker, target)
 		_gain_stamina_on_hit(target)
 		if skill_flags.has("pierce_flag") or skill_flags.has("chain_hit"):
-			_apply_damage_all(attacker, target, float(dealt) * 0.35)
+			var splash := rules.skill_splash_ratio if rules else 0.35
+			_apply_damage_all(attacker, target, float(dealt) * splash)
 
 
 func _tick_resources(unit: Dictionary, dt: float) -> void:
