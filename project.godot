@@ -16,7 +16,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="treasure-hunter"
 run/main_scene="res://scenes/title/title.tscn"
-config/features=PackedStringArray("4.6", "Mobile")
+config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -24,6 +24,7 @@ config/icon="res://icon.svg"
 SettingsManager="*res://autoload/settings_manager.gd"
 LocaleManager="*res://autoload/locale_manager.gd"
 SaveManager="*res://autoload/save_manager.gd"
+MCPRuntime="*res://addons/godot_mcp/runtime/mcp_runtime.gd"
 
 [display]
 
@@ -33,6 +34,10 @@ window/size/window_width_override=1600
 window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 [input]
 
