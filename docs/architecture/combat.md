@@ -38,8 +38,8 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 
 ## 흐름
 
-1. `dungeon.gd` `_ready` — `pending_run.dungeon_id`로 세션·아레나·Hud·디렉터 생성, `bind_dungeon` / `bind_combat`
-2. `EncounterDirector.setup(..., dungeon_id)` — `RegionEncounters.load_pair`로 지역 normal/boss 캐시
+1. `dungeon.gd` `_ready` — `pending_run.dungeon_id` + `zone_id`로 세션·아레나·Hud·디렉터 생성, `bind_dungeon` / `bind_combat`
+2. `EncounterDirector.setup(..., dungeon_id, zone_id)` — `RegionEncounters.load_pair`로 구역 normal/boss 캐시
 3. `RoomHost.enter_room` → `FloorMap.room_changed`
 4. `EncounterDirector.on_room_entered` — `START`/`cleared`면 skip
 5. `CombatStatsBuilder.build` → `CombatSession.start` (현재 HP 스냅샷)
@@ -63,7 +63,7 @@ CanvasLayer: HUD `0`, CombatHud `1`, MenuShell `10`, DevOverlay `100`.
 
 | 결과 | 처리 |
 |------|------|
-| `win` | `RoomData.cleared = true`, 남은 HP 반영, XP, **장비 드랍** ([`loot.md`](loot.md)). **보스**면 `return_to_village()` |
+| `win` | `RoomData.cleared = true`, 남은 HP 반영, XP, **장비 드랍** ([`loot.md`](loot.md)). **보스**면 `unlock_next` 후 `return_to_village()`. 제단 아래는 결말 3택 |
 | `lose` | `UIManager.return_to_village()` (슬롯 저장, 런 삭제, 메타 유지) |
 | `retreat` | 입장 시 HP 복구, `RoomHost.enter_room(ZERO)` (입구) |
 
@@ -77,7 +77,8 @@ HP/XP·가방은 메타에 남는다. 방 `cleared`/`visited`는 런 JSON에 쓴
 UIManager.bind_combat(director)
 UIManager.set_combat_active(bool)     # GameHud 유지
 UIManager.is_combat_active() -> bool
-EncounterDirector.setup(ui, floor_map, room_host, session, arena, hud, dungeon_id="")
+EncounterDirector.setup(ui, floor_map, room_host, session, arena, hud, dungeon_id="", zone_id="")
+EncounterDirector.set_run(dungeon_id, zone_id)
 EncounterDirector.set_dungeon_id(id)
 EncounterDirector.on_room_entered(room)
 EncounterDirector.start(room, override?) -> bool
@@ -85,7 +86,7 @@ EncounterDirector.is_active() -> bool
 EncounterDirector.request_retreat()
 EncounterDirector.force_start_current() -> bool
 EncounterDirector.force_result(result)
-RegionEncounters.normalize_region(id) / load_pair(id)
+RegionEncounters.normalize_region(id) / normalize_zone(id, zone) / load_pair(id, zone)
 CombatArena.setup(player)
 CombatArena.bind_session(session)
 CombatArena.start(room_node, state, encounter)
@@ -109,15 +110,16 @@ signal action_resolved(payload)
 
 ## 지역 인카운터
 
-게시판 `dungeon_id` → [`RegionEncounters`](../../data/combat/region_encounters.gd) → `encounters/{region}/normal.tres` · `boss.tres`.  
-에디터 단독 실행·알 수 없는 id → `cemetery`. 구 `normal_slimes` / `boss_brute`는 폴백·디버그용.
+게시판 `dungeon_id` + `zone_id` → [`RegionEncounters`](../../data/combat/region_encounters.gd).  
+에디터 단독 실행·알 수 없는 id → `cemetery` + `graves`. 구 `normal_slimes` / `boss_brute`는 폴백·디버그용. `altar_below`는 별도 풀.
 
-| 지역 | NORMAL | BOSS |
-|------|--------|------|
+| 지역 | NORMAL | 수호자 BOSS |
+|------|--------|-------------|
 | cemetery | Skeleton + Watcher | Bone Guardian |
 | grove | Ratwolf + Spider | Nest Mother |
 | mansion | Ghoul + Vampire | Vampire Lord |
 | battlefield | Ghost + Goblin | War Specter |
+| altar_below | mixed wound trash | Bone Guardian + War Specter |
 
 방 슬롯: `basic_room` `ALLY_SLOTS`(히어로 왼쪽 중앙) / `get_enemy_slot_global(index, enemy_count)` 진형(1 정면, 2 위·아래, 3 삼각형, 4 뒷줄). Marker2D 슬롯 없음. 액터 호스트 `y_sort_enabled`. 유닛 표시명 `tr(display_name)`.
 

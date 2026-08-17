@@ -49,7 +49,7 @@
 
 최상위 키: `version`, `meta`, `character`, `inventory` (locale 없음).
 
-- **meta:** slot, created_at, updated_at, play_time_sec, level, **`registered_cards`**, `open_cards`, `unlocked_shelves`(`shelf_rune`,`shelf_gem`), `card_pity` ([`equipment.md`](equipment.md))  
+- **meta:** slot, created_at, updated_at, play_time_sec, level, **`registered_cards`**, `open_cards`, `unlocked_shelves`(`shelf_rune`,`shelf_gem`), `card_pity` ([`equipment.md`](equipment.md)), **`name_stones`**, `verses_read`, `ending`, `altar_emptied` ([`basin.md`](../design/basin.md))  
 - **character:** name, level, xp, xp_to_next(저장·표시용, 로드 시 [`LevelProgression`](../../data/progression/level_progression.gd) CSV로 재동기화), hp, attribute_points, attributes, weight_current, weapons(임시). `attributes`는 [`ATTRIBUTE_IDS`](../../ui/stats/resources/character_stats.gd)만 읽고 모르는 키는 버린다. 옛 `faith`가 10을 넘으면 초과분을 `attribute_points`로 환급 (`SAVE_VERSION` 그대로)  
 - **inventory:** currencies, current_category, sort_mode, sparse slots, equipped, 미소켓 **`runes`**, **`gems`**. 꽂힌 룬·보석은 장비 `socketed`에만 (`rune_id`/`gem_id`). 옛 세이브는 로드 시 가방에서 떼어 장비로 옮김  
 - **아이템:** `id` + quantity / durability / `socketed` / `rarity` 등 인스턴스 오버라이드 (`ItemCatalog`로 베이스 복제). `rarity`가 있으면 소켓은 `SocketLayout.for_slot`로 재구성한 뒤 `trim_socketed_to_layout` (넘친 uid는 **삭제**, 가방 반환 없음). 옛 세이브 `rarity` 3(EPIC)·4는 `LEGENDARY`로 clamp. `cost` / `gain`은 저장하지 않음 ([`shop.md`](shop.md))
@@ -66,7 +66,7 @@
 
 | 키 | 내용 |
 |----|------|
-| `dungeon_id` / `length_id` / `seed` / `room_count` | 게시판 파라미터 |
+| `dungeon_id` / `zone_id` / `seed` / `room_count` | 게시판 파라미터 |
 | `current` | `{x, y}` 현재 방 |
 | `visited` / `cleared` | `"x,y"` 문자열 배열 |
 | `runes` / `gems` / `socketed` | [`SaveSerializer.run_equipment_snapshot`](../../save/save_serializer.gd) |
@@ -89,6 +89,7 @@ SettingsManager.save_settings / reset_settings → user://settings.cfg
 
 - `play_time_sec`: 트리 pause가 아닐 때만 가산  
 - `new_game`: [`character_stats.tres`](../../ui/stats/resources/character_stats.tres) 복제 후 `apply_new_game_start()` → **레벨 1, XP 0**, `xp_to_next`는 CSV. 기존 런 파일 삭제  
+- `new_game` / `save_game` / `load_game`: `BasinProgress.seed_meta` — `name_stones`(입구 4) · `verses_read` · `ending` · `altar_emptied`. `save_game`은 `_card_meta`에서 `BasinProgress.META_KEYS`도 복사 (카드 키만 복사하면 매 세이브마다 날아감)  
 - 기본 UI 테스트: 세이브 없이 더미 `character_stats.tres` + `ItemBootstrap` 인벤으로 기동  
 - 소켓 인스턴스는 장비 `socketed`에만. 로드 시 `ensure_socketed_on_items`  
 - 검증: `godot --headless --path . -s res://save/verify_save_v1.gd`  

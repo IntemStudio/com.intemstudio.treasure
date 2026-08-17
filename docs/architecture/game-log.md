@@ -17,7 +17,7 @@
 | 포맷 | [`data/log/game_log_formatter.gd`](../../data/log/game_log_formatter.gd) |
 | 뷰 | [`ui/hud/components/game_log_view.tscn`](../../ui/hud/components/game_log_view.tscn) + [`game_log_view.gd`](../../ui/hud/components/game_log_view.gd) |
 | 소유 | [`ui/ui_manager.gd`](../../ui/ui_manager.gd) `game_log` |
-| 훅 | [`combat_session.gd`](../../world/combat/combat_session.gd) `action_resolved` · [`encounter_director.gd`](../../world/combat/encounter_director.gd) start/end |
+| 훅 | [`combat_session.gd`](../../world/combat/combat_session.gd) `action_resolved` · [`encounter_director.gd`](../../world/combat/encounter_director.gd) start/end · `dungeon.gd` 구절 |
 
 Autoload 아님. `CombatSession`은 로그 타입을 모른다. 세이브 JSON에 없음.
 
@@ -58,6 +58,9 @@ GameLogView  (GameHud 우하, 배속/후퇴 위)
 | `combat.end` | `win` / `lose` / `retreat` |
 | `loot.grant` | 획득 표시명 나열 (`LOOT_GOT`) |
 | `loot.skip` | 가방 가득 (`LOOT_INVENTORY_FULL`) |
+| `verse.read` | 구절 한 줄 (`VERSE_LINE_*`, `actor_name` = locale 키) |
+| `question.open` | 가운데 소문 개방 (`QUESTION_OPEN`) |
+| `ending.take` / `ending.seal` / `ending.empty` | 결말 (`ENDING_*`) |
 
 ---
 

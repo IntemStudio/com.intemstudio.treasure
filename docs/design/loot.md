@@ -26,7 +26,7 @@
 | 7 | 메타 인벤에 넣는다. 전멸·보스 귀환 후에도 남는다. |
 | 8 | 선택 UI는 가운데 **상세 카드 3장** 오버레이(일시정지). 장비는 같은 슬롯 착용분과 ATK/DEF 비교. 확정 후 토스트·로그. |
 | 9 | 장착은 기존 메뉴. **다음 방** 전투부터 스탯 반영. |
-| 10 | 보스는 같은 3택1 후 `return_to_village()`. |
+| 10 | 보스는 같은 3택1 후 `unlock_next` + `return_to_village()`. **제단 아래는 예외** — 1장 + 결말 3택 ([`basin.md`](basin.md)). |
 | 11 | 게시판 `reward_mult`는 드랍·가격에 쓰지 않는다 ([`shop.md`](shop.md)). |
 
 ---
@@ -37,6 +37,7 @@
 |------|------|------|
 | **v1** | 장비 1~N 자동 지급 | 폐기 (v1.1로 대체) |
 | **v1.1** | `reward_type` + 3택1, 룬·보석 풀, 장비 ATK/DEF 비교 | 구현됨 |
+| **basin.ending** | 제단 아래 1장 + take/seal/empty | 구현됨 — [`basin.md`](basin.md) |
 | **shelf.v1** | 룬/보석 풀 = `unlocked_shelves` | 대체됨 |
 | **shelf.v2** | open_cards · 희귀도 단 | 대체 → shelf.v3 |
 | **shelf.v3** | 룬/보석 판 · open_cards · 시드 `#1` | 구현됨 — [`bookshelf.md`](bookshelf.md) |
@@ -48,7 +49,8 @@
 
 ```
 win → XP/HP, cleared → roll_offers(3) → LootChoiceOverlay → take_offer → toast/log
-→ BOSS면 return_to_village()
+→ BOSS면 unlock_next + return_to_village()
+→ 제단 아래 BOSS면 sanctum_verse 1장 + 결말 3택
 ```
 
 | reward_type | 풀 |

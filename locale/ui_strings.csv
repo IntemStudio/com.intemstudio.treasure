@@ -190,6 +190,60 @@ CHALLENGE_DESC_SHORT,"8 rooms. A brief delve for buried runes and gems.","방 8�
 CHALLENGE_DESC_NORMAL,"12 rooms. A standard delve into forgotten ground.","방 12개. 잊힌 땅을 도는 보통 수색."
 CHALLENGE_DESC_LONG,"16 rooms. A long, dangerous delve.","방 16개. 길고 위험한 수색."
 BOARD_LABEL,Rumors,소문
+STONE_LABEL,Name-stone,이름돌
+QUESTION_FOG,What does this shelter cover?,이 쉼터는 무엇을 덮고 있는가
+QUESTION_OPEN,The center rumor is open.,가운데 소문이 열렸습니다.
+LOCATION_ALTAR_BELOW,Below the Altar,제단 아래
+ZONE_TITLE_CEMETERY_GRAVES,Cemetery · Outer Graves,묘지 · 외곽 묘역
+ZONE_TITLE_CEMETERY_OSSUARY,Cemetery · Ossuary,묘지 · 납골당
+ZONE_TITLE_CEMETERY_CRYPT,Cemetery · Crypt,묘지 · 지하 묘실
+ZONE_TITLE_CEMETERY_BONE_ALTAR,Cemetery · Bone Altar,묘지 · 뼈 제단
+ZONE_TITLE_GROVE_PATH,Grove · Twisted Path,숲 · 뒤틀린 오솔
+ZONE_TITLE_GROVE_THICKET,Grove · Spider Thicket,숲 · 거미 수풀
+ZONE_TITLE_GROVE_ROOTS,Grove · Root Nest,숲 · 뿌리 둥지
+ZONE_TITLE_GROVE_MOTHER_TREE,Grove · Mother Tree,숲 · 어미의 나무
+ZONE_TITLE_MANSION_GARDEN,Mansion · Blood Garden,영지 · 핏빛 정원
+ZONE_TITLE_MANSION_SERVANTS,Mansion · Servants' Hall,영지 · 하인 회랑
+ZONE_TITLE_MANSION_HALL,Mansion · Banquet Hall,영지 · 연회 홀
+ZONE_TITLE_MANSION_LORD_CHAMBER,Mansion · Lord's Chamber,영지 · 군주의 침소
+ZONE_TITLE_BATTLEFIELD_FIELD,Battlefield · Wreckage Field,전장 · 잔해 들판
+ZONE_TITLE_BATTLEFIELD_CAMP,Battlefield · Raider Camp,전장 · 약탈 진영
+ZONE_TITLE_BATTLEFIELD_TRENCH,Battlefield · Ghost Trench,전장 · 유령 참호
+ZONE_TITLE_BATTLEFIELD_WAR_ALTAR,Battlefield · War Altar,전장 · 전쟁 제단
+ZONE_TITLE_ALTAR_MOUTH,Below the Altar,제단 아래
+ZONE_TITLE_ALTAR_MOUTH_DEEP,Below the Altar · Deeper,제단 아래 · 더 깊음
+ZONE_DESC_CEMETERY_GRAVES,"Outer graves. Bones among the stones.","외곽 묘역. 돌 사이에 뼈가 있습니다."
+ZONE_DESC_CEMETERY_OSSUARY,"The ossuary keeps names in the dark.","납골당이 어둠 속에 이름을 둡니다."
+ZONE_DESC_CEMETERY_CRYPT,"A deeper crypt. Watchers thicken.","더 깊은 묘실. 감시자가 늘어납니다."
+ZONE_DESC_CEMETERY_BONE_ALTAR,"The bone guardian holds a broken verse.","뼈 수호자가 깨진 구절을 붙잡고 있습니다."
+ZONE_DESC_GROVE_PATH,"A twisted path into the woods.","숲으로 들어가는 뒤틀린 오솔입니다."
+ZONE_DESC_GROVE_THICKET,"Webs close the way.","거미줄이 길을 닫습니다."
+ZONE_DESC_GROVE_ROOTS,"Roots knot over a buried wound.","뿌리가 묻힌 상처 위를 엮습니다."
+ZONE_DESC_GROVE_MOTHER_TREE,"The nest mother keeps the cover.","둥지 어미가 덮개를 지킵니다."
+ZONE_DESC_MANSION_GARDEN,"A bloodstained garden by the wall.","담장 옆의 피 묻은 정원입니다."
+ZONE_DESC_MANSION_SERVANTS,"A servants' hall and a hidden plan.","하인 회랑과 숨긴 평면도입니다."
+ZONE_DESC_MANSION_HALL,"The banquet hall still holds court.","연회 홀이 아직 군림합니다."
+ZONE_DESC_MANSION_LORD_CHAMBER,"The lord holds a verse in blood.","군주가 피로 구절을 붙듭니다."
+ZONE_DESC_BATTLEFIELD_FIELD,"Scarred ground and wreckage.","상처 난 땅과 잔해입니다."
+ZONE_DESC_BATTLEFIELD_CAMP,"A raider camp left in the scar.","상처 위에 남은 약탈 진영입니다."
+ZONE_DESC_BATTLEFIELD_TRENCH,"Ghosts linger in the trench.","참호에 유령이 남았습니다."
+ZONE_DESC_BATTLEFIELD_WAR_ALTAR,"The war specter holds the split verse.","전쟁 망령이 갈린 구절을 붙잡고 있습니다."
+ZONE_DESC_ALTAR_MOUTH,"The four wounds are one mouth. The altar is the lid.","네 구멍은 입구가 네 개인 한 구멍이다. 제단이 뚜껑이다."
+ZONE_DESC_ALTAR_MOUTH_DEEP,"The names opened wider. The mouth is deeper.","이름을 더 열었다. 입이 더 깊다."
+ZONE_DESC_MANSION_GARDEN_X_CEMETERY,"The estate buried its dead in the north stones.","장원이 북녘 돌에 사람을 묻었다."
+ZONE_DESC_GROVE_PATH_X_BATTLEFIELD,"The war burned a road through the woods.","전쟁이 나무를 뚫고 간 길이다."
+ZONE_DESC_CEMETERY_GRAVES_X_MANSION,"Garden blood was carried to these graves.","정원의 피가 이 묘역으로 옮겨졌다."
+ZONE_DESC_BATTLEFIELD_FIELD_X_GROVE,"Roots already crawl the wreckage.","뿌리가 이미 잔해를 기어 오른다."
+VERSE_LINE_CEMETERY,Leave a name and it sleeps.,이름을 남기면 잠든다
+VERSE_LINE_GROVE,Cover it and it is forgotten.,덮이면 잊힌다
+VERSE_LINE_MANSION,Hold it in blood and it is yours.,피로 붙들면 내 것이 된다
+VERSE_LINE_BATTLEFIELD,Split it and it wakes.,갈리면 깨어난다
+ENDING_TAKE,Take,가져간다
+ENDING_SEAL,Seal,남긴다
+ENDING_EMPTY,Open,비운다
+ENDING_TITLE,The last verse,마지막 구절
+ENDING_HINT,How do you leave this name?,이 이름을 어떻게 남기겠습니까
+SHELTER_LABEL,Shelter,쉼터
 MAP_NO_DUNGEON,No dungeon loaded,던전이 없습니다
 ROOM_TYPE_START,Start,시작
 ROOM_TYPE_NORMAL,Room,방
@@ -528,6 +582,9 @@ TAG_MAGIC,Magic,마법
 TAG_POLEARM,Polearm,장병기
 TAG_DAGGER,Dagger,단검
 TAG_RANGED,Ranged,원거리
+RESO_TAGS,Resonance tags,공명 키워드
+RESO_RULE_RUNE,"A core gem that shares a keyword awakens this skill. An auxiliary gem in the same set completes it.","핵심 보석과 키워드가 하나라도 같으면 이 기술이 공명합니다. 같은 세트의 보조 보석까지 맞으면 완성됩니다."
+RESO_RULE_GEM,"Socket this in a core slot next to a rune that shares a keyword to awaken that skill.","같은 키워드의 룬이 꽂힌 핵심 칸에 넣으면 그 기술이 공명합니다."
 RESO_BLOOD,Blood,피
 RESO_COUNTER,Counter,반격
 RESO_WIND,Wind,바람

@@ -3,7 +3,7 @@
 **미구현 후속:** 이어하기 던전 복귀 · 후퇴=원정 포기 · 여관/상점.  
 **현황(구조):** [`docs/architecture/village.md`](../architecture/village.md) — `VillageShell` + `MenuShell` Sheet(소문·서가·대장간·인벤·스탯·설정). 걸어다니기·월드 존 클릭·제단 단독 UI는 **폐기**.  
 서가: [`bookshelf.md`](bookshelf.md) (`shelf.v3`). 상점 가격: [`shop.md`](shop.md) (`shop.price` 구현, NPC는 후속).  
-세계관(단독 보물 사냥꾼·마을=쉼터): [`world.md`](world.md). DD 햄릿은 **허브 UX 참고**만.  
+세계관(단독 보물 사냥꾼·마을=쉼터): [`world.md`](world.md). 분지 수색(이름돌·제단 아래): [`basin.md`](basin.md). DD 햄릿은 **허브 UX 참고**만.  
 런 파일: [`save-load.md`](save-load.md) v2. 층 생성: [`map.md`](map.md). 전투 종료: [`combat.md`](combat.md).
 
 타이틀·프로필은 [`title.md`](../architecture/title.md). **게임 플레이의 집**은 `village.tscn`.
@@ -22,7 +22,7 @@
 타이틀 → 프로필
         ↓
       마을 (고정 배경, FloorGenerator / Player 없음)
-        ↓  HubNav [소문] → 지역·길이 → 도전 확정
+        ↓  HubNav [소문] → 상처·이름돌 → 도전 확정
       RunState 작성 → FloorMap.generate → dungeon.tscn
         ↓
       탐험 / 방 전투 (현행)
@@ -51,13 +51,14 @@
 | **shelf.v3** | 룬/보석 판 · open_cards · 봉인 | 구현됨 — [`bookshelf.md`](bookshelf.md) |
 | **v1.1** | 런 JSON 쓰기·삭제, 이어하기 시 던전 복귀, 후퇴=원정 포기, 정산 | 파일 쓰기·마을 복귀 시 삭제는 구현됨. 던전 이어하기·후퇴 포기는 후속 |
 | **v1.region** | 게시판 지역 4종 + en/ko + 지역별 인카운터 | 구현됨 |
-| **v2** | 여관, 상점 NPC, 길이별 난이도 | 설계만 |
+| **basin** | 길이 열 → 이름돌·구역·제단 아래 | 구현됨 — [`basin.md`](basin.md) |
+| **v2** | 여관, 상점 NPC | 설계만 |
 
 ---
 
 ## v1 — 허브 + 소문 (현행 요약)
 
-초기 초안(월드 존·전체화면 오버레이)은 **폐기**. 길이·지역 표·확정 흐름·원정 종료 규칙은 유지.
+초기 초안(월드 존·전체화면 오버레이)은 **폐기**. 확정 흐름·원정 종료 규칙은 유지. 게시판 열은 길이 대신 이름돌 — [`basin.md`](basin.md).
 
 ### 위치
 
@@ -89,10 +90,10 @@
 
 Sheet가 열려 있으면 Esc/BACK은 그 Sheet만 닫는다.
 
-### 소문 Sheet · 지역 · 길이
+### 소문 Sheet · 이름돌
 
 맵을 미리 보여 주지 않는다. 열기만으로는 `FloorGenerator`를 호출하지 않는다.  
-좌: **지역** 열 + **길이** 열. 우: 설명. ←/→ 열 전환.
+좌: 분지 나침반 + **해금된 이름돌**. 우: 구역 설명·구절. 길이 열 없음. 계약: [`basin.md`](basin.md).
 
 | id | en | ko |
 |----|----|----|
@@ -101,17 +102,11 @@ Sheet가 열려 있으면 Esc/BACK은 그 Sheet만 닫는다.
 | `mansion` | Mansion | 영지 |
 | `battlefield` | Battlefield | 전장 |
 
-| id | 표시 (en / ko) | `room_count` | 보상 배수 (표시만) |
-|----|----------------|--------------|-------------------|
-| `short` | Short / 짧음 | 8 | ×1 |
-| `normal` | Normal / 보통 | 12 | ×1.5 |
-| `long` | Long / 긴 | 16 | ×2 |
-
-보상 배수는 **UI 문구**만 ([`loot.md`](loot.md) · [`shop.md`](shop.md)).
+나침반: 북 묘지 · 서 숲 · 동 영지 · 남 전장. 가운데는 구절 3행이면 제단 아래.
 
 | 조작 | 동작 |
 |------|------|
-| ← / → | 지역 ↔ 길이 열 |
+| ← / → | 나침반 ↔ 이름돌 열 |
 | 상하 / 클릭 | 행 포커스 · 우 패널 갱신 |
 | `ui_accept` / CHALLENGE | 도전 확정 → 생성 + 던전 입장 |
 | `ui_cancel` / BACK | Sheet 닫기. 맵 없음 |
@@ -131,7 +126,7 @@ Sheet가 열려 있으면 Esc/BACK은 그 Sheet만 닫는다.
 | 후퇴 | 입구 유지 (포기·마을은 v1.1) |
 | 설정 → 메인 메뉴 | 타이틀 |
 
-에디터에서 `dungeon.tscn` 직접 실행 시 `pending_run` 없으면 `randi()` + 12방 폴백.
+에디터에서 `dungeon.tscn` 직접 실행 시 `pending_run` 없으면 `cemetery` + `graves` + 8방 폴백.
 
 ### API
 
@@ -150,7 +145,7 @@ UIManager.refresh_bookshelf()
 
 [`save-load.md`](save-load.md) 레이어 2와 맞춘다.
 
-- 도전 확정 → `save_run` (`dungeon_id`, `length_id`, `seed`, `room_count`, 이후 `current` / `visited` / `cleared`)
+- 도전 확정 → `save_run` (`dungeon_id`, `zone_id`, `seed`, `room_count`, 이후 `current` / `visited` / `cleared`)
 - 이어하기: 런 있으면 `dungeon.tscn`(시드로 `generate` 후 플래그 덮어쓰기), 없으면 `village.tscn`
 - 보스 클리어 → 정산 → 메타 병합 → `clear_run` → 마을
 - 후퇴 → 원정 포기 확인 → `clear_run` → 마을
@@ -167,7 +162,6 @@ UIManager.refresh_bookshelf()
 - 상점: 인벤과 별도 NPC. 구매·판매가는 [`shop.md`](shop.md) `ShopPricing`
 - 보급(횃불·식량): Stamina 상한/재생과 같이 검토 ([`stats.md`](stats.md))
 - 파티 편성: 전투 다수 아군 이후
-- 길이별 적 레벨·방당 랜덤 조우
 
 소문·서가는 **Sheet** 유지. 월드에 퀘스트 목록을 펼치지 않는다.
 
@@ -182,6 +176,7 @@ UIManager.refresh_bookshelf()
 | [`save-load.md`](save-load.md) | 런 쓰기·삭제. 던전 이어하기는 후속 |
 | [`combat.md`](combat.md) | `lose` → `return_to_village()` |
 | [`hud.md`](hud.md) | 허브에서 GameHud 숨김 |
+| [`basin.md`](basin.md) | 이름돌·구역·제단 아래 (구현됨) |
 | [`equipment.md`](equipment.md) · [`bookshelf.md`](bookshelf.md) | 서가 봉인 |
 | [`shop.md`](shop.md) | v2 NPC가 `ShopPricing` 호출 |
 

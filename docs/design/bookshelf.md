@@ -116,6 +116,7 @@ WEAPON | ARMOR: 게이트 없음
 | 문서 | 연결 |
 |------|------|
 | [`world.md`](world.md) | 룬·보석 · 이름 남기기 |
+| [`basin.md`](basin.md) | 이야기 게이트는 `verses_read`. 룻은 `open_cards` |
 | [`equipment.md`](equipment.md) | 등록·공명 |
 | [`village.md`](village.md) | VillageShell |
 | [`loot.md`](loot.md) | 3택1 |

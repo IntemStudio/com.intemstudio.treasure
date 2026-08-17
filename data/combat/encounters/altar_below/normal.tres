@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EncounterDef" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/combat/encounter_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/combat/units/skeleton.tres" id="2"]
+[ext_resource type="Resource" path="res://data/combat/units/spider.tres" id="3"]
+[ext_resource type="Resource" path="res://data/combat/units/ghoul.tres" id="4"]
+[ext_resource type="Resource" path="res://data/combat/units/ghost.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+id = "altar_below_normal"
+enemy_level = 2
+round_index = 1
+enemies = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")]
+can_retreat = false
+ally_origin = Vector2(280, 420)
+enemy_origin = Vector2(1100, 420)
+enemy_spacing = Vector2(-56, 0)

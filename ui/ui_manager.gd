@@ -5,6 +5,7 @@ const MENU_SHELL_PATH := "res://ui/shell/menu_shell.tscn"
 const DEV_OVERLAY_SCENE := preload("res://ui/dev/dev_overlay.tscn")
 const GAME_HUD_SCENE := preload("res://ui/hud/game_hud.tscn")
 const LOOT_CHOICE_SCENE := preload("res://ui/loot/loot_choice_overlay.tscn")
+const ENDING_CHOICE_SCENE := preload("res://ui/loot/ending_choice_overlay.tscn")
 
 enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6 }
 
@@ -28,6 +29,8 @@ var _hud: GameHud
 var _dev_overlay: CanvasLayer
 var _loot_choice_layer: CanvasLayer
 var _loot_choice: LootChoiceOverlay
+var _ending_choice: EndingChoiceOverlay
+var _zone_location_key: String = ""
 var _active_tab: int = -1
 var _last_tab: int = Tab.STATS
 var _room_changed_connected: bool = false
@@ -82,6 +85,9 @@ func _ready() -> void:
 	_loot_choice = LOOT_CHOICE_SCENE.instantiate() as LootChoiceOverlay
 	_loot_choice_layer.add_child(_loot_choice)
 	_loot_choice.setup(self)
+	_ending_choice = ENDING_CHOICE_SCENE.instantiate() as EndingChoiceOverlay
+	_loot_choice_layer.add_child(_ending_choice)
+	_ending_choice.setup(self)
 
 	popup_visibility_changed.connect(_on_popup_visibility_changed)
 
@@ -148,13 +154,14 @@ func set_challenge_board_open(open: bool) -> void:
 	popup_visibility_changed.emit(_menu_open)
 
 
-func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost) -> void:
+func bind_dungeon(p_floor_map: FloorMap, p_room_host: RoomHost, location_key: String = "") -> void:
 	hub_mode = false
 	if _shell and _shell.has_method("set_hub_mode"):
 		_shell.set_hub_mode(false)
 	if _hud:
 		_hud.set_hub_mode(false)
 	unbind_dungeon()
+	_zone_location_key = location_key
 	floor_map = p_floor_map
 	room_host = p_room_host
 	if floor_map and not floor_map.room_changed.is_connected(_on_floor_room_changed):
@@ -182,6 +189,7 @@ func unbind_dungeon() -> void:
 	floor_map = null
 	room_host = null
 	encounter_director = null
+	_zone_location_key = ""
 	clear_log()
 	set_combat_active(false)
 
@@ -227,6 +235,9 @@ func _refresh_hud_visibility() -> void:
 
 func _on_floor_room_changed(pos: Vector2i) -> void:
 	if floor_map == null:
+		return
+	if not _zone_location_key.is_empty():
+		set_location(_zone_location_key)
 		return
 	var room := floor_map.get_room(pos)
 	if room == null:
@@ -353,6 +364,14 @@ func show_loot_choice(offers: Array, reward_type: int, on_done: Callable) -> voi
 			on_done.call({})
 		return
 	_loot_choice.open(offers, reward_type, on_done)
+
+
+func show_ending_choice(allow_seal: bool, allow_empty: bool, on_done: Callable) -> void:
+	if _ending_choice == null:
+		if on_done.is_valid():
+			on_done.call(BasinProgress.ENDING_TAKE)
+		return
+	_ending_choice.open(allow_seal, allow_empty, on_done)
 
 
 func clear_log() -> void:

@@ -72,12 +72,12 @@ GameHud (CanvasLayer)
 | XP | `CharacterStats.xp` / `xp_to_next` |
 | 마나 | `CharacterStats.mana` / `mana_max` (`recalculate_derived` 시 `general.focus` → `mana_max`). 전투 중 `set_combat_resources`로 세션 마나 반영 |
 | HP | `CharacterStats.hp` / `hp_max` |
-| 지역 | `UIManager.location_id` → `set_location` |
+| 지역 | `UIManager.location_id` → `set_location`. 던전은 `ZONE_TITLE_*` / `LOCATION_ALTAR_BELOW` (`bind_dungeon(..., location_key)`). 방 타입 Entrance/Boss로 덮지 않음 |
 | 버전 | `AppVersion.MAJOR/MINOR/PATCH` (세이브 `version`과 별개) |
 | 미니맵 | `FloorMap` via `bind_floor_map` (`visited` / `neighbors` / `room_type`) |
 | 기술 | `ResonanceService.list_equipped_rune_skills` (장착 부위 꽂힌 룬만, 최대 6). `RuneData.icon_for_kind` + 이름 ([`inventory.md`](inventory.md) 아이콘). 전투 중 게이지 충전. 마나 되는 첫 **액티브** 자동 발동 ([`equipment.md`](equipment.md) · [`combat.md`](combat.md)) |
 | 퀵 | `main_hand`, `off_hand`, `quick_item`, `quick_food`. `ItemData.icon` + 이름 |
-| 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot |
+| 로그 | `UIManager.game_log` via `bind_game_log`. 전투 `action_resolved` + start/end + loot + 구절/결말 |
 | 토스트 | `UIManager.show_loot_toast` → `LootToast` |
 
 `UIManager.apply_save_game` / 메뉴 닫힘 / 전투 승패 후 `refresh_character_views` 시 `GameHud.refresh`.  
@@ -92,6 +92,7 @@ GameHud (CanvasLayer)
 
 ```
 UIManager.set_location(id)
+UIManager.bind_dungeon(floor_map, room_host, location_key="")
 UIManager.set_combat_active(bool)   # HUD 유지
 UIManager.refresh_character_views()
 UIManager.refresh_hud()            # HUD만. 인벤 포커스 유지

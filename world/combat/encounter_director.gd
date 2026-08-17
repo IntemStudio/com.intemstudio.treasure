@@ -16,6 +16,7 @@ var ui_manager: UIManager
 var floor_map: FloorMap
 var room_host: RoomHost
 var dungeon_id: String = "cemetery"
+var zone_id: String = "graves"
 
 var _rules: CombatRules
 var _normal_encounter: EncounterDef
@@ -31,7 +32,8 @@ func setup(
 	p_session: CombatSession,
 	p_arena: CombatArena,
 	p_hud: CombatHud,
-	p_dungeon_id: String = ""
+	p_dungeon_id: String = "",
+	p_zone_id: String = ""
 ) -> void:
 	ui_manager = p_ui_manager
 	floor_map = p_floor_map
@@ -42,7 +44,7 @@ func setup(
 	_rules = load(RULES_PATH) as CombatRules
 	if _rules == null:
 		_rules = CombatRules.new()
-	set_dungeon_id(p_dungeon_id)
+	set_run(p_dungeon_id, p_zone_id)
 	if session:
 		session.setup(_rules)
 		if not session.combat_ended.is_connected(_on_combat_ended):
@@ -54,15 +56,20 @@ func setup(
 			hud.set_retreat_callback(Callable(self, "request_retreat"))
 
 
-func set_dungeon_id(p_dungeon_id: String) -> void:
+func set_run(p_dungeon_id: String, p_zone_id: String = "") -> void:
 	dungeon_id = RegionEncountersScript.normalize_region(p_dungeon_id)
-	var pair: Dictionary = RegionEncountersScript.load_pair(dungeon_id)
+	zone_id = RegionEncountersScript.normalize_zone(dungeon_id, p_zone_id)
+	var pair: Dictionary = RegionEncountersScript.load_pair(dungeon_id, zone_id)
 	_normal_encounter = pair.get("normal") as EncounterDef
 	_boss_encounter = pair.get("boss") as EncounterDef
 	if _normal_encounter == null:
 		_normal_encounter = load(FALLBACK_NORMAL_PATH) as EncounterDef
 	if _boss_encounter == null:
 		_boss_encounter = load(FALLBACK_BOSS_PATH) as EncounterDef
+
+
+func set_dungeon_id(p_dungeon_id: String) -> void:
+	set_run(p_dungeon_id, zone_id)
 
 
 func is_active() -> bool:
@@ -210,13 +217,16 @@ func _apply_win(pending_xp: int, hero_hp: int, hero_mana: int) -> void:
 
 
 func _begin_loot_choice(room: RoomData, was_boss: bool) -> void:
+	if was_boss and dungeon_id == ChallengeDef.DUNGEON_ALTAR:
+		_begin_altar_ending()
+		return
 	if ui_manager == null or ui_manager.inventory_data == null or room == null:
 		if was_boss and ui_manager:
-			ui_manager.return_to_village()
+			_finish_zone_boss()
 		return
 	if room.reward_type == RoomData.RewardType.NONE:
 		if was_boss:
-			ui_manager.return_to_village()
+			_finish_zone_boss()
 		return
 	var seed_value := 0
 	if floor_map:
@@ -237,7 +247,7 @@ func _begin_loot_choice(room: RoomData, was_boss: bool) -> void:
 	)
 	if offers.is_empty():
 		if was_boss:
-			ui_manager.return_to_village()
+			_finish_zone_boss()
 		return
 	ui_manager.show_loot_choice(
 		offers,
@@ -252,7 +262,7 @@ func _finish_loot_choice(offer: Dictionary, was_boss: bool) -> void:
 		return
 	if offer.is_empty():
 		if was_boss:
-			ui_manager.return_to_village()
+			_finish_zone_boss()
 		return
 	var result: Dictionary = LootService.take_offer(ui_manager.inventory_data, offer)
 	if bool(result.get("ok", false)):
@@ -269,7 +279,74 @@ func _finish_loot_choice(offer: Dictionary, was_boss: bool) -> void:
 			ui_manager.show_loot_toast({"granted": [], "skipped": 1})
 	ui_manager.refresh_character_views()
 	if was_boss:
+		_finish_zone_boss()
+
+
+func _finish_zone_boss() -> void:
+	if ui_manager == null:
+		return
+	var meta := SaveManager.get_card_meta()
+	meta = BasinProgress.unlock_next(meta, dungeon_id, zone_id)
+	SaveManager.set_card_meta(meta)
+	ui_manager.return_to_village()
+
+
+func _begin_altar_ending() -> void:
+	if ui_manager == null or ui_manager.inventory_data == null:
+		if ui_manager:
+			ui_manager.return_to_village()
+		return
+	var offer := LootService.rune_offer(BasinProgress.LAST_VERSE_RUNE_ID)
+	var result: Dictionary = LootService.take_offer(ui_manager.inventory_data, offer)
+	if not bool(result.get("ok", false)):
+		_push_loot_log({"granted": [], "skipped": 1})
 		ui_manager.return_to_village()
+		return
+	_push_loot_choice_log(result)
+	ui_manager.refresh_character_views()
+	var meta := SaveManager.get_card_meta()
+	var allow_seal := not CardRegistrationService.is_id_registered(
+		meta, "rune", BasinProgress.LAST_VERSE_RUNE_ID
+	)
+	var allow_empty := BasinProgress.can_empty(meta, zone_id)
+	ui_manager.show_ending_choice(
+		allow_seal,
+		allow_empty,
+		func(ending_id: String) -> void:
+			_apply_altar_ending(ending_id)
+	)
+
+
+func _apply_altar_ending(ending_id: String) -> void:
+	if ui_manager == null:
+		return
+	var meta := SaveManager.get_card_meta()
+	if ending_id == BasinProgress.ENDING_SEAL:
+		var uid := CardRegistrationService.first_owned_uid(
+			ui_manager.inventory_data, "rune", BasinProgress.LAST_VERSE_RUNE_ID
+		)
+		var sealed: Dictionary = CardRegistrationService.register(
+			ui_manager.inventory_data, meta, "rune", uid
+		)
+		if bool(sealed.get("ok", false)):
+			meta = sealed.get("meta", meta) as Dictionary
+		else:
+			ending_id = BasinProgress.ENDING_TAKE
+	meta = BasinProgress.apply_ending(meta, ending_id)
+	if zone_id == ChallengeDef.ZONE_MOUTH_DEEP:
+		meta = BasinProgress.mark_altar_deep_cleared(meta)
+	SaveManager.set_card_meta(meta)
+	var kind := "ending.take"
+	match ending_id:
+		BasinProgress.ENDING_SEAL:
+			kind = "ending.seal"
+		BasinProgress.ENDING_EMPTY:
+			kind = "ending.empty"
+		_:
+			kind = "ending.take"
+	ui_manager.push_log({"category": "story", "kind": kind})
+	ui_manager.refresh_character_views()
+	ui_manager.return_to_village()
 
 
 func _push_loot_choice_log(result: Dictionary) -> void:

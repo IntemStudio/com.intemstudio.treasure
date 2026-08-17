@@ -43,6 +43,16 @@ static func format_bbcode(entry: GameLogEntry) -> String:
 			return _wrap(_color_system(), _tr("LOOT_GOT") % _joined_names(entry.actor_name))
 		"loot.skip":
 			return _wrap(_color_system(), _tr("LOOT_INVENTORY_FULL"))
+		"verse.read":
+			return _wrap(_color_system(), _tr(entry.actor_name))
+		"question.open":
+			return _wrap(_color_system(), _tr("QUESTION_OPEN"))
+		"ending.take":
+			return _wrap(_color_system(), _tr("ENDING_TAKE"))
+		"ending.seal":
+			return _wrap(_color_system(), _tr("ENDING_SEAL"))
+		"ending.empty":
+			return _wrap(_color_system(), _tr("ENDING_EMPTY"))
 		_:
 			return ""
 

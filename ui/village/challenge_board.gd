@@ -5,33 +5,36 @@ signal closed
 signal request_close
 signal challenge_confirmed(params: Dictionary)
 
-enum FocusColumn { REGION = 0, LENGTH = 1 }
+enum FocusColumn { COMPASS = 0, ZONE = 1 }
 
 const DUNGEON_SCENE := "res://scenes/dungeon/dungeon.tscn"
 
-@onready var region_section_label: Label = %RegionSectionLabel
-@onready var length_section_label: Label = %LengthSectionLabel
-@onready var region_list: VBoxContainer = %RegionList
-@onready var length_list: VBoxContainer = %LengthList
+@onready var zone_section_label: Label = %ZoneSectionLabel
+@onready var zone_list: VBoxContainer = %ZoneList
 @onready var detail_title: Label = %DetailTitle
 @onready var detail_body: Label = %DetailBody
+@onready var verse_label: Label = %VerseLabel
+@onready var cemetery_button: Button = %CemeteryButton
+@onready var grove_button: Button = %GroveButton
+@onready var mansion_button: Button = %MansionButton
+@onready var battlefield_button: Button = %BattlefieldButton
+@onready var center_button: Button = %CenterButton
 
 var _ui_manager: UIManager
 var _footer: FooterPrompts
 var _footer_connected: bool = false
 var _active: bool = false
-var _focus_column: int = FocusColumn.REGION
-var _region_index: int = 0
-var _length_index: int = 1
-var _region_buttons: Array[Button] = []
-var _length_buttons: Array[Button] = []
+var _focus_column: int = FocusColumn.COMPASS
+var _dungeon_id: String = ChallengeDef.DUNGEON_ID_DEFAULT
+var _zone_index: int = 0
+var _open_zones: Array[Dictionary] = []
+var _zone_buttons: Array[Button] = []
 
 
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
-	_build_region_list()
-	_build_length_list()
+	_wire_compass()
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 	_refresh_texts()
 
@@ -49,9 +52,10 @@ func activate(_stats: CharacterStats = null, _inventory: InventoryData = null) -
 	_active = true
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
-	_focus_column = FocusColumn.REGION
-	_region_index = 0
-	_length_index = 1
+	_focus_column = FocusColumn.COMPASS
+	_dungeon_id = ChallengeDef.DUNGEON_ID_DEFAULT
+	_zone_index = 0
+	_rebuild_zones()
 	_refresh_texts()
 	_apply_focus()
 	_sync_footer()
@@ -78,6 +82,40 @@ func is_open() -> bool:
 	return _active
 
 
+func _meta() -> Dictionary:
+	return SaveManager.get_card_meta()
+
+
+func _wire_compass() -> void:
+	if cemetery_button:
+		cemetery_button.pressed.connect(_on_compass_pressed.bind("cemetery"))
+	if grove_button:
+		grove_button.pressed.connect(_on_compass_pressed.bind("grove"))
+	if mansion_button:
+		mansion_button.pressed.connect(_on_compass_pressed.bind("mansion"))
+	if battlefield_button:
+		battlefield_button.pressed.connect(_on_compass_pressed.bind("battlefield"))
+	if center_button:
+		center_button.pressed.connect(_on_center_pressed)
+
+
+func _on_compass_pressed(dungeon_id: String) -> void:
+	_focus_column = FocusColumn.COMPASS
+	_dungeon_id = dungeon_id
+	_zone_index = 0
+	_rebuild_zones()
+	_apply_focus()
+
+
+func _on_center_pressed() -> void:
+	_focus_column = FocusColumn.COMPASS
+	if BasinProgress.can_open_altar(_meta()):
+		_dungeon_id = ChallengeDef.DUNGEON_ALTAR
+		_zone_index = 0
+		_rebuild_zones()
+	_apply_focus()
+
+
 func _make_list_button(label_key: String) -> Button:
 	var button := Button.new()
 	button.flat = true
@@ -86,109 +124,140 @@ func _make_list_button(label_key: String) -> Button:
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.add_theme_font_size_override("font_size", 22)
 	button.text = tr(label_key)
-	_style_button(button, false, false)
 	return button
 
 
-func _build_region_list() -> void:
-	if region_list == null:
+func _rebuild_zones() -> void:
+	_open_zones = BasinProgress.list_open_zones_for(_meta(), _dungeon_id)
+	if zone_list == null:
 		return
-	for child in region_list.get_children():
+	for child in zone_list.get_children():
 		child.queue_free()
-	_region_buttons.clear()
-	for i in range(ChallengeDef.REGIONS.size()):
-		var region := ChallengeDef.get_region(i)
-		var button := _make_list_button(str(region.get("title_key", "")))
-		button.pressed.connect(_on_region_pressed.bind(i))
-		button.focus_entered.connect(_on_region_focus_entered.bind(i))
-		region_list.add_child(button)
-		_region_buttons.append(button)
-
-
-func _build_length_list() -> void:
-	if length_list == null:
-		return
-	for child in length_list.get_children():
-		child.queue_free()
-	_length_buttons.clear()
-	for i in range(ChallengeDef.LENGTHS.size()):
-		var length := ChallengeDef.get_length(i)
-		var button := _make_list_button(str(length.get("title_key", "")))
-		button.pressed.connect(_on_length_pressed.bind(i))
-		button.focus_entered.connect(_on_length_focus_entered.bind(i))
-		length_list.add_child(button)
-		_length_buttons.append(button)
+	_zone_buttons.clear()
+	for i in range(_open_zones.size()):
+		var zone: Dictionary = _open_zones[i]
+		var button := _make_list_button(str(zone.get("title_key", "")))
+		button.pressed.connect(_on_zone_pressed.bind(i))
+		button.focus_entered.connect(_on_zone_focus_entered.bind(i))
+		zone_list.add_child(button)
+		_zone_buttons.append(button)
+	_zone_index = clampi(_zone_index, 0, maxi(_open_zones.size() - 1, 0))
 
 
 func _refresh_texts() -> void:
-	if region_section_label:
-		region_section_label.text = tr("Region")
-		region_section_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
-	if length_section_label:
-		length_section_label.text = tr("Length")
-		length_section_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	if zone_section_label:
+		zone_section_label.text = tr("STONE_LABEL")
+		zone_section_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	if cemetery_button:
+		cemetery_button.text = tr("REGION_CEMETERY")
+	if grove_button:
+		grove_button.text = tr("REGION_GROVE")
+	if mansion_button:
+		mansion_button.text = tr("REGION_MANSION")
+	if battlefield_button:
+		battlefield_button.text = tr("REGION_BATTLEFIELD")
+	if center_button:
+		if BasinProgress.can_open_altar(_meta()):
+			center_button.text = tr("LOCATION_ALTAR_BELOW")
+			center_button.disabled = false
+		else:
+			center_button.text = tr("SHELTER_LABEL")
+			center_button.disabled = true
 	if detail_title:
 		detail_title.add_theme_color_override("font_color", UIColors.GOLD)
 	if detail_body:
 		detail_body.add_theme_color_override("font_color", UIColors.TEXT_LORE)
-	for i in range(_region_buttons.size()):
-		var region := ChallengeDef.get_region(i)
-		_region_buttons[i].text = tr(str(region.get("title_key", "")))
-	for i in range(_length_buttons.size()):
-		var length := ChallengeDef.get_length(i)
-		_length_buttons[i].text = tr(str(length.get("title_key", "")))
+	if verse_label:
+		verse_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	for i in range(_zone_buttons.size()):
+		if i < _open_zones.size():
+			_zone_buttons[i].text = tr(str(_open_zones[i].get("title_key", "")))
 	_refresh_detail()
 	if _active:
 		_sync_footer()
 
 
 func _refresh_detail() -> void:
-	var region := ChallengeDef.get_region(_region_index)
-	var length := ChallengeDef.get_length(_length_index)
-	var region_title := tr(str(region.get("title_key", "")))
-	var length_title := tr(str(length.get("title_key", "")))
+	var meta := _meta()
+	var verses: Array = meta.get("verses_read", []) as Array
+	if _open_zones.is_empty():
+		if detail_title:
+			detail_title.text = tr("SHELTER_LABEL")
+		if detail_body:
+			detail_body.text = tr("QUESTION_FOG")
+		_refresh_verses(verses)
+		return
+	var zone: Dictionary = _open_zones[_zone_index]
+	var zone_id := str(zone.get("id", ""))
 	if detail_title:
-		detail_title.text = "%s · %s" % [region_title, length_title]
-	var parts: PackedStringArray = []
-	var region_desc := tr(str(region.get("desc_key", "")))
-	var length_desc := tr(str(length.get("desc_key", "")))
-	if not region_desc.is_empty():
-		parts.append(region_desc)
-	if not length_desc.is_empty():
-		parts.append(length_desc)
+		detail_title.text = tr(str(zone.get("title_key", "")))
+	var desc_key := ChallengeDef.desc_key_for(_dungeon_id, zone_id, verses)
 	if detail_body:
-		detail_body.text = "\n\n".join(parts)
+		detail_body.text = tr(desc_key) if not desc_key.is_empty() else tr("QUESTION_FOG")
+	_refresh_verses(verses)
+
+
+func _refresh_verses(verses: Array) -> void:
+	if verse_label == null:
+		return
+	var lines: PackedStringArray = PackedStringArray()
+	for dungeon_id in ["cemetery", "grove", "mansion", "battlefield"]:
+		var key := ChallengeDef.verse_line_key(dungeon_id)
+		if verses.has(dungeon_id):
+			lines.append(tr(key))
+		else:
+			lines.append("…")
+	verse_label.text = "\n".join(lines)
 
 
 func _style_button(button: Button, selected: bool, column_active: bool) -> void:
 	var focused := selected and column_active
 	UISelectStyle.apply_button(button, focused, UIColors.TEXT_MUTED, true)
-	# Selected row stays gold even when the other column owns the left bar.
 	if selected and not focused:
 		button.add_theme_color_override("font_color", UIColors.GOLD)
 		button.add_theme_color_override("font_focus_color", UIColors.GOLD)
 
 
+func _compass_button_for(dungeon_id: String) -> Button:
+	match dungeon_id:
+		"cemetery":
+			return cemetery_button
+		"grove":
+			return grove_button
+		"mansion":
+			return mansion_button
+		"battlefield":
+			return battlefield_button
+		ChallengeDef.DUNGEON_ALTAR:
+			return center_button
+		_:
+			return null
+
+
 func _apply_focus() -> void:
-	_region_index = clampi(_region_index, 0, maxi(_region_buttons.size() - 1, 0))
-	_length_index = clampi(_length_index, 0, maxi(_length_buttons.size() - 1, 0))
-	for i in range(_region_buttons.size()):
+	_zone_index = clampi(_zone_index, 0, maxi(_zone_buttons.size() - 1, 0))
+	var compass_ids: Array[String] = [
+		"cemetery", "grove", "mansion", "battlefield", ChallengeDef.DUNGEON_ALTAR
+	]
+	for dungeon_id in compass_ids:
+		var btn := _compass_button_for(dungeon_id)
+		if btn == null:
+			continue
+		var selected: bool = _dungeon_id == dungeon_id
+		_style_button(btn, selected, _focus_column == FocusColumn.COMPASS)
+	for i in range(_zone_buttons.size()):
 		_style_button(
-			_region_buttons[i],
-			i == _region_index,
-			_focus_column == FocusColumn.REGION
-		)
-	for i in range(_length_buttons.size()):
-		_style_button(
-			_length_buttons[i],
-			i == _length_index,
-			_focus_column == FocusColumn.LENGTH
+			_zone_buttons[i],
+			i == _zone_index,
+			_focus_column == FocusColumn.ZONE
 		)
 	var focus_btn: Button = null
-	if _focus_column == FocusColumn.REGION and not _region_buttons.is_empty():
-		focus_btn = _region_buttons[_region_index]
-	elif _focus_column == FocusColumn.LENGTH and not _length_buttons.is_empty():
-		focus_btn = _length_buttons[_length_index]
+	if _focus_column == FocusColumn.ZONE and not _zone_buttons.is_empty():
+		focus_btn = _zone_buttons[_zone_index]
+	else:
+		focus_btn = _compass_button_for(_dungeon_id)
+		if focus_btn and focus_btn.disabled:
+			focus_btn = cemetery_button
 	if focus_btn:
 		focus_btn.grab_focus()
 	_refresh_detail()
@@ -213,27 +282,15 @@ func _on_footer_prompt(action: String) -> void:
 			_confirm_challenge()
 
 
-func _on_region_pressed(index: int) -> void:
-	_focus_column = FocusColumn.REGION
-	_region_index = index
+func _on_zone_pressed(index: int) -> void:
+	_focus_column = FocusColumn.ZONE
+	_zone_index = index
 	_apply_focus()
 
 
-func _on_region_focus_entered(index: int) -> void:
-	_focus_column = FocusColumn.REGION
-	_region_index = index
-	_apply_focus()
-
-
-func _on_length_pressed(index: int) -> void:
-	_focus_column = FocusColumn.LENGTH
-	_length_index = index
-	_apply_focus()
-
-
-func _on_length_focus_entered(index: int) -> void:
-	_focus_column = FocusColumn.LENGTH
-	_length_index = index
+func _on_zone_focus_entered(index: int) -> void:
+	_focus_column = FocusColumn.ZONE
+	_zone_index = index
 	_apply_focus()
 
 
@@ -242,7 +299,13 @@ func _on_locale_changed(_locale: String) -> void:
 
 
 func _confirm_challenge() -> void:
-	var params := ChallengeDef.build_run_params(_region_index, _length_index)
+	if _open_zones.is_empty():
+		return
+	var zone: Dictionary = _open_zones[_zone_index]
+	var zone_id := str(zone.get("id", ""))
+	if not BasinProgress.is_stone_open(_meta(), _dungeon_id, zone_id):
+		return
+	var params := ChallengeDef.build_run_params(_dungeon_id, zone_id)
 	if params.is_empty():
 		return
 	SaveManager.set_pending_run(params)
@@ -270,30 +333,41 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_left"):
-		_focus_column = FocusColumn.REGION
+		_focus_column = FocusColumn.COMPASS
 		_apply_focus()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_right"):
-		_focus_column = FocusColumn.LENGTH
-		_apply_focus()
+		if not _zone_buttons.is_empty():
+			_focus_column = FocusColumn.ZONE
+			_apply_focus()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_up"):
-		if _focus_column == FocusColumn.REGION:
-			_region_index = (
-				(_region_index - 1 + _region_buttons.size()) % _region_buttons.size()
-			)
+		if _focus_column == FocusColumn.ZONE:
+			if not _zone_buttons.is_empty():
+				_zone_index = (_zone_index - 1 + _zone_buttons.size()) % _zone_buttons.size()
 		else:
-			_length_index = (
-				(_length_index - 1 + _length_buttons.size()) % _length_buttons.size()
-			)
+			_step_compass(-1)
 		_apply_focus()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
-		if _focus_column == FocusColumn.REGION:
-			_region_index = (_region_index + 1) % _region_buttons.size()
+		if _focus_column == FocusColumn.ZONE:
+			if not _zone_buttons.is_empty():
+				_zone_index = (_zone_index + 1) % _zone_buttons.size()
 		else:
-			_length_index = (_length_index + 1) % _length_buttons.size()
+			_step_compass(1)
 		_apply_focus()
 		get_viewport().set_input_as_handled()
+
+
+func _step_compass(delta: int) -> void:
+	var order: Array[String] = ["cemetery", "grove", "mansion", "battlefield"]
+	if BasinProgress.can_open_altar(_meta()):
+		order.insert(0, ChallengeDef.DUNGEON_ALTAR)
+	var idx := order.find(_dungeon_id)
+	if idx < 0:
+		idx = 0
+	_dungeon_id = order[(idx + delta + order.size()) % order.size()]
+	_zone_index = 0
+	_rebuild_zones()

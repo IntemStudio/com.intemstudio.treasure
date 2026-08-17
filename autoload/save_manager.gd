@@ -62,11 +62,11 @@ func get_run_path(slot: int) -> String:
 
 
 func get_card_meta() -> Dictionary:
-	return CardRegistrationService.ensure_meta_seeded(_card_meta)
+	return BasinProgress.seed_meta(CardRegistrationService.ensure_meta_seeded(_card_meta))
 
 
 func set_card_meta(meta: Dictionary) -> void:
-	_card_meta = CardRegistrationService.ensure_meta_seeded(meta)
+	_card_meta = BasinProgress.seed_meta(CardRegistrationService.ensure_meta_seeded(meta))
 
 
 func has_save(slot: int) -> bool:
@@ -169,7 +169,14 @@ func save_game(slot: int, character: CharacterStats, inventory: InventoryData) -
 				meta[key] = (meta[key] as Array).duplicate(true)
 			elif meta[key] is Dictionary:
 				meta[key] = (meta[key] as Dictionary).duplicate(true)
+	for key in BasinProgress.META_KEYS:
+		if _card_meta.has(key):
+			meta[key] = (_card_meta[key] as Variant)
+			if meta[key] is Array:
+				meta[key] = (meta[key] as Array).duplicate(true)
+	meta = BasinProgress.seed_meta(meta)
 	_card_meta = CardRegistrationService.ensure_meta_seeded(meta)
+	_card_meta = BasinProgress.seed_meta(_card_meta)
 	var data := SaveSerializer.to_dict(character, inventory, meta, SAVE_VERSION)
 	var err := _write_atomic(get_slot_path(slot), data)
 	var ok := err == OK
@@ -214,7 +221,7 @@ func load_game(slot: int) -> SaveGame:
 	current_slot = slot
 	play_time_sec = float((save.meta as Dictionary).get("play_time_sec", 0))
 	_slot_created_at[slot] = str(save.meta.get("created_at", _now_iso()))
-	_card_meta = CardRegistrationService.ensure_meta_seeded(save.meta)
+	_card_meta = BasinProgress.seed_meta(CardRegistrationService.ensure_meta_seeded(save.meta))
 	load_completed.emit(slot, true)
 	return save
 

@@ -239,6 +239,10 @@ static func _card_meta_from_ctx(ctx: Dictionary) -> Dictionary:
 	return CardRegistrationService.ensure_meta({})
 
 
+static func rune_offer(rune_id: String) -> Dictionary:
+	return _make_offer(RoomData.RewardType.RUNE, rune_id, null, RuneCatalog.new(), null)
+
+
 static func _make_offer(
 	reward_type: int,
 	id: String,

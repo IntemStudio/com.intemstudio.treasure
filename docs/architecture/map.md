@@ -47,11 +47,11 @@ Dungeon (Node2D)
 
 ## 흐름
 
-1. `FloorMap.generate(seed, room_count)` — 게시판 길이(또는 에디터 폴백 12) · 아이작식 격자 + start/boss
-2. `UIManager.bind_dungeon(floor_map, room_host)` · `bind_combat(director)`
+1. `FloorMap.generate(seed, room_count)` — 게시판 구역 `room_count`(또는 에디터 폴백 8) · 아이작식 격자 + start/boss
+2. `UIManager.bind_dungeon(floor_map, room_host, location_key)` · `bind_combat(director)`
 3. `RoomHost.enter_room(Vector2i.ZERO)`
 4. Map 탭 클릭 **또는** WASD 문 이동 → `enter_room`  
-5. `room_changed` → HUD `set_location` + 미니맵 redraw ([`minimap.md`](minimap.md))  
+5. `room_changed` → HUD `set_location(ZONE_TITLE_* 또는 LOCATION_ALTAR_BELOW)` + 미니맵 redraw ([`minimap.md`](minimap.md))  
 6. `EncounterDirector.on_room_entered` — `start`/`cleared`가 아니면 전투 ([`combat.md`](combat.md))
 
 ---
@@ -63,7 +63,7 @@ Dungeon (Node2D)
 | `grid_pos` / `room_type` / `neighbors` | 격자·타입(`START`/`NORMAL`/`BOSS`)·사방 링크 |
 | `visited` | `set_current` 시 true. 안개·맵 이동 |
 | `cleared` | 전투 승리 시 true. 재입장 조우 스킵 ([`combat.md`](combat.md)) |
-| `reward_type` | `NONE`/`WEAPON`/`ARMOR`/`RUNE`/`GEM`. 생성 시 NORMAL·BOSS에 균등. 승리 후 3택1 풀 ([`loot.md`](loot.md)) |
+| `reward_type` | `NONE`/`WEAPON`/`ARMOR`/`RUNE`/`GEM`. 생성 시 NORMAL·BOSS에 균등. 승리 후 3택1 풀. 제단 아래 보스는 1장+결말 ([`loot.md`](loot.md) · [`basin.md`](../design/basin.md)) |
 
 `type_letter()`: `S` / `N` / `B`.
 
