@@ -1,6 +1,6 @@
 # 스탯 UI
 
-스탯 탭 본문 스펙. 모달 크롬(Overlay / TopBar 제목 / Footer / pause, Sheet 1440×800)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Stats 콘텐츠 패널**만 다룹니다. 단독 Sheet 팝업 (탭 순환 없음).
+스탯 탭 본문 스펙. 모달 크롬(Overlay / TopBar 4탭 / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Stats 콘텐츠 패널**만 다룹니다. 인벤·맵·스탯·설정은 하나의 풀스크린 플레이어 메뉴.
 
 후속(Focus→Mana 라벨·무게 전투 보정): [`docs/design/stats.md`](../design/stats.md).  
 기술 게이지·마나 자동 발동은 전투 ([`combat.md`](combat.md) · [`equipment.md`](equipment.md)).
@@ -34,7 +34,7 @@
 
 | 영역 | 내용 |
 |------|------|
-| TopBar (셸) | 상단 밴드(72) — 제목만 |
+| TopBar (셸) | 상단 밴드(72) — `[인벤토리] [맵] [스탯] [설정]` + 재화·체력 |
 | Body | 중단 밴드 — expand |
 | Footer (셸) | 하단 밴드(72) — 프롬프트 |
 | Left | 초상화(`icon.svg`), Attribute Points, 속성 목록 (Health~Equip Load, 시트 아이콘), 선택 속성 또는 부가 스탯 설명. Body 1/4 |
@@ -68,10 +68,11 @@ StatsContent (Control, stats_theme)
 
 ```
 MenuShell (CanvasLayer)
-└── Overlay → Root (margin 40) → Main
-    ├── TopBar
-    ├── BodyHost  ← InventoryContent / MapContent / StatsContent / SettingsContent
-    └── Footer
+└── Overlay → Safe → Center → Sheet (플레이어 메뉴는 뷰포트 크기)
+    └── Main
+        ├── TopBar          # [인벤토리] [맵] [스탯] [설정]
+        ├── BodyHost
+        └── Footer
 ```
 
 ---
@@ -102,4 +103,4 @@ ui/stats/components/
 - **전투 XP:** 승리 시 `CharacterStats.add_xp` ([`combat.md`](combat.md)). HUD·스탯은 `UIManager.refresh_character_views`로 갱신
 - **입력:** 상하 = 현재 열(속성 또는 부가). 좌우 = 속성 ↔ GENERAL ↔ COMBAT ↔ DEFENSE. 마우스 호버/클릭 `StatRow` = 부가 설명. Enter 투자, Esc → `request_close`
 
-탭 전환은 없다 — 인벤/맵/스탯/설정은 각각 단독 Sheet. Map은 HUD 미니맵·메뉴에서 `open_tab(MAP)`으로만 연다.
+Q/E·LB/RB로 인벤/맵/스탯/설정 탭 전환. Map은 HUD 미니맵·`[맵]`·메뉴 탭에서 `open_tab(MAP)`.

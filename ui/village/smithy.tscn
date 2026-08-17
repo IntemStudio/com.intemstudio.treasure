@@ -17,7 +17,7 @@ clip_contents = true
 theme = ExtResource("2")
 script = ExtResource("1")
 
-[node name="Body" type="HBoxContainer" parent="."]
+[node name="Main" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,17 +25,37 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 clip_contents = true
+theme_override_constants/separation = 8
+
+[node name="NpcName" type="Label" parent="Main"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
+text = "Bram"
+
+[node name="NpcLine" type="Label" parent="Main"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+text = "Put it on the bench. I will fit it."
+
+[node name="Body" type="HBoxContainer" parent="Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+clip_contents = true
 theme_override_constants/separation = 24
 
-[node name="LeftColumn" type="VBoxContainer" parent="Body"]
+[node name="LeftColumn" type="PanelContainer" parent="Main/Body"]
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.15
-theme_override_constants/separation = 0
 
-[node name="LeftScroll" type="ScrollContainer" parent="Body/LeftColumn"]
+[node name="LeftScroll" type="ScrollContainer" parent="Main/Body/LeftColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -43,12 +63,12 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="LeftInner" type="VBoxContainer" parent="Body/LeftColumn/LeftScroll"]
+[node name="LeftInner" type="VBoxContainer" parent="Main/Body/LeftColumn/LeftScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="HintLabel" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+[node name="HintLabel" type="Label" parent="Main/Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
@@ -56,13 +76,13 @@ theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
 text = "Fit runes and gems into gear."
 
-[node name="EquipmentTitle" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+[node name="EquipmentTitle" type="Label" parent="Main/Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Equipped"
 
-[node name="EquipmentLayoutPad" type="MarginContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+[node name="EquipmentLayoutPad" type="MarginContainer" parent="Main/Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -71,18 +91,18 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="EquipmentLayout" type="VBoxContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/EquipmentLayoutPad"]
+[node name="EquipmentLayout" type="VBoxContainer" parent="Main/Body/LeftColumn/LeftScroll/LeftInner/EquipmentLayoutPad"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="BagTitle" type="Label" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+[node name="BagTitle" type="Label" parent="Main/Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Equipment"
 
-[node name="ItemGridPad" type="MarginContainer" parent="Body/LeftColumn/LeftScroll/LeftInner"]
+[node name="ItemGridPad" type="MarginContainer" parent="Main/Body/LeftColumn/LeftScroll/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -91,7 +111,7 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="ItemGrid" type="GridContainer" parent="Body/LeftColumn/LeftScroll/LeftInner/ItemGridPad"]
+[node name="ItemGrid" type="GridContainer" parent="Main/Body/LeftColumn/LeftScroll/LeftInner/ItemGridPad"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -99,14 +119,13 @@ theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 5
 
-[node name="CenterColumn" type="VBoxContainer" parent="Body"]
+[node name="CenterColumn" type="PanelContainer" parent="Main/Body"]
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 0
 
-[node name="CenterScroll" type="ScrollContainer" parent="Body/CenterColumn"]
+[node name="CenterScroll" type="ScrollContainer" parent="Main/Body/CenterColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -114,46 +133,45 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="CenterInner" type="VBoxContainer" parent="Body/CenterColumn/CenterScroll"]
+[node name="CenterInner" type="VBoxContainer" parent="Main/Body/CenterColumn/CenterScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="BenchRow" type="HBoxContainer" parent="Body/CenterColumn/CenterScroll/CenterInner"]
+[node name="BenchRow" type="HBoxContainer" parent="Main/Body/CenterColumn/CenterScroll/CenterInner"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ItemSlot" parent="Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
+[node name="ItemSlot" parent="Main/Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
-[node name="ModSlot" parent="Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
+[node name="ModSlot" parent="Main/Body/CenterColumn/CenterScroll/CenterInner/BenchRow" instance=ExtResource("5")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
-[node name="ItemDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("3")]
+[node name="ItemDetailPanel" parent="Main/Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ModifierDetailPanel" parent="Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("4")]
+[node name="ModifierDetailPanel" parent="Main/Body/CenterColumn/CenterScroll/CenterInner" instance=ExtResource("4")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightColumn" type="VBoxContainer" parent="Body"]
+[node name="RightColumn" type="PanelContainer" parent="Main/Body"]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 0
 
-[node name="RightScroll" type="ScrollContainer" parent="Body/RightColumn"]
+[node name="RightScroll" type="ScrollContainer" parent="Main/Body/RightColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -161,24 +179,24 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 4
 
-[node name="RightScrollGutter" type="MarginContainer" parent="Body/RightColumn/RightScroll"]
+[node name="RightScrollGutter" type="MarginContainer" parent="Main/Body/RightColumn/RightScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_right = 12
 
-[node name="RightInner" type="VBoxContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter"]
+[node name="RightInner" type="VBoxContainer" parent="Main/Body/RightColumn/RightScroll/RightScrollGutter"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="ModTitle" type="Label" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
+[node name="ModTitle" type="Label" parent="Main/Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Rune/Gem 0"
 
-[node name="ModGridPad" type="MarginContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
+[node name="ModGridPad" type="MarginContainer" parent="Main/Body/RightColumn/RightScroll/RightScrollGutter/RightInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -187,7 +205,7 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="ModGrid" type="GridContainer" parent="Body/RightColumn/RightScroll/RightScrollGutter/RightInner/ModGridPad"]
+[node name="ModGrid" type="GridContainer" parent="Main/Body/RightColumn/RightScroll/RightScrollGutter/RightInner/ModGridPad"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0

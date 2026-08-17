@@ -36,8 +36,8 @@ DevOverlay 크롬: 딤·패널 테두리·제목 = `MAP_START` (청록). 플레�
 | 영역 | 내용 |
 |------|------|
 | 좌상 | XP(흰) → 마나(주황) → HP(빨강) + `EXP/MP/HP 현재/최대` (`tr`: 경험치/마나/체력) |
-| 우상 | 지역명 · `AppVersion` **위**, 그 아래 미니맵 (안개 격자) |
-| 좌중 | `[인벤토리]` `[맵]` `[스탯]` `[설정]` (마을에선 HUD 자체 숨김) |
+| 우상 | 지역명 · `AppVersion` **위**, 오른쪽 끝 `[메뉴] (TAB)` → 플레이어 메뉴(마지막 탭). 그 아래 미니맵 |
+| 좌중 | `[맵]` → 플레이어 메뉴 Map 탭 (마을에선 HUD 자체 숨김). 인벤·스탯·설정은 같은 메뉴 탭 / 단축키 / 마을 상단 `[메뉴]` |
 | 좌하 | 장착 룬 0~6칸(상) + 주무기·보조·소모품·요리(하) |
 | 우하 | 게임 로그 (배속/후퇴 **위**) |
 | 상단 중앙 | 방 `win` 전리품 토스트 (~3초, [`loot.md`](loot.md)) |
@@ -54,9 +54,11 @@ GameHud (CanvasLayer)
 └── Root (Control, full rect, mouse ignore)
     ├── ResourceBars
     ├── TopRight (VBox)
-    │   ├── WorldInfo
+    │   ├── Header (HBox)
+    │   │   ├── WorldInfo
+    │   │   └── MenuButton          # [메뉴]
     │   └── MiniMap
-    ├── MenuNav                 # [인벤토리]/[맵]/[스탯]/[설정]
+    ├── MenuNav                 # [맵]
     ├── ActionBar
     │   ├── SkillRow (HudSlot × 꽂힌 룬 수, 0~6)
     │   └── EquipRow (Main / Off / Item / Food)
@@ -84,7 +86,7 @@ GameHud (CanvasLayer)
 소켓 꽂기/빼기는 마을 대장간에서 `UIManager.refresh_hud` ([`equipment.md`](equipment.md)).  
 `popup_visibility_changed(true)` → HUD 숨김. `set_combat_active`는 HUD를 숨기지 않는다.  
 `bind_dungeon` / `unbind_dungeon` → `bind_floor_map` / `unbind_floor_map`.  
-미니맵 클릭 → `map_open_requested` → Map 탭. **전투 중이면 무시** ([`minimap.md`](minimap.md)).
+미니맵 클릭 → `map_open_requested` → 플레이어 메뉴 Map 탭. **전투 중이면 무시** ([`minimap.md`](minimap.md)).
 
 ---
 
@@ -109,5 +111,6 @@ UIManager.clear_log()
 UIManager.show_loot_toast(result)
 GameHud.show_loot_toast(result)
 signal GameHud.map_open_requested
+signal GameHud.menu_open_requested
 ```
 퀵/기술 사용 입력은 후속.

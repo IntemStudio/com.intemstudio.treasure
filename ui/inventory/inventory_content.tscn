@@ -42,13 +42,12 @@ grow_vertical = 2
 clip_contents = true
 theme_override_constants/separation = 24
 
-[node name="LeftColumn" type="VBoxContainer" parent="Body"]
+[node name="LeftColumn" type="PanelContainer" parent="Body"]
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.15
-theme_override_constants/separation = 0
 
 [node name="LeftScroll" type="ScrollContainer" parent="Body/LeftColumn"]
 unique_name_in_owner = true
@@ -130,13 +129,12 @@ theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 5
 
-[node name="CenterColumn" type="VBoxContainer" parent="Body"]
+[node name="CenterColumn" type="PanelContainer" parent="Body"]
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
-theme_override_constants/separation = 0
 
 [node name="CenterScroll" type="ScrollContainer" parent="Body/CenterColumn"]
 unique_name_in_owner = true
@@ -162,13 +160,12 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightColumn" type="VBoxContainer" parent="Body"]
+[node name="RightColumn" type="PanelContainer" parent="Body"]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
-theme_override_constants/separation = 0
 
 [node name="RightScroll" type="ScrollContainer" parent="Body/RightColumn"]
 unique_name_in_owner = true

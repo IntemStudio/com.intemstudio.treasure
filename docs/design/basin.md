@@ -2,7 +2,7 @@
 
 **세계관:** [`world.md`](world.md) (시점만. 이 문서가 시스템).  
 **현황:** 게시판 = 분지 나침반 + 이름돌, 인카운터 = `dungeon_id`+`zone_id`, 보스 승리 = `unlock_next` 후 마을. 제단 아래 = 결말 3택.  
-허브: [`village.md`](village.md). 서가: [`bookshelf.md`](bookshelf.md). 세이브: [`save-load.md`](save-load.md) · [`architecture/save-load.md`](../architecture/save-load.md). 전투: [`combat.md`](combat.md) · [`architecture/combat.md`](../architecture/combat.md). 룻: [`loot.md`](loot.md). 층: [`map.md`](map.md).
+허브: [`village.md`](village.md). 제단 봉인: [`altar.md`](altar.md). 서가: [`bookshelf.md`](bookshelf.md). 세이브: [`save-load.md`](save-load.md) · [`architecture/save-load.md`](../architecture/save-load.md). 전투: [`combat.md`](combat.md) · [`architecture/combat.md`](../architecture/combat.md). 룻: [`loot.md`](loot.md). 층: [`map.md`](map.md).
 
 ---
 

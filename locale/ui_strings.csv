@@ -3,6 +3,7 @@ Inventory,Inventory,인벤토리
 Map,Map,맵
 Stats,Stats,스탯
 Settings,Settings,설정
+Menu,Menu,메뉴
 LEVEL-UP,LEVEL-UP,레벨 상승
 Hero,Hero,영웅
 BACK,BACK,뒤로
@@ -189,7 +190,7 @@ CHALLENGE_LONG,Long,긴
 CHALLENGE_DESC_SHORT,"8 rooms. A brief delve for buried runes and gems.","방 8개. 파묻힌 룬·보석을 찾는 짧은 수색."
 CHALLENGE_DESC_NORMAL,"12 rooms. A standard delve into forgotten ground.","방 12개. 잊힌 땅을 도는 보통 수색."
 CHALLENGE_DESC_LONG,"16 rooms. A long, dangerous delve.","방 16개. 길고 위험한 수색."
-BOARD_LABEL,Rumors,소문
+BOARD_LABEL,Board,게시판
 STONE_LABEL,Name-stone,이름돌
 QUESTION_FOG,What does this shelter cover?,이 쉼터는 무엇을 덮고 있는가
 QUESTION_OPEN,The center rumor is open.,가운데 소문이 열렸습니다.
@@ -363,6 +364,7 @@ RESONANT,Resonant,공명
 COMPLETE,Complete,완성
 INACTIVE,Inactive,비활성
 ALTAR_LABEL,Altar,제단
+ALTAR_HINT,"Leave a name. The piece is gone; the record remains.","이름만 남깁니다. 개체는 사라지고 기록만 남습니다."
 Select a rune or gem,Select a rune or gem,룬 또는 보석을 선택하세요
 Rune,Rune,룬
 Gem,Gem,보석
@@ -378,7 +380,7 @@ Shelf,Shelf,서가
 SHELF_LABEL,Bookshelf,서가
 SHELF_RUNE,Runes,룬
 SHELF_GEM,Gems,보석
-SHELF_HINT,"Seal runes and gems you own. Neighbors open for future delves.","보유한 룬·보석을 봉인하세요. 이웃 칸이 열려 다음 수색에 나옵니다."
+SHELF_HINT,"Names left at the altar. Neighbors already open for future delves.","제단에 남긴 이름입니다. 이웃 칸은 다음 수색 풀에 열려 있습니다."
 SHELF_LOCKED,Locked,잠김
 SHELF_LOCKED_HINT,"This shelf is not open yet.","아직 열리지 않은 서가입니다."
 SHELF_FOG,Unknown rune or gem,알 수 없는 룬·보석
@@ -386,6 +388,14 @@ SHELF_EMPTY,Empty place,빈 칸
 SMITHY_LABEL,Smithy,대장간
 SMITHY_HINT,"Place gear and a rune or gem on the bench, then inject.","장비와 룬·보석을 작업대에 올린 뒤 주입하세요."
 SMITHY_INJECT,Inject,주입
+NPC_PELL,Pell,펠
+NPC_NAN,Nan,난
+NPC_BRAM,Bram,브람
+NPC_OSHA,Osha,오샤
+NPC_DUN,Dun,던
+NPC_PELL_LINE,"The marks were left by those who came back.","점은 산 자가 남긴 것이다."
+NPC_NAN_LINE,"Names that stayed. I keep the record.","남은 이름이다. 기록만 지킨다."
+NPC_BRAM_LINE,"Put it on the bench. I will fit it.","올려. 맞출 테니."
 Skill,Skill,기술
 Mana cost,Mana cost,마나 비용
 Type,Type,유형

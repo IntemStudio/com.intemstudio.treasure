@@ -19,6 +19,8 @@ const DUNGEON_SCENE := "res://scenes/dungeon/dungeon.tscn"
 @onready var mansion_button: Button = %MansionButton
 @onready var battlefield_button: Button = %BattlefieldButton
 @onready var center_button: Button = %CenterButton
+@onready var npc_name: Label = %NpcName
+@onready var npc_line: Label = %NpcLine
 
 var _ui_manager: UIManager
 var _footer: FooterPrompts
@@ -34,6 +36,7 @@ var _zone_buttons: Array[Button] = []
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panels([$Main/Split/Lists, $Main/Split/Detail])
 	_wire_compass()
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 	_refresh_texts()
@@ -145,6 +148,12 @@ func _rebuild_zones() -> void:
 
 
 func _refresh_texts() -> void:
+	if npc_name:
+		npc_name.text = tr("NPC_PELL")
+		npc_name.add_theme_color_override("font_color", UIColors.TEXT_LORE)
+	if npc_line:
+		npc_line.text = tr("NPC_PELL_LINE")
+		npc_line.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 	if zone_section_label:
 		zone_section_label.text = tr("STONE_LABEL")
 		zone_section_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)

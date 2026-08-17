@@ -24,14 +24,15 @@ alwaysApply: false
 
 - left border 3px = `SELECT_BORDER` (비선택 `CLEAR`)
 - content margin ≈ 16 / 4 / 4 / 4
-- 글자: 선택 `GOLD`, idle `TEXT_MAIN` 또는 `TEXT_MUTED`, hover `GOLD`
+- 글자: 선택 `GOLD`, idle `TEXT_MAIN` 또는 `TEXT_MUTED`, hover `TEXT_MAIN`
 
 호출부: settings list/exit, challenge_board, title menu, profile back/confirm, settings rows `_select_bar`.
 
 ## 슬롯 / Theme
 
 - Dim = 풀스크린 (`BG_OVERLAY`). 패널 = 중앙 Sheet `1440×800` / Dialog. 바깥 여백 ≥ 80. 테두리 `SLOT_BORDER`(무채색). content margin = border width — 상·하 밴드가 테두리를 가리지 않음. 중단만 inset+clip.
-- 인벤·맵·스탯·설정·소문·서가·대장간은 **각각 단독 Sheet** (MenuShell TopBar는 제목만, 탭 순환 없음).
+- 본문 좌·우 컬럼 프레임은 `UIPopupLayout.apply_column_panel` (`PANEL_BG` + `SLOT_BORDER`). 화면마다 StyleBox를 다시 짜지 않는다.
+- 인벤·맵·스탯·설정은 MenuShell **풀스크린 플레이어 메뉴** (TopBar 4탭, Q/E·LB/RB). 게시판·제단·서가·대장간은 마을 Sheet **4탭**.
 - 슬롯·장비 StyleBox → `ui/shared/themes/ui_theme.tres` variation (`InventorySlot*` / `EquipmentSlot*`). 테두리 2px, `anti_aliasing` off (`canvas_items` 축소에서 1px가 사라짐). 런타임 희귀도 색은 테마 박스를 `duplicate()`한 뒤 `border_color`만.
 - 새 슬롯 위젯은 기존 variation + `_apply_visual_state` 패턴을 재사용. 동일 로직을 네 번째 복사하지 않는다.
 - Scroll 안 슬롯 그리드는 `UIPopupLayout.SLOT_GRID_PAD`(8) — clip이 StyleBox AA·선택 shadow를 자르지 않게. `apply_slot_grid_pad`.

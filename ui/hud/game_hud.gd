@@ -3,13 +3,11 @@ extends CanvasLayer
 
 signal map_open_requested
 signal menu_tab_requested(tab: int)
+signal menu_open_requested
 
 const DEFAULT_LOCATION := "LOCATION_TEST"
 const MENU_NAV_DEFS: Array[Dictionary] = [
-	{"tab": 0, "key": "Inventory"},
 	{"tab": 1, "key": "Map"},
-	{"tab": 2, "key": "Stats"},
-	{"tab": 3, "key": "Settings"},
 ]
 
 @onready var resource_bars: ResourceBars = %ResourceBars
@@ -20,6 +18,7 @@ const MENU_NAV_DEFS: Array[Dictionary] = [
 @onready var loot_toast: Label = %LootToast
 @onready var loot_toast_timer: Timer = %LootToastTimer
 @onready var menu_nav: VBoxContainer = %MenuNav
+@onready var menu_button: Button = %MenuButton
 
 var _stats: CharacterStats
 var _inventory: InventoryData
@@ -40,6 +39,7 @@ func _ready() -> void:
 	if mini_map and not mini_map.map_open_requested.is_connected(_on_minimap_open_requested):
 		mini_map.map_open_requested.connect(_on_minimap_open_requested)
 	_build_menu_nav()
+	_style_menu_button()
 	LocaleManager.locale_changed.connect(_refresh_menu_nav)
 	if _pending_floor_map != null:
 		mini_map.set_floor_map(_pending_floor_map)
@@ -117,6 +117,8 @@ func _refresh_menu_nav() -> void:
 		var button: Button = _menu_nav_buttons.get(tab)
 		if button:
 			button.text = "[%s]" % tr(str(def["key"]))
+	if menu_button:
+		menu_button.text = TopBar.labeled("Menu", "TAB")
 
 
 func _apply_hub_nav() -> void:
@@ -129,6 +131,31 @@ func _on_menu_nav_pressed(tab: int) -> void:
 	if _hub_mode and tab == 1:
 		return
 	menu_tab_requested.emit(tab)
+
+
+func _style_menu_button() -> void:
+	if menu_button == null:
+		return
+	if _menu_nav_style == null:
+		_menu_nav_style = StyleBoxEmpty.new()
+	menu_button.flat = true
+	menu_button.focus_mode = Control.FOCUS_NONE
+	menu_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	menu_button.add_theme_stylebox_override("normal", _menu_nav_style)
+	menu_button.add_theme_stylebox_override("hover", _menu_nav_style)
+	menu_button.add_theme_stylebox_override("pressed", _menu_nav_style)
+	menu_button.add_theme_stylebox_override("focus", _menu_nav_style)
+	menu_button.add_theme_font_size_override("font_size", 16)
+	menu_button.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	menu_button.add_theme_color_override("font_hover_color", UIColors.GOLD)
+	menu_button.add_theme_color_override("font_pressed_color", UIColors.GOLD)
+	if not menu_button.pressed.is_connected(_on_menu_button_pressed):
+		menu_button.pressed.connect(_on_menu_button_pressed)
+	menu_button.text = TopBar.labeled("Menu", "TAB")
+
+
+func _on_menu_button_pressed() -> void:
+	menu_open_requested.emit()
 
 
 func bind_floor_map(floor_map: FloorMap) -> void:

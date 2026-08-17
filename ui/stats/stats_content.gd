@@ -78,6 +78,7 @@ var _stat_row: int = 0
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panels([$Body/LeftPanel, $Body/RightPanel])
 	_setup_portrait_shader()
 	_build_attribute_rows()
 	_build_stat_columns()

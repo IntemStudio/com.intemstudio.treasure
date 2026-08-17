@@ -2,8 +2,10 @@ class_name TopBar
 extends HBoxContainer
 
 signal tab_changed(index: int)
+signal menu_open_requested
 
 var _tab_names: Array[String] = ["Inventory", "Map", "Stats", "Settings"]
+var _tab_shortcuts: Array[String] = []
 var CYCLEABLE_TABS: Array[int] = [0, 1, 2, 3]
 
 @onready var currency_display: CurrencyDisplay = %CurrencyDisplay
@@ -12,6 +14,7 @@ var CYCLEABLE_TABS: Array[int] = [0, 1, 2, 3]
 @onready var nav_next_hint: Control = %NavNextHint
 @onready var location_label: Label = %LocationLabel
 @onready var player_vitals: PlayerVitals = %PlayerVitals
+@onready var menu_button: Button = %MenuButton
 @onready var left_slot: Control = $LeftSlot
 @onready var right_slot: Control = $RightSlot
 
@@ -32,12 +35,21 @@ func _ready() -> void:
 	_empty_style.content_margin_bottom = 0
 	_rebuild_tab_labels()
 	set_active_tab(_active_tab)
+	_style_menu_button()
 	_sync_center_mode()
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 
 
-func set_tabs(names: Array[String]) -> void:
+static func labeled(name_key: String, shortcut: String = "") -> String:
+	var name_text := TranslationServer.translate(name_key)
+	if shortcut.is_empty():
+		return "[%s]" % name_text
+	return "[%s] (%s)" % [name_text, shortcut]
+
+
+func set_tabs(names: Array[String], shortcuts: Array[String] = []) -> void:
 	_tab_names = names.duplicate()
+	_tab_shortcuts = shortcuts.duplicate()
 	CYCLEABLE_TABS.clear()
 	for i in _tab_names.size():
 		CYCLEABLE_TABS.append(i)
@@ -102,6 +114,11 @@ func set_status_visible(visible_status: bool) -> void:
 		player_vitals.visible = visible_status
 
 
+func set_menu_button_visible(show_button: bool) -> void:
+	if menu_button:
+		menu_button.visible = show_button
+
+
 func get_active_tab() -> int:
 	return _active_tab
 
@@ -109,8 +126,38 @@ func get_active_tab() -> int:
 func _on_locale_changed(_locale: String) -> void:
 	_refresh_tab_labels()
 	_refresh_location_label()
+	_refresh_menu_button()
 	if _stats and _status_visible and player_vitals:
 		player_vitals.set_stats(_stats)
+
+
+func _style_menu_button() -> void:
+	if menu_button == null or _empty_style == null:
+		return
+	menu_button.flat = true
+	menu_button.focus_mode = Control.FOCUS_NONE
+	menu_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	menu_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	menu_button.add_theme_stylebox_override("normal", _empty_style)
+	menu_button.add_theme_stylebox_override("hover", _empty_style)
+	menu_button.add_theme_stylebox_override("pressed", _empty_style)
+	menu_button.add_theme_stylebox_override("focus", _empty_style)
+	menu_button.add_theme_constant_override("outline_size", 0)
+	menu_button.add_theme_color_override("font_color", UIColors.TEXT_MAIN)
+	menu_button.add_theme_color_override("font_hover_color", UIColors.GOLD)
+	menu_button.add_theme_color_override("font_pressed_color", UIColors.GOLD)
+	if not menu_button.pressed.is_connected(_on_menu_button_pressed):
+		menu_button.pressed.connect(_on_menu_button_pressed)
+	_refresh_menu_button()
+
+
+func _refresh_menu_button() -> void:
+	if menu_button:
+		menu_button.text = labeled("Menu", "TAB")
+
+
+func _on_menu_button_pressed() -> void:
+	menu_open_requested.emit()
 
 
 func _rebuild_tab_labels() -> void:
@@ -127,7 +174,7 @@ func _build_tab_labels() -> void:
 		return
 	for i in range(_tab_names.size()):
 		var button := Button.new()
-		button.text = "[%s]" % tr(_tab_names[i])
+		button.text = _tab_label(i)
 		button.flat = true
 		button.focus_mode = Control.FOCUS_NONE
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -146,7 +193,14 @@ func _build_tab_labels() -> void:
 
 func _refresh_tab_labels() -> void:
 	for i in range(_tab_buttons.size()):
-		_tab_buttons[i].text = "[%s]" % tr(_tab_names[i])
+		_tab_buttons[i].text = _tab_label(i)
+
+
+func _tab_label(index: int) -> String:
+	var shortcut := ""
+	if index >= 0 and index < _tab_shortcuts.size():
+		shortcut = _tab_shortcuts[index]
+	return labeled(_tab_names[index], shortcut)
 
 
 func _on_tab_button_pressed(index: int) -> void:
@@ -168,12 +222,13 @@ func _on_tab_hovered(index: int, hovered: bool) -> void:
 
 func _sync_center_mode() -> void:
 	var show_tabs := not _tab_names.is_empty()
+	var show_cycle_hints := show_tabs and _tab_shortcuts.is_empty()
 	if nav_prev_hint:
-		nav_prev_hint.visible = show_tabs
+		nav_prev_hint.visible = show_cycle_hints
 	if nav_tabs:
 		nav_tabs.visible = show_tabs
 	if nav_next_hint:
-		nav_next_hint.visible = show_tabs
+		nav_next_hint.visible = show_cycle_hints
 	if location_label:
 		location_label.visible = not show_tabs
 		if not show_tabs:

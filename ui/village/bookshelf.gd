@@ -14,14 +14,12 @@ const GRID_COLUMNS := ShelfDefinition.WIDTH
 @onready var modifier_detail: ModifierDetailPanel = %ModifierDetailPanel
 @onready var detail_status: Label = %DetailStatus
 @onready var header_label: Label = %HeaderLabel
+@onready var npc_line: Label = %NpcLine
 
 var _ui_manager: UIManager
 var _footer: FooterPrompts
 var _footer_connected: bool = false
 var _active: bool = false
-var _confirming: bool = false
-var _seal_kind: String = ""
-var _seal_id: String = ""
 var _shelf_id: StringName = ShelfDefinition.SHELF_RUNE
 var _entries: Array[Dictionary] = []
 var _index: int = 0
@@ -33,6 +31,8 @@ var _gem_catalog := GemCatalog.new()
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panels([$Main/Split/LeftColumn, $Main/Split/RightColumn])
+	UIPopupLayout.flatten_inner_panel(modifier_detail)
 	UIPopupLayout.apply_slot_grid_pad(%ListHostPad)
 	if list_host:
 		list_host.columns = GRID_COLUMNS
@@ -52,7 +52,6 @@ func setup(ui_manager: UIManager, footer: FooterPrompts = null) -> void:
 
 func activate(_stats: CharacterStats = null, _inventory: InventoryData = null) -> void:
 	_active = true
-	_confirming = false
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_rebuild_grid()
@@ -62,14 +61,12 @@ func activate(_stats: CharacterStats = null, _inventory: InventoryData = null) -
 
 func deactivate() -> void:
 	_active = false
-	_confirming = false
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
 
 
 func refresh() -> void:
 	if _active:
-		_confirming = false
 		_rebuild_grid()
 		_refresh_texts()
 
@@ -95,7 +92,6 @@ func _wire_tabs() -> void:
 func _on_shelf_tab(_id: String, shelf: StringName) -> void:
 	_shelf_id = shelf
 	_index = 0
-	_confirming = false
 	_rebuild_grid()
 	_refresh_texts()
 
@@ -120,7 +116,11 @@ func _refresh_texts() -> void:
 		gem_tab.setup(String(ShelfDefinition.SHELF_GEM), "[%s]" % tr("SHELF_GEM"))
 		gem_tab.set_active(_shelf_id == ShelfDefinition.SHELF_GEM)
 	if header_label:
-		header_label.text = tr("SHELF_LABEL")
+		header_label.text = tr("NPC_NAN")
+		header_label.add_theme_color_override("font_color", UIColors.TEXT_LORE)
+	if npc_line:
+		npc_line.text = tr("NPC_NAN_LINE")
+		npc_line.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 	if grid_hint:
 		grid_hint.text = tr("SHELF_HINT")
 	_update_detail()
@@ -246,7 +246,7 @@ func _rebuild_grid() -> void:
 			_entry_icon(e)
 		)
 		slot.slot_pressed.connect(_on_entry_pressed)
-		slot.slot_activated.connect(_on_entry_activated)
+		slot.slot_activated.connect(_on_entry_pressed)
 		_slots.append(slot)
 
 	_apply_focus()
@@ -257,36 +257,14 @@ func _on_entry_pressed(index: int) -> void:
 	if index < 0 or index >= _entries.size():
 		return
 	_index = index
-	_confirming = false
 	_apply_focus()
 	_update_detail()
 	_sync_footer()
 
 
-func _on_entry_activated(index: int) -> void:
-	_on_entry_pressed(index)
-	_try_seal()
-
-
 func _apply_focus() -> void:
 	for i in _slots.size():
 		_slots[i].set_selected(i == _index)
-
-
-func _sealable_template(e: Dictionary) -> Dictionary:
-	var meta := _meta()
-	var inventory: InventoryData = _ui_manager.inventory_data if _ui_manager else null
-	if inventory == null:
-		return {}
-	for t in e.get("templates", []) as Array:
-		var kind := str(t.get("kind", ""))
-		var id := str(t.get("id", ""))
-		if CardRegistrationService.is_id_registered(meta, kind, id):
-			continue
-		var uid := CardRegistrationService.first_owned_uid(inventory, kind, id)
-		if not uid.is_empty():
-			return {"kind": kind, "id": id, "uid": uid, "name": str(t.get("name", ""))}
-	return {}
 
 
 func _update_detail() -> void:
@@ -314,15 +292,6 @@ func _update_detail() -> void:
 				var kind := str(t.get("kind", ""))
 				if CardRegistrationService.is_id_registered(meta, kind, str(t.get("id", ""))):
 					status_lines.append(tr("Registered"))
-			var seal := _sealable_template(e)
-			if not seal.is_empty():
-				if _confirming:
-					if str(seal.get("kind", "")) == "rune":
-						status_lines.append(tr("Confirm register rune"))
-					else:
-						status_lines.append(tr("Confirm register gem"))
-				else:
-					status_lines.append(tr("In storage"))
 			if detail_status:
 				detail_status.text = "\n".join(status_lines)
 		_:
@@ -356,69 +325,16 @@ func _show_template_detail(e: Dictionary) -> void:
 func _sync_footer() -> void:
 	if _footer == null or not visible:
 		return
-	var seal := {}
-	if not _entries.is_empty():
-		seal = _sealable_template(_entries[_index])
-	if seal.is_empty():
-		_footer.set_prompts([
-			{"action": "back", "button": "Esc", "label": tr("BACK")},
-		])
-	else:
-		_footer.set_prompts([
-			{"action": "register", "button": "Enter", "label": tr("REGISTER")},
-			{"action": "back", "button": "Esc", "label": tr("BACK")},
-		])
+	_footer.set_prompts([
+		{"action": "back", "button": "Esc", "label": tr("BACK")},
+	])
 
 
 func _on_footer_action(action: String) -> void:
 	if not visible:
 		return
-	match action:
-		"back":
-			if _confirming:
-				_confirming = false
-				_update_detail()
-				_sync_footer()
-			else:
-				close()
-		"register":
-			_try_seal()
-
-
-func _try_seal() -> void:
-	if _entries.is_empty() or _ui_manager == null or _ui_manager.inventory_data == null:
-		return
-	var seal := _sealable_template(_entries[_index])
-	if seal.is_empty():
-		return
-	if not _confirming:
-		_confirming = true
-		_seal_kind = str(seal.get("kind", ""))
-		_seal_id = str(seal.get("id", ""))
-		_update_detail()
-		_sync_footer()
-		return
-	var meta := _meta()
-	var result := CardRegistrationService.register(
-		_ui_manager.inventory_data,
-		meta,
-		str(seal.get("kind", "")),
-		str(seal.get("uid", "")),
-		_rune_catalog,
-		_gem_catalog
-	)
-	_confirming = false
-	if bool(result.get("ok", false)):
-		SaveManager.set_card_meta(result["meta"] as Dictionary)
-		if SaveManager.current_slot >= 0:
-			SaveManager.save_game(
-				SaveManager.current_slot,
-				_ui_manager.character_stats,
-				_ui_manager.inventory_data
-			)
-		_ui_manager.refresh_character_views()
-	_rebuild_grid()
-	_refresh_texts()
+	if action == "back":
+		close()
 
 
 func _move_selection(delta_x: int, delta_y: int) -> void:
@@ -434,7 +350,6 @@ func _move_selection(delta_x: int, delta_y: int) -> void:
 	if next >= _entries.size():
 		next = _entries.size() - 1
 	_index = next
-	_confirming = false
 	_apply_focus()
 	_update_detail()
 	_sync_footer()
@@ -448,7 +363,6 @@ func _cycle_shelf(direction: int) -> void:
 	idx = (idx + direction + ids.size()) % ids.size()
 	_shelf_id = ids[idx]
 	_index = 0
-	_confirming = false
 	_rebuild_grid()
 	_refresh_texts()
 
@@ -457,12 +371,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _active or event.is_echo():
 		return
 	if event.is_action_pressed("ui_cancel"):
-		if _confirming:
-			_confirming = false
-			_update_detail()
-			_sync_footer()
-		else:
-			close()
+		close()
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("inventory_category_prev"):
@@ -482,7 +391,4 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
 		_move_selection(0, 1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("ui_accept"):
-		_try_seal()
 		get_viewport().set_input_as_handled()

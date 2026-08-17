@@ -41,11 +41,15 @@ const AUDIO_DETAILS: Array[Dictionary] = [
 @onready var sub_tab_prev_hint: PanelContainer = %SubTabPrevHint
 @onready var sub_tab_next_hint: PanelContainer = %SubTabNextHint
 @onready var settings_split: HBoxContainer = %SettingsSplit
+@onready var left_column: PanelContainer = %LeftColumn
+@onready var right_panel: PanelContainer = %RightPanel
 @onready var gameplay_panel: VBoxContainer = %GameplayPanel
 @onready var controls_panel: Control = %ControlsPanel
 @onready var display_panel: VBoxContainer = %DisplayPanel
 @onready var audio_panel: VBoxContainer = %AudioPanel
 @onready var exit_panel: HBoxContainer = %ExitPanel
+@onready var exit_left_panel: PanelContainer = %ExitLeftPanel
+@onready var exit_right_panel: PanelContainer = %ExitRightPanel
 @onready var ui_section_label: Label = %UISectionLabel
 @onready var language_row_host: VBoxContainer = %LanguageRowHost
 @onready var controls_placeholder: Label = %ControlsPlaceholder
@@ -91,6 +95,7 @@ func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
 	_empty_style = StyleBoxEmpty.new()
+	_apply_column_panels()
 	_style_sub_tab_keycaps()
 	_build_sub_tabs()
 	_build_gameplay()
@@ -104,6 +109,10 @@ func _ready() -> void:
 	_style_flat_button(exit_no_button)
 	_refresh_texts()
 	_show_sub_tab(_active_sub_tab)
+
+
+func _apply_column_panels() -> void:
+	UIPopupLayout.apply_column_panels([left_column, right_panel, exit_left_panel, exit_right_panel])
 
 
 func _style_sub_tab_keycaps() -> void:
@@ -130,7 +139,13 @@ func _refresh_sub_tab_key_hints() -> void:
 
 
 func _sub_tab_cycle_keys() -> Dictionary:
-	# Sheet popups no longer steal Q/E for top tabs.
+	if _is_in_game():
+		return {
+			"prev": "1",
+			"next": "3",
+			"prev_action": "inventory_category_prev",
+			"next_action": "inventory_category_next",
+		}
 	return {"prev": "Q", "next": "E", "prev_action": "ui_nav_prev_tab", "next_action": "ui_nav_next_tab"}
 
 
@@ -428,8 +443,11 @@ func _show_sub_tab(tab: int) -> void:
 
 func _apply_sub_tab_styles() -> void:
 	for i in range(_sub_tab_buttons.size()):
-		var color := UIColors.GOLD if i == _active_sub_tab else UIColors.TEXT_MUTED
-		_sub_tab_buttons[i].add_theme_color_override("font_color", color)
+		var selected := i == _active_sub_tab
+		var button := _sub_tab_buttons[i]
+		button.add_theme_color_override("font_color", UIColors.GOLD if selected else UIColors.TEXT_MUTED)
+		button.add_theme_color_override("font_hover_color", UIColors.GOLD if selected else UIColors.TEXT_MAIN)
+		button.add_theme_color_override("font_pressed_color", UIColors.GOLD)
 
 
 func _on_sub_tab_pressed(index: int) -> void:

@@ -35,7 +35,7 @@ static func apply_button(
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var color := UIColors.GOLD if selected else idle_color
 	button.add_theme_color_override("font_color", color)
-	button.add_theme_color_override("font_hover_color", UIColors.GOLD)
+	button.add_theme_color_override("font_hover_color", UIColors.GOLD if selected else UIColors.TEXT_MAIN)
 	if set_focus_color:
 		button.add_theme_color_override("font_focus_color", color)
 
@@ -62,7 +62,7 @@ static func apply_button_focus_bar(button: Button, idle_color: Color = UIColors.
 	var focus_style := make_left_mark(true)
 	button.add_theme_stylebox_override("focus", focus_style)
 	button.add_theme_color_override("font_color", idle_color)
-	button.add_theme_color_override("font_hover_color", UIColors.GOLD)
+	button.add_theme_color_override("font_hover_color", UIColors.TEXT_MAIN)
 	button.add_theme_color_override("font_focus_color", UIColors.GOLD)
 
 

@@ -2,9 +2,9 @@
 
 주무기 소켓에 룬·보석을 두고 `ResonanceService`가 `skills`를 채운다. 전투는 그 결과만 소비한다.  
 후속(패시브 전투 훅·특수 방): [`docs/design/equipment.md`](../design/equipment.md). `eq.economy`(희귀도=소켓)는 **폐기**.  
-서가: [`docs/design/bookshelf.md`](../design/bookshelf.md) (`shelf.v3`).
+서가: [`docs/design/bookshelf.md`](../design/bookshelf.md) (`shelf.v3`). 제단 봉인: [`docs/design/altar.md`](../design/altar.md).
 
-**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 마을 **대장간**에서 룬·보석을 소켓에 꽂고 뺀다 (던전 인벤은 표시만). 마을 **서가** 탭 룬|보석. 룻은 `open_cards` (시작 각 판 `#1`만. 봉인 시 인접 OPEN). 룬·보석 희귀도 없음. `RuneCatalog` / `GemCatalog`는 서가당 템플릿 25개(card_number 1–25, 5×5). DevOverlay `[아이템]`은 부위 하위 탭 격자로 카탈로그 지급 ([`save-load.md`](save-load.md)).
+**현황:** 새 프로필은 Iron Longsword + Splintered Buckler만 장착. 마을 **대장간**에서 룬·보석을 소켓에 꽂고 뺀다 (던전 인벤은 표시만). 마을 **제단**에서 보유 룬·보석을 봉인한다. 마을 **서가**는 룬|보석 5×5 기록. 룻은 `open_cards` (시작 각 판 `#1`만. 봉인 시 인접 OPEN). 룬·보석 희귀도 없음. `RuneCatalog` / `GemCatalog`는 서가당 템플릿 25개(card_number 1–25, 5×5). DevOverlay `[아이템]`은 부위 하위 탭 격자로 카탈로그 지급 ([`save-load.md`](save-load.md)).
 
 관련: [`inventory.md`](inventory.md) · [`combat.md`](combat.md) · [`hud.md`](hud.md) · [`village.md`](village.md) · [`save-load.md`](save-load.md) · [`loot.md`](loot.md) · [`shop.md`](shop.md) (`cost`/`gain`은 오버라이드. 소켓 수 ≠ 골드).
 
@@ -20,7 +20,8 @@
 | 공명 | [`resonance_service.gd`](../../data/equipment/resonance_service.gd) · [`resonance_result.gd`](../../data/equipment/resonance_result.gd) |
 | 등록 | [`card_registration_service.gd`](../../data/equipment/card_registration_service.gd) |
 | 서가 정의 | [`shelf_definition.gd`](../../data/equipment/shelf_definition.gd) |
-| 서가 UI | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) (도감+봉인) |
+| 서가 UI | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) (기록) |
+| 제단 UI | [`ui/village/altar.tscn`](../../ui/village/altar.tscn) (봉인) |
 | 대장간 UI | [`ui/village/smithy.tscn`](../../ui/village/smithy.tscn) (마을에서만 꽂기/빼기) |
 | 검증 | [`verify_bookshelf.gd`](../../data/equipment/verify_bookshelf.gd) · [`verify_socket_layout.gd`](../../data/equipment/verify_socket_layout.gd) · [`save/verify_save_v1.gd`](../../save/verify_save_v1.gd) (소켓이 가방에서 빠지는지) |
 | 가방 | [`InventoryData.runes`](../../ui/inventory/resources/inventory_data.gd) / `gems` (미소켓만) |
@@ -75,7 +76,7 @@ HUD SkillRow 0~6  +  CombatSession 게이지
 
 ## 소켓 UI
 
-꽂기/빼기는 마을 **대장간** Sheet만 ([`ui/village/smithy.tscn`](../../ui/village/smithy.tscn)). `hub_mode`가 아니면 `Tab.SMITHY`를 열지 않는다. 인벤 상세는 소켓 행과 꽂힌 룬·보석의 적용 효과를 표시만 한다.
+꽂기/빼기는 마을 **대장간** Sheet만 ([`ui/village/smithy.tscn`](../../ui/village/smithy.tscn)). `hub_mode`가 아니면 `Tab.SMITHY` / `Tab.ALTAR`를 열지 않는다. 인벤 상세는 소켓 행과 꽂힌 룬·보석의 적용 효과를 표시만 한다.
 
 대장간 3열: 착용+가방(WEAPON/ARMOR/TOOL) · 작업대(`InventorySlot` 장비 1 + 룬/보석 1)와 그 아래 `ItemDetailPanel`(소켓 행 + `SOCKET_EFFECTS`) · MOD 5×5. 탭 전환 없음. 찬 칸은 `RuneData.icon` / `GemData.icon`. 무기 행 순서: `rune0`, `core0`, `aux0`, `rune1`, `core1`, `aux1` (`InventoryData.list_socket_rows`).
 
@@ -92,12 +93,13 @@ HUD SkillRow 0~6  +  CombatSession 게이지
 
 ---
 
-## 카드 등록 · 서가 (shelf.v3)
+## 카드 등록 · 제단 / 서가 (shelf.v3)
 
-`VillageShell` **[서가]** → `UIManager.open_tab(SHELF)` Sheet. 내부 탭 **룬 | 보석**. 제단 단독 UI 없음. 오른쪽 상세는 인벤과 같은 `ModifierDetailPanel` (OPEN·REGISTERED만 능력; FOG는 힌트만). OPEN·REGISTERED 칸은 템플릿 아이콘. 룬은 `skill_kind`로 장착 부위. 보석은 `slot_effects` 주입 효과+설명. 봉인 상태 문구는 `DetailStatus`.
+`VillageShell` **[제단]** → `UIManager.open_tab(ALTAR)` (허브만). 내부 탭 **룬 | 보석**. 목록 = 가방·미소켓·미등록. 봉인 = `CardRegistrationService.register`.  
+**[서가]** → `open_tab(SHELF)`. 5×5 기록만. 오른쪽 상세는 인벤과 같은 `ModifierDetailPanel` (OPEN·REGISTERED만 능력; FOG는 힌트만). OPEN·REGISTERED 칸은 템플릿 아이콘.
 
 1. 격자 = 5×5, 1칸 1템플릿. 상태: FOG / OPEN / REGISTERED / EMPTY  
-2. 보유·미소켓 uid → 봉인 → `registered_cards`, self+인접 `open_cards` (동 판만)  
+2. 제단에서 보유·미소켓 uid → 봉인 → `registered_cards`, self+인접 `open_cards` (동 판만)  
 3. 룻 풀 = `(shelf_id, card_number) ∈ open_cards` (시작 각 판 `#1`)  
 4. 동 id 재봉인 불가. 희귀도 단·E1 없음  
 5. legacy `shelf_common|uncommon|rare` → open 리셋 후 `#1` 시드  

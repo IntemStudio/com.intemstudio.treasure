@@ -21,6 +21,8 @@ const EQUIP_SLOT_ROWS: Array = [
 ]
 
 @onready var hint_label: Label = %HintLabel
+@onready var npc_name: Label = %NpcName
+@onready var npc_line: Label = %NpcLine
 @onready var equipment_title: Label = %EquipmentTitle
 @onready var bag_title: Label = %BagTitle
 @onready var mod_title: Label = %ModTitle
@@ -61,6 +63,9 @@ var _staged_mod_uid: String = ""
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panels([$Main/Body/LeftColumn, $Main/Body/CenterColumn, $Main/Body/RightColumn])
+	UIPopupLayout.flatten_inner_panel(detail_panel)
+	UIPopupLayout.flatten_inner_panel(modifier_detail)
 	UIPopupLayout.apply_slot_grid_pad(%EquipmentLayoutPad)
 	UIPopupLayout.apply_slot_grid_pad(%ItemGridPad)
 	UIPopupLayout.apply_slot_grid_pad(%ModGridPad)
@@ -140,6 +145,12 @@ func _on_locale_changed(_locale: String) -> void:
 
 
 func _refresh_texts() -> void:
+	if npc_name:
+		npc_name.text = tr("NPC_BRAM")
+		npc_name.add_theme_color_override("font_color", UIColors.TEXT_LORE)
+	if npc_line:
+		npc_line.text = tr("NPC_BRAM_LINE")
+		npc_line.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
 	if hint_label:
 		hint_label.text = tr("SMITHY_HINT")
 	if equipment_title:

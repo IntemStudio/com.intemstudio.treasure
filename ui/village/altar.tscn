@@ -1,10 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://bookshelf_village"]
+[gd_scene load_steps=4 format=3 uid="uid://altar_village"]
 
-[ext_resource type="Script" path="res://ui/village/bookshelf.gd" id="1"]
+[ext_resource type="Script" path="res://ui/village/altar.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/inventory/components/category_tab.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://ui/loot/modifier_detail_panel.tscn" id="3"]
 
-[node name="Bookshelf" type="Control"]
+[node name="Altar" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,19 +22,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 16
 
-[node name="HeaderLabel" type="Label" parent="Main"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
-text = "Nan"
-
-[node name="NpcLine" type="Label" parent="Main"]
+[node name="HintLabel" type="Label" parent="Main"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 theme_override_font_sizes/font_size = 14
 autowrap_mode = 3
-text = "Names that stayed. I keep the record."
+text = "Leave a name. The piece is gone; the record remains."
 
 [node name="Split" type="HBoxContainer" parent="Main"]
 layout_mode = 2
@@ -65,13 +59,6 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "[Gem]"
 
-[node name="GridHint" type="Label" parent="Main/Split/LeftColumn/LeftInner"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
-theme_override_font_sizes/font_size = 14
-text = "Names left at the altar. Neighbors already open for future delves."
-
 [node name="ListScroll" type="ScrollContainer" parent="Main/Split/LeftColumn/LeftInner"]
 custom_minimum_size = Vector2(520, 0)
 layout_mode = 2
@@ -87,13 +74,11 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="ListHost" type="GridContainer" parent="Main/Split/LeftColumn/LeftInner/ListScroll/ListHostPad"]
+[node name="ListHost" type="VBoxContainer" parent="Main/Split/LeftColumn/LeftInner/ListScroll/ListHostPad"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-columns = 5
+theme_override_constants/separation = 8
 
 [node name="RightColumn" type="PanelContainer" parent="Main/Split"]
 custom_minimum_size = Vector2(320, 0)

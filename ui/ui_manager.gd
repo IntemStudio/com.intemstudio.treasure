@@ -7,7 +7,7 @@ const GAME_HUD_SCENE := preload("res://ui/hud/game_hud.tscn")
 const LOOT_CHOICE_SCENE := preload("res://ui/loot/loot_choice_overlay.tscn")
 const ENDING_CHOICE_SCENE := preload("res://ui/loot/ending_choice_overlay.tscn")
 
-enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6 }
+enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6, ALTAR = 7 }
 
 signal input_device_changed(using_gamepad: bool)
 signal popup_visibility_changed(is_open: bool)
@@ -62,6 +62,7 @@ func _ready() -> void:
 	_hud.setup(character_stats, inventory_data, location_id)
 	_hud.map_open_requested.connect(_on_hud_map_open_requested)
 	_hud.menu_tab_requested.connect(open_tab)
+	_hud.menu_open_requested.connect(_on_hud_menu_open_requested)
 
 	var menu_shell_scene := load(MENU_SHELL_PATH) as PackedScene
 	if menu_shell_scene == null:
@@ -127,11 +128,40 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _active_tab >= 0:
 			close_all()
 		else:
-			var tab := _last_tab
-			if hub_mode and tab == Tab.MAP:
-				tab = Tab.STATS
-			open_tab(tab)
+			open_tab(_last_tab)
 		get_viewport().set_input_as_handled()
+		return
+	if _try_village_shortcut(event):
+		return
+
+
+func _try_village_shortcut(event: InputEvent) -> bool:
+	if not hub_mode or challenge_board_open:
+		return false
+	if _menu_open and (
+		_active_tab == Tab.INVENTORY
+		or _active_tab == Tab.MAP
+		or _active_tab == Tab.STATS
+		or _active_tab == Tab.SETTINGS
+	):
+		return false
+	var tab := -1
+	if event.is_action_pressed("village_board"):
+		tab = Tab.BOARD
+	elif event.is_action_pressed("village_altar"):
+		tab = Tab.ALTAR
+	elif event.is_action_pressed("village_shelf"):
+		tab = Tab.SHELF
+	elif event.is_action_pressed("village_smithy"):
+		tab = Tab.SMITHY
+	else:
+		return false
+	if _active_tab == tab:
+		close_all()
+	else:
+		open_tab(tab)
+	get_viewport().set_input_as_handled()
+	return true
 
 
 func set_hub_mode(enabled: bool) -> void:
@@ -263,14 +293,13 @@ func open_tab(tab: int) -> void:
 		and tab != Tab.BOARD
 		and tab != Tab.SHELF
 		and tab != Tab.SMITHY
+		and tab != Tab.ALTAR
 	):
 		return
-	if hub_mode and tab == Tab.MAP:
-		return
-	if not hub_mode and tab == Tab.SMITHY:
+	if not hub_mode and (tab == Tab.SMITHY or tab == Tab.ALTAR):
 		return
 	_active_tab = tab
-	if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY:
+	if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY and tab != Tab.ALTAR:
 		_last_tab = tab
 	_shell.open_tab(tab, character_stats, inventory_data)
 	_menu_open = true
@@ -287,9 +316,19 @@ func refresh_bookshelf() -> void:
 
 
 func _on_hud_map_open_requested() -> void:
-	if hub_mode or is_combat_active():
+	if is_combat_active():
 		return
 	open_tab(Tab.MAP)
+
+
+func _on_hud_menu_open_requested() -> void:
+	open_player_menu()
+
+
+func open_player_menu() -> void:
+	if challenge_board_open:
+		return
+	open_tab(_last_tab)
 
 
 func close_all() -> void:
@@ -313,10 +352,12 @@ func _on_tab_changed(tab: int) -> void:
 		or tab == Tab.BOARD
 		or tab == Tab.SHELF
 		or tab == Tab.SMITHY
+		or tab == Tab.ALTAR
 	):
 		_active_tab = tab
-		if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY:
+		if tab != Tab.BOARD and tab != Tab.SHELF and tab != Tab.SMITHY and tab != Tab.ALTAR:
 			_last_tab = tab
+		popup_visibility_changed.emit(true)
 
 
 func apply_save_game(sg: SaveGame) -> void:

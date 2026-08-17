@@ -26,6 +26,7 @@ var _pending_layout: bool = false
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panel(%MapPanel)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 	grid_host.resized.connect(_on_grid_host_resized)
 	_refresh_empty_label()

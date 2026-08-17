@@ -97,19 +97,14 @@ func _ensure_panels() -> void:
 		content_host.add_child(_item_detail)
 		_item_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_item_detail.set_gold_price(ItemDetailPanel.GoldPrice.HIDDEN)
-		_flatten_inner_panel(_item_detail)
+		UIPopupLayout.flatten_inner_panel(_item_detail)
 		_ignore_mouse_tree(_item_detail)
 	if _modifier_detail == null:
 		_modifier_detail = MODIFIER_DETAIL_SCENE.instantiate() as ModifierDetailPanel
 		content_host.add_child(_modifier_detail)
 		_modifier_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_flatten_inner_panel(_modifier_detail)
+		UIPopupLayout.flatten_inner_panel(_modifier_detail)
 		_ignore_mouse_tree(_modifier_detail)
-
-
-func _flatten_inner_panel(panel: PanelContainer) -> void:
-	var empty := StyleBoxEmpty.new()
-	panel.add_theme_stylebox_override("panel", empty)
 
 
 func _ignore_mouse_tree(node: Node) -> void:

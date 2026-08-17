@@ -1,8 +1,8 @@
 # 마을 허브 / 도전 게시판
 
 **미구현 후속:** 이어하기 던전 복귀 · 후퇴=원정 포기 · 여관/상점.  
-**현황(구조):** [`docs/architecture/village.md`](../architecture/village.md) — `VillageShell` + `MenuShell` Sheet(소문·서가·대장간·인벤·스탯·설정). 걸어다니기·월드 존 클릭·제단 단독 UI는 **폐기**.  
-서가: [`bookshelf.md`](bookshelf.md) (`shelf.v3`). 상점 가격: [`shop.md`](shop.md) (`shop.price` 구현, NPC는 후속).  
+**현황(구조):** [`docs/architecture/village.md`](../architecture/village.md) — `VillageShell` + `MenuShell` Sheet(게시판·제단·서가·대장간) + 플레이어 메뉴(인벤·맵·스탯·설정). 걸어다니기·월드 존 클릭은 **폐기**.  
+서가: [`bookshelf.md`](bookshelf.md) (`shelf.v3`). 제단 봉인: [`altar.md`](altar.md). 상점 가격: [`shop.md`](shop.md) (`shop.price` 구현, NPC는 후속).  
 세계관(단독 보물 사냥꾼·마을=쉼터): [`world.md`](world.md). 분지 수색(이름돌·제단 아래): [`basin.md`](basin.md). DD 햄릿은 **허브 UX 참고**만.  
 런 파일: [`save-load.md`](save-load.md) v2. 층 생성: [`map.md`](map.md). 전투 종료: [`combat.md`](combat.md).
 
@@ -22,7 +22,7 @@
 타이틀 → 프로필
         ↓
       마을 (고정 배경, FloorGenerator / Player 없음)
-        ↓  HubNav [소문] → 상처·이름돌 → 도전 확정
+        ↓  HubNav [게시판] → 상처·이름돌 → 도전 확정
       RunState 작성 → FloorMap.generate → dungeon.tscn
         ↓
       탐험 / 방 전투 (현행)
@@ -47,8 +47,9 @@
 | 단계 | 범위 | 상태 |
 |------|------|------|
 | **v1** | 마을 씬, 게시판, 확정 시 생성·입장, 전멸→마을 | 구현됨 (UX는 hub.shell로 갱신) |
-| **hub.shell** | VillageShell · 소문/서가 Sheet · 걸어다니기 없음 · 제단 UI→서가 | 구현됨 → architecture |
-| **shelf.v3** | 룬/보석 판 · open_cards · 봉인 | 구현됨 — [`bookshelf.md`](bookshelf.md) |
+| **hub.shell** | VillageShell · 게시판·제단·서가·대장간 Sheet · 걸어다니기 없음 | 구현됨 → architecture |
+| **hub.altar** | 제단 Sheet 봉인. 서가는 기록만 | 구현됨 — [`altar.md`](altar.md) |
+| **shelf.v3** | 룬/보석 판 · open_cards · 봉인 규칙 | 구현됨 — [`bookshelf.md`](bookshelf.md) |
 | **v1.1** | 런 JSON 쓰기·삭제, 이어하기 시 던전 복귀, 후퇴=원정 포기, 정산 | 파일 쓰기·마을 복귀 시 삭제는 구현됨. 던전 이어하기·후퇴 포기는 후속 |
 | **v1.region** | 게시판 지역 4종 + en/ko + 지역별 인카운터 | 구현됨 |
 | **basin** | 길이 열 → 이름돌·구역·제단 아래 | 구현됨 — [`basin.md`](basin.md) |
@@ -67,25 +68,26 @@
 | 마을 루트 | [`scenes/village/village.tscn`](../../scenes/village/village.tscn) + [`village.gd`](../../scenes/village/village.gd) |
 | 마을 셸 | [`ui/village/village_shell.tscn`](../../ui/village/village_shell.tscn) |
 | 소문 | [`ui/village/challenge_board.tscn`](../../ui/village/challenge_board.tscn) — MenuShell `Tab.BOARD` |
+| 제단 | [`ui/village/altar.tscn`](../../ui/village/altar.tscn) — `Tab.ALTAR` (허브만) |
 | 서가 | [`ui/village/bookshelf.tscn`](../../ui/village/bookshelf.tscn) — `Tab.SHELF` |
 | 대장간 | [`ui/village/smithy.tscn`](../../ui/village/smithy.tscn) — `Tab.SMITHY` (허브만) |
 | 원정 파라미터 | [`data/village/challenge_def.gd`](../../data/village/challenge_def.gd) · `SaveManager.pending_run` |
 | 게임 진입 | [`profile_select.gd`](../../scenes/title/profile_select.gd) → `village.tscn` |
 | 던전 기동 | [`dungeon.gd`](../../scenes/dungeon/dungeon.gd) — `take_pending_run`으로 `generate` |
 
-소문·서가는 **MenuShell Sheet**. 월드 오브젝트 클릭으로 열지 않는다.  
+게시판·제단·서가·대장간은 **MenuShell Sheet**. 월드 오브젝트 클릭으로 열지 않는다.  
 씬 트리 상세: [`architecture/village.md`](../architecture/village.md).
 
 ### 마을 · HUD
 
 - 고정 배경만. 플레이어 이동 없음. HP는 허브 입장 시 최대. 여관·상점은 v2.
-- 허브: GameHud 숨김, `VillageShell` TopBar + HubNav + 게임 로그.
-- 던전: GameHud·미니맵 유지. Map Sheet는 던전만.
+- 허브: GameHud 숨김, `VillageShell` TopBar + HubNav. 게임 로그 없음.
+- 던전: GameHud·미니맵 유지. Map은 플레이어 메뉴 탭.
 
 | 항목 | 마을 | 던전 |
 |------|------|------|
-| 소문 / 서가 | Sheet | 없음 |
-| 인벤 / 스탯 / 설정 | Sheet | Sheet |
+| 게시판 · 제단 · 서가 · 대장간 | Sheet (허브만) | 없음 |
+| 인벤 · 맵 · 스탯 · 설정 | 풀스크린 메뉴 | 풀스크린 메뉴 |
 | 설정 → 나가기 | **타이틀** | v1: 타이틀. v1.1: **마을**(원정 포기) 추가 |
 
 Sheet가 열려 있으면 Esc/BACK은 그 Sheet만 닫는다.
@@ -132,8 +134,9 @@ Sheet가 열려 있으면 Esc/BACK은 그 Sheet만 닫는다.
 
 ```
 ChallengeBoard.setup(ui_manager, footer)
+VillageAltar.setup(ui_manager, footer)
 Bookshelf.setup(ui_manager, footer)
-UIManager.open_tab(BOARD | SHELF | …)
+UIManager.open_tab(BOARD | ALTAR | SHELF | SMITHY | …)
 UIManager.return_to_village()
 UIManager.set_hub_mode(true)
 UIManager.refresh_bookshelf()
@@ -163,7 +166,7 @@ UIManager.refresh_bookshelf()
 - 보급(횃불·식량): Stamina 상한/재생과 같이 검토 ([`stats.md`](stats.md))
 - 파티 편성: 전투 다수 아군 이후
 
-소문·서가는 **Sheet** 유지. 월드에 퀘스트 목록을 펼치지 않는다.
+게시판·제단·서가·대장간은 **Sheet** 유지. 월드에 퀘스트 목록을 펼치지 않는다.
 
 ---
 
@@ -177,7 +180,7 @@ UIManager.refresh_bookshelf()
 | [`combat.md`](combat.md) | `lose` → `return_to_village()` |
 | [`hud.md`](hud.md) | 허브에서 GameHud 숨김 |
 | [`basin.md`](basin.md) | 이름돌·구역·제단 아래 (구현됨) |
-| [`equipment.md`](equipment.md) · [`bookshelf.md`](bookshelf.md) | 서가 봉인 |
+| [`equipment.md`](equipment.md) · [`bookshelf.md`](bookshelf.md) · [`altar.md`](altar.md) | 서가 기록 · 제단 봉인 |
 | [`shop.md`](shop.md) | v2 NPC가 `ShopPricing` 호출 |
 
 ---
@@ -185,7 +188,7 @@ UIManager.refresh_bookshelf()
 ## 비목표 (당분간)
 
 - 게시판에서 층 미리보기·시드 리롤
-- 월드 존 클릭으로 소문/서가 열기
+- 월드 존 클릭으로 게시판/제단/서가 열기
 - 4인 파티, 스테이지 코치, 스트레스·기벽, 건물 업그레이드, 묘지
 - 사이드뷰 햄릿, 출발 전 보급 쇼핑 강제
 - 전멸 시 캐릭터/슬롯 삭제, 마을 절차 생성·전투

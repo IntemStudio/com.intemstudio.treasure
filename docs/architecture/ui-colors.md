@@ -79,14 +79,16 @@ Const는 `Color(r,g,b,a)` float (hex는 아래 표). `Color.html`은 const에서
 
 ## 팝업 레이아웃
 
-딤은 풀스크린. 패널은 중앙 Sheet/Dialog. 바깥 여백 ≥ `UIPopupLayout.MARGIN` (80).  
+딤은 풀스크린. 패널은 중앙 Sheet/Dialog, 또는 플레이어 메뉴 풀스크린. 바깥 여백 ≥ `UIPopupLayout.MARGIN` (80) — Sheet/Dialog만.  
 Sheet/Dialog는 `PanelContainer` + `UIPopupLayout.make_sheet_style()` (배경 `SLOT_BG_SOLID`, 테두리 `SLOT_BORDER` 무채색, content margin = `PANEL_BORDER` so 상·하 밴드가 테두리를 덮지 않음).  
+본문 좌·우 컬럼은 `UIPopupLayout.make_column_panel_style()` (`PANEL_BG` + `SLOT_BORDER`, inset 16). 설정·인벤·맵·스탯·게시판·제단·서가·대장간. 컬럼 안 `ItemDetailPanel`은 `flatten_inner_panel`로 이중 테두리를 뺀다.  
 Sheet 내부 **상·중·하**: 상단은 좌·우·상(테두리 안쪽) flush, 하단은 좌·우·하 flush. 중단만 `PANEL_INSET` + `clip_contents`. 상·하 높이 `BAND_HEIGHT` 72.
 
 | 등급 | 크기 | 상수 | 예 |
 |------|------|------|-----|
-| Sheet | 1440×800 | `SHEET_SIZE` | MenuShell(인벤/맵/스탯/설정/소문/서가/대장간 각각), 룻 선택, 타이틀 설정 |
+| Fullscreen | 뷰포트 | — | MenuShell 플레이어 메뉴 (인벤/맵/스탯/설정, TopBar 4탭) |
+| Sheet | 1440×800 | `SHEET_SIZE` | 마을 게시판/제단/서가/대장간 (TopBar 4탭), 룻 선택, 타이틀 설정 |
 | Dialog | 760×480 | `DIALOG_SIZE` | DevOverlay |
 
 소스: [`ui/shared/ui_popup_layout.gd`](../../ui/shared/ui_popup_layout.gd).  
-마을 `VillageShell`은 허브 크롬(상·하·로그)만. 소문/서가/대장간은 MenuShell Sheet.
+마을 `VillageShell`은 허브 크롬(상·하)만. 게시판/제단/서가/대장간은 MenuShell Sheet 4탭.

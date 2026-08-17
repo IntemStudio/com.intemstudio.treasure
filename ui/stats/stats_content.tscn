@@ -22,53 +22,58 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 28
 
-[node name="LeftPanel" type="VBoxContainer" parent="Body"]
+[node name="LeftPanel" type="PanelContainer" parent="Body"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
+
+[node name="LeftInner" type="VBoxContainer" parent="Body/LeftPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Portrait" type="TextureRect" parent="Body/LeftPanel"]
+[node name="Portrait" type="TextureRect" parent="Body/LeftPanel/LeftInner"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 110)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PointsRow" type="HBoxContainer" parent="Body/LeftPanel"]
+[node name="PointsRow" type="HBoxContainer" parent="Body/LeftPanel/LeftInner"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 8
 
-[node name="PointsPrevBtn" type="Button" parent="Body/LeftPanel/PointsRow"]
+[node name="PointsPrevBtn" type="Button" parent="Body/LeftPanel/LeftInner/PointsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "<"
 
-[node name="PointsLabel" type="Label" parent="Body/LeftPanel/PointsRow"]
+[node name="PointsLabel" type="Label" parent="Body/LeftPanel/LeftInner/PointsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Attribute Points"
 
-[node name="PointsValueLabel" type="Label" parent="Body/LeftPanel/PointsRow"]
+[node name="PointsValueLabel" type="Label" parent="Body/LeftPanel/LeftInner/PointsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 text = "1"
 
-[node name="PointsNextBtn" type="Button" parent="Body/LeftPanel/PointsRow"]
+[node name="PointsNextBtn" type="Button" parent="Body/LeftPanel/LeftInner/PointsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = ">"
 
-[node name="AttributeList" type="VBoxContainer" parent="Body/LeftPanel"]
+[node name="AttributeList" type="VBoxContainer" parent="Body/LeftPanel/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 4
 
-[node name="InsightHint" type="Label" parent="Body/LeftPanel"]
+[node name="InsightHint" type="Label" parent="Body/LeftPanel/LeftInner"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
@@ -76,85 +81,90 @@ theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
 
-[node name="RightPanel" type="VBoxContainer" parent="Body"]
+[node name="RightPanel" type="PanelContainer" parent="Body"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 3.0
+
+[node name="RightInner" type="VBoxContainer" parent="Body/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Columns" type="HBoxContainer" parent="Body/RightPanel"]
+[node name="Columns" type="HBoxContainer" parent="Body/RightPanel/RightInner"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
-[node name="GeneralCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+[node name="GeneralCol" type="VBoxContainer" parent="Body/RightPanel/RightInner/Columns"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 6
 
-[node name="GeneralTitle" type="Label" parent="Body/RightPanel/Columns/GeneralCol"]
+[node name="GeneralTitle" type="Label" parent="Body/RightPanel/RightInner/Columns/GeneralCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "GENERAL"
 
-[node name="CombatCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+[node name="CombatCol" type="VBoxContainer" parent="Body/RightPanel/RightInner/Columns"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.2
 theme_override_constants/separation = 6
 
-[node name="CombatTitle" type="Label" parent="Body/RightPanel/Columns/CombatCol"]
+[node name="CombatTitle" type="Label" parent="Body/RightPanel/RightInner/Columns/CombatCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "COMBAT"
 
-[node name="DefenseCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+[node name="DefenseCol" type="VBoxContainer" parent="Body/RightPanel/RightInner/Columns"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 6
 
-[node name="DefenseTitle" type="Label" parent="Body/RightPanel/Columns/DefenseCol"]
+[node name="DefenseTitle" type="Label" parent="Body/RightPanel/RightInner/Columns/DefenseCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "DEFENSE"
 
-[node name="WeightCol" type="VBoxContainer" parent="Body/RightPanel/Columns"]
+[node name="WeightCol" type="VBoxContainer" parent="Body/RightPanel/RightInner/Columns"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.0
 theme_override_constants/separation = 6
 
-[node name="WeightTitle" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+[node name="WeightTitle" type="Label" parent="Body/RightPanel/RightInner/Columns/WeightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "WEIGHT"
 
-[node name="MaxWeightLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+[node name="MaxWeightLabel" type="Label" parent="Body/RightPanel/RightInner/Columns/WeightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Max Weight: 80.0"
 
-[node name="CurrentWeightLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+[node name="CurrentWeightLabel" type="Label" parent="Body/RightPanel/RightInner/Columns/WeightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Current: 42.4"
 
-[node name="WeightClassLabel" type="Label" parent="Body/RightPanel/Columns/WeightCol"]
+[node name="WeightClassLabel" type="Label" parent="Body/RightPanel/RightInner/Columns/WeightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Normal (53%)"
 
-[node name="WeightBar" type="ProgressBar" parent="Body/RightPanel/Columns/WeightCol"]
+[node name="WeightBar" type="ProgressBar" parent="Body/RightPanel/RightInner/Columns/WeightCol"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
@@ -162,22 +172,22 @@ max_value = 80.0
 value = 42.4
 show_percentage = false
 
-[node name="WeaponTable" type="VBoxContainer" parent="Body/RightPanel"]
+[node name="WeaponTable" type="VBoxContainer" parent="Body/RightPanel/RightInner"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Header" type="HBoxContainer" parent="Body/RightPanel/WeaponTable"]
+[node name="Header" type="HBoxContainer" parent="Body/RightPanel/RightInner/WeaponTable"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Weapon" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+[node name="Weapon" type="Label" parent="Body/RightPanel/RightInner/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Weapon"
 
-[node name="Base" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+[node name="Base" type="Label" parent="Body/RightPanel/RightInner/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
@@ -185,7 +195,7 @@ theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Base"
 horizontal_alignment = 1
 
-[node name="AttrBonus" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+[node name="AttrBonus" type="Label" parent="Body/RightPanel/RightInner/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -193,7 +203,7 @@ theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Attr Bonus"
 horizontal_alignment = 1
 
-[node name="Other" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+[node name="Other" type="Label" parent="Body/RightPanel/RightInner/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
@@ -201,7 +211,7 @@ theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Other"
 horizontal_alignment = 1
 
-[node name="Total" type="Label" parent="Body/RightPanel/WeaponTable/Header"]
+[node name="Total" type="Label" parent="Body/RightPanel/RightInner/WeaponTable/Header"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
@@ -209,7 +219,7 @@ theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
 text = "Total"
 horizontal_alignment = 1
 
-[node name="WeaponRows" type="VBoxContainer" parent="Body/RightPanel/WeaponTable"]
+[node name="WeaponRows" type="VBoxContainer" parent="Body/RightPanel/RightInner/WeaponTable"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4

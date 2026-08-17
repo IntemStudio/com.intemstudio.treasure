@@ -3,7 +3,7 @@ extends CanvasLayer
 signal closed
 signal tab_changed(tab: int)
 
-enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6 }
+enum Tab { INVENTORY = 0, MAP = 1, STATS = 2, SETTINGS = 3, BOARD = 4, SHELF = 5, SMITHY = 6, ALTAR = 7 }
 
 const INVENTORY_CONTENT_PATH := "res://ui/inventory/inventory_content.tscn"
 const MAP_CONTENT_PATH := "res://ui/map/map_content.tscn"
@@ -12,6 +12,7 @@ const SETTINGS_CONTENT_PATH := "res://ui/settings/settings_content.tscn"
 const BOARD_CONTENT_PATH := "res://ui/village/challenge_board.tscn"
 const SHELF_CONTENT_PATH := "res://ui/village/bookshelf.tscn"
 const SMITHY_CONTENT_PATH := "res://ui/village/smithy.tscn"
+const ALTAR_CONTENT_PATH := "res://ui/village/altar.tscn"
 
 const TITLE_KEYS := {
 	Tab.INVENTORY: "Inventory",
@@ -21,8 +22,17 @@ const TITLE_KEYS := {
 	Tab.BOARD: "BOARD_LABEL",
 	Tab.SHELF: "SHELF_LABEL",
 	Tab.SMITHY: "SMITHY_LABEL",
+	Tab.ALTAR: "ALTAR_LABEL",
 }
+const PLAYER_TAB_KEYS: Array[String] = ["Inventory", "Map", "Stats", "Settings"]
+const VILLAGE_TAB_KEYS: Array[String] = ["BOARD_LABEL", "ALTAR_LABEL", "SHELF_LABEL", "SMITHY_LABEL"]
+const VILLAGE_TAB_SHORTCUTS: Array[String] = ["Q", "W", "E", "R"]
+const VILLAGE_TABS: Array[int] = [Tab.BOARD, Tab.ALTAR, Tab.SHELF, Tab.SMITHY]
 
+enum Chrome { NONE, PLAYER, VILLAGE }
+
+@onready var overlay: ColorRect = $Overlay
+@onready var safe: MarginContainer = $Overlay/Safe
 @onready var top_bar: TopBar = %TopBar
 @onready var footer: FooterPrompts = %Footer
 @onready var body_host: Control = %BodyHost
@@ -42,8 +52,10 @@ var _settings_content: Control
 var _board_content: Control
 var _shelf_content: Control
 var _smithy_content: Control
+var _altar_content: Control
 var _contents: Dictionary = {}
 var _wired: bool = false
+var _chrome: int = Chrome.NONE
 
 
 func _ready() -> void:
@@ -60,6 +72,10 @@ func _ready() -> void:
 		footer.custom_minimum_size = Vector2(0, 0)
 		footer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_mount_contents()
+	if overlay and not overlay.resized.is_connected(_on_overlay_resized):
+		overlay.resized.connect(_on_overlay_resized)
+	if top_bar and not top_bar.tab_changed.is_connected(_on_top_bar_tab_changed):
+		top_bar.tab_changed.connect(_on_top_bar_tab_changed)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 
 
@@ -94,6 +110,7 @@ func _mount_contents() -> void:
 	_board_content = _instantiate_content(load(BOARD_CONTENT_PATH) as PackedScene)
 	_shelf_content = _instantiate_content(load(SHELF_CONTENT_PATH) as PackedScene)
 	_smithy_content = _instantiate_content(load(SMITHY_CONTENT_PATH) as PackedScene)
+	_altar_content = _instantiate_content(load(ALTAR_CONTENT_PATH) as PackedScene)
 
 	for content in [
 		_inventory_content,
@@ -103,6 +120,7 @@ func _mount_contents() -> void:
 		_board_content,
 		_shelf_content,
 		_smithy_content,
+		_altar_content,
 	]:
 		if content == null:
 			continue
@@ -119,6 +137,7 @@ func _mount_contents() -> void:
 		Tab.BOARD: _board_content,
 		Tab.SHELF: _shelf_content,
 		Tab.SMITHY: _smithy_content,
+		Tab.ALTAR: _altar_content,
 	}
 
 
@@ -157,6 +176,7 @@ func _wire_contents() -> void:
 		or _board_content == null
 		or _shelf_content == null
 		or _smithy_content == null
+		or _altar_content == null
 	):
 		return
 	if footer == null:
@@ -169,13 +189,12 @@ func _wire_contents() -> void:
 	_board_content.setup(_ui_manager, footer)
 	_shelf_content.setup(_ui_manager, footer)
 	_smithy_content.setup(_ui_manager, footer)
+	_altar_content.setup(_ui_manager, footer)
 	_wired = true
 
 
 func open_tab(tab: int, stats: CharacterStats, inventory: InventoryData) -> void:
 	if not _contents.has(tab):
-		return
-	if _ui_manager and _ui_manager.hub_mode and tab == Tab.MAP:
 		return
 	_character_stats = stats
 	_inventory_data = inventory
@@ -212,26 +231,98 @@ func _deactivate_all() -> void:
 			content.deactivate()
 
 
+func _is_player_tab(tab: int) -> bool:
+	return (
+		tab == Tab.INVENTORY
+		or tab == Tab.MAP
+		or tab == Tab.STATS
+		or tab == Tab.SETTINGS
+	)
+
+
+func _is_village_tab(tab: int) -> bool:
+	return tab == Tab.BOARD or tab == Tab.ALTAR or tab == Tab.SHELF or tab == Tab.SMITHY
+
+
+func _chrome_for(tab: int) -> int:
+	if _is_player_tab(tab):
+		return Chrome.PLAYER
+	if _is_village_tab(tab):
+		return Chrome.VILLAGE
+	return Chrome.NONE
+
+
+func _tab_from_chrome_index(index: int) -> int:
+	match _chrome:
+		Chrome.PLAYER:
+			if _is_player_tab(index):
+				return index
+		Chrome.VILLAGE:
+			if index >= 0 and index < VILLAGE_TABS.size():
+				return VILLAGE_TABS[index]
+	return -1
+
+
 func _sync_chrome(tab: int) -> void:
 	if top_bar == null:
 		return
-	top_bar.set_tabs([])
-	var title_key := str(TITLE_KEYS.get(tab, ""))
-	top_bar.set_location(title_key if not title_key.is_empty() else "LOCATION_UNKNOWN")
-	var show_status := (
-		tab != Tab.INVENTORY
-		and tab != Tab.STATS
-		and tab != Tab.SETTINGS
-		and tab != Tab.BOARD
-		and tab != Tab.SHELF
-		and tab != Tab.SMITHY
-	)
-	top_bar.set_status_visible(show_status)
-	if show_status:
-		if _character_stats:
-			top_bar.set_player_stats(_character_stats)
-		if _inventory_data:
-			top_bar.set_currencies(_inventory_data.currencies)
+	var chrome := _chrome_for(tab)
+	_apply_layout(chrome == Chrome.PLAYER)
+	if chrome != _chrome:
+		_chrome = chrome
+		match chrome:
+			Chrome.PLAYER:
+				top_bar.set_tabs(PLAYER_TAB_KEYS)
+			Chrome.VILLAGE:
+				top_bar.set_tabs(VILLAGE_TAB_KEYS, VILLAGE_TAB_SHORTCUTS)
+			_:
+				top_bar.set_tabs([])
+	match chrome:
+		Chrome.PLAYER:
+			top_bar.set_active_tab(tab)
+			top_bar.set_status_visible(true)
+			if _character_stats:
+				top_bar.set_player_stats(_character_stats)
+			if _inventory_data:
+				top_bar.set_currencies(_inventory_data.currencies)
+		Chrome.VILLAGE:
+			var idx := VILLAGE_TABS.find(tab)
+			if idx >= 0:
+				top_bar.set_active_tab(idx)
+			top_bar.set_status_visible(false)
+		_:
+			var title_key := str(TITLE_KEYS.get(tab, ""))
+			top_bar.set_location(title_key if not title_key.is_empty() else "LOCATION_UNKNOWN")
+			top_bar.set_status_visible(false)
+
+
+func _apply_layout(fullscreen: bool) -> void:
+	if sheet == null or safe == null:
+		return
+	if fullscreen:
+		safe.add_theme_constant_override("margin_left", 0)
+		safe.add_theme_constant_override("margin_top", 0)
+		safe.add_theme_constant_override("margin_right", 0)
+		safe.add_theme_constant_override("margin_bottom", 0)
+		var sz := overlay.size if overlay else Vector2.ZERO
+		if sz.x < 1.0 or sz.y < 1.0:
+			sz = get_viewport().get_visible_rect().size
+		sheet.custom_minimum_size = sz
+	else:
+		UIPopupLayout.apply_outer_margin(safe)
+		UIPopupLayout.apply_sheet_size(sheet)
+
+
+func _on_overlay_resized() -> void:
+	if _chrome == Chrome.PLAYER:
+		_apply_layout(true)
+
+
+func _on_top_bar_tab_changed(index: int) -> void:
+	var tab := _tab_from_chrome_index(index)
+	if tab < 0 or tab == _active_tab:
+		return
+	open_tab(tab, _character_stats, _inventory_data)
 
 
 func _on_locale_changed(_locale: String) -> void:

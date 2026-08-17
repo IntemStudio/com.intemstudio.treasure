@@ -1,9 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://village_shell"]
+[gd_scene load_steps=5 format=3 uid="uid://village_shell"]
 
 [ext_resource type="Script" path="res://ui/village/village_shell.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://top_bar" path="res://ui/shared/top_bar.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://footer_prompts" path="res://ui/shared/footer_prompts.tscn" id="3"]
-[ext_resource type="PackedScene" uid="uid://game_log_view" path="res://ui/hud/components/game_log_view.tscn" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_band"]
 content_margin_left = 24.0
@@ -100,34 +99,6 @@ clip_contents = true
 [node name="Footer" parent="Root/Mid/ContentHost/ContentVBox" instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="RightBand" type="Control" parent="Root/Mid"]
-custom_minimum_size = Vector2(280, 0)
-layout_mode = 2
-mouse_filter = 0
-
-[node name="RightBg" type="ColorRect" parent="Root/Mid/RightBand"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.114, 0.125, 0.129, 0.88)
-
-[node name="GameLogView" parent="Root/Mid/RightBand" instance=ExtResource("4")]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -16.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="BottomBand" type="PanelContainer" parent="Root"]
 layout_mode = 2

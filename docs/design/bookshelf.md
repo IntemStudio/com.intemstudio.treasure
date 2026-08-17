@@ -8,7 +8,7 @@
 
 ## 한 줄
 
-마을 **서가**에서 룬·보석을 보고, 보유분을 **봉인**하면 이웃 칸이 열려 다음 수색 드랍 풀에 합류한다.
+마을 **서가**에서 룬·보석 기록을 본다. 보유분을 **제단**에 봉인하면 이웃 칸이 열려 다음 수색 드랍 풀에 합류한다. 봉인 UI: [`altar.md`](altar.md).
 
 ---
 
@@ -26,7 +26,7 @@
 | 8 | E1·희귀도 단·골드/업적 해금 **없음**. |
 | 9 | `unlocked_shelves` = 항상 두 판 (탭 잠금 없음). |
 | 10 | 격자 = 5×5. 인접 = 동 행·열 4방(행 끝 wrap 없음). |
-| 11 | HubNav: 소문 · 서가. 용어 = 룬·보석. |
+| 11 | HubNav: 게시판 · 제단 · 서가 · 대장간. 용어 = 룬·보석. |
 
 ---
 
@@ -36,7 +36,8 @@
 |------|------|------|
 | shelf.v1 | `unlocked_shelves` 룻 · 제단 분리 | 대체됨 |
 | shelf.v2 | `open_cards` · 희귀도 단 · E1 | 대체됨 |
-| **shelf.v3** | 룬/보석 판 · 시드 `#1` · 희귀도/E1 제거 | **구현됨** |
+| **shelf.v3** | 룬/보석 판 · 시드 `#1` · 희귀도/E1 없음 | **구현됨** |
+| **hub.altar** | 제단 Sheet 봉인. 서가는 기록만 | **구현됨** — [`altar.md`](altar.md) |
 | shelf.pity | `card_pity` | 후속 |
 | shelf.unlock 특수 방 | map v2 열쇠 | 후속 |
 
@@ -79,6 +80,8 @@ WEAPON | ARMOR: 게이트 없음
 
 ## 봉인 시
 
+제단에서 `CardRegistrationService.register`. 규칙:
+
 1. 이미 등록된 id → 거부  
 2. 가방 개체 제거 (소켓 uid 제외), 장비 유지, 공명 재계산  
 3. `registered_cards` append  
@@ -93,7 +96,7 @@ WEAPON | ARMOR: 게이트 없음
 |------|------|
 | 씬 | `ui/village/bookshelf.tscn` |
 | 탭 | Rune · Gem |
-| 봉인 | OPEN/FOG 칸에 보유분 있으면 푸터 봉인 + 확인 |
+| 봉인 | 없음 — [`altar.md`](altar.md) |
 | 상세 | OPEN·REGISTERED만 이름 |
 
 ---
@@ -120,4 +123,4 @@ WEAPON | ARMOR: 게이트 없음
 | [`equipment.md`](equipment.md) | 등록·공명 |
 | [`village.md`](village.md) | VillageShell |
 | [`loot.md`](loot.md) | 3택1 |
-| [`architecture/equipment.md`](../architecture/equipment.md) | 현황 |
+| [`altar.md`](altar.md) | 마을 제단 봉인 |

@@ -3,7 +3,7 @@
 **현황(구조):** [`docs/architecture/equipment.md`](../architecture/equipment.md).  
 이 문서는 **미구현** 로드맵만 다룬다 (패시브 전투 훅, 특수 방). 소켓·인벤 UI·서가는 구현됨. `eq.economy`(희귀도=소켓)는 **폐기**.
 
-관련: [`world.md`](world.md) (단독 사냥꾼·룬·보석·등록=이름 남기기) · [`bookshelf.md`](bookshelf.md) (서가·open_cards) · [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (장착 룬 0~6) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비) · [`shop.md`](shop.md) (골드 가격. 소켓 수와 분리).
+관련: [`world.md`](world.md) (단독 사냥꾼·룬·보석·등록=이름 남기기) · [`altar.md`](altar.md) (제단 봉인) · [`bookshelf.md`](bookshelf.md) (서가·open_cards) · [`stats.md`](stats.md) (접두사·기술 게이지) · [`combat.md`](combat.md) (세션은 결과만 소비) · [`hud.md`](hud.md) (장착 룬 0~6) · [`save-load.md`](save-load.md) (메타/런) · [`village.md`](village.md) (등록은 허브) · [`map.md`](map.md) (특수 방은 v2) · [`loot.md`](loot.md) (방 클리어 장비) · [`shop.md`](shop.md) (골드 가격. 소켓 수와 분리).
 
 ---
 
@@ -20,7 +20,7 @@
 | 1 | 룬·보석은 `InventoryData.runes` / `gems`에 둔다. `ItemCategory`와 분리. 장비는 탭별 `bags` 5×5. |
 | 2 | `ItemData`는 기존 필드 유지. `socket_layout`, 호환 태그, `intrinsic_effects`만 추가. `AttackData` / `SkillData` / `AffixData` 승격은 이 시스템의 전제가 아니다. |
 | 3 | 소켓 수는 **부위 고정** (`SocketLayout.for_slot`). 희귀도는 색·접두사·상점가만. 액티브 룬(`strike`/`combo`/`aoe`)은 `main_hand` 세트 2. 패시브는 `off_hand`·머리·가슴·다리. HUD는 `list_equipped_rune_skills` (꽂힌 룬 0~6). 게이지는 액티브만. |
-| 4 | 던전은 획득·장착·보관만. 카드 등록(봉인)은 마을 서가만. |
+| 4 | 던전은 획득·장착·보관만. 카드 등록(봉인)은 마을 **제단**만. |
 | 5 | 기술 게이지·마나([`stats.md`](stats.md) v1.3)를 룬 발동보다 먼저. 런 JSON([`save-load.md`](save-load.md) v2)을 소켓 디스크 저장보다 먼저. |
 | 6 | 접두사만 `CombatStats` 수치. 보석은 기술 플래그·조건·원소 행동. `CombatStatsBuilder.AFFIX_FIELDS`를 보석이 더하지 않는다. |
 | 7 | `eq.economy` 폐기. 희귀도로 칸을 바꾸지 않는다. 인챈트·넘친 소켓 가방 반환은 YAGNI. 접두사 롤은 [`loot.md`](loot.md) v2. |
@@ -40,7 +40,7 @@ NRFW에서 가져오지 않은 것: 희귀도=슬롯 구성, Focus 바, 패링, 
 | **eq.gems** | `GemData`, `ResonanceService` | 구현됨 | eq.runes |
 | **선행 B** | `slot_N_run.json` | 구현됨 (기본) — [`save-load.md`](save-load.md) v2 | — |
 | **eq.persist** | 런에 소켓·룬·보석 인스턴스 | 구현됨 | 선행 B |
-| **eq.register** | 마을 서가 봉인, 메타 카드 | shelf.v3에 합침 | 메타 JSON은 v1 슬롯으로 가능 |
+| **eq.register** | 마을 제단 봉인, 메타 카드 | hub.altar — [`altar.md`](altar.md) | 메타 JSON은 v1 슬롯으로 가능 |
 | **shelf.v1** | `unlocked_shelves` 룻 · 제단 분리 | 대체됨 | |
 | **shelf.v2** | 희귀도 단 · E1 · open_cards | 대체 → shelf.v3 | |
 | **shelf.v3** | 룬/보석 판 · 시드 `#1` · 희귀도/E1 없음 | 구현됨 — [`bookshelf.md`](bookshelf.md) | eq.register |
@@ -294,7 +294,7 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 ```text
 던전: 획득 → 장착 또는 InventoryData.runes/gems 보관
 마을 대장간: 장비 소켓에 룬·보석 꽂기/빼기
-마을 서가: 확인창 → 개체 제거 → 장비 유지 → skills/공명 갱신
+마을 제단: 확인창 → 개체 제거 → 장비 유지 → skills/공명 갱신
          → registered_cards + 인접 open_cards
 ```
 
@@ -308,7 +308,7 @@ NRFW 추출(룬을 남기고 무기 파괴)을 쓰지 않는다.
 
 확인창에 넣을 것: 장착 여부, 기술 영향, 비활성화될 효과, 카드 번호·서가. 해당 개체는 되돌릴 수 없다. 동 id 재봉인 불가.
 
-봉인은 `VillageShell` **서가** 탭 (룬|보석). 상세: [`bookshelf.md`](bookshelf.md) (`shelf.v3`).
+봉인은 `VillageShell` **제단** 탭 (룬|보석 목록). 상세: [`altar.md`](altar.md). 서가는 5×5 기록만 — [`bookshelf.md`](bookshelf.md).
 
 ---
 
@@ -391,8 +391,9 @@ card 등록: 개체 소모 + 영구 기록 + 인접 OPEN
 | [`combat.md`](combat.md) | 세션은 `ResonanceResult`만 소비. 마을 서가는 전투 타일/카드가 아님 |
 | [`hud.md`](hud.md) | 장착 룬 0~6·액티브만 자동 발동. 전투 중 룬 버튼 없음 |
 | [`save-load.md`](save-load.md) | 등록 카드는 메타. 소켓·룬·보석 인스턴스는 메타 인벤 + 런 스냅샷. 던전 이어하기는 후속 |
-| [`village.md`](village.md) | HubNav 소문·서가. 여관·상점은 후속 |
-| [`bookshelf.md`](bookshelf.md) | shelf.v3 룬/보석 판·봉인·open_cards |
+| [`village.md`](village.md) | HubNav 게시판·제단·서가·대장간. 여관·상점은 후속 |
+| [`altar.md`](altar.md) | 마을 제단 봉인 |
+| [`bookshelf.md`](bookshelf.md) | shelf.v3 룬/보석 판·기록·open_cards |
 | [`shop.md`](shop.md) | 골드 가격. 소켓 수와 분리. `eq.economy` 폐기 |
 | [`map.md`](map.md) | `START`/`NORMAL`/`BOSS` 유지. 특수 방은 v2 |
 | [`loot.md`](loot.md) | 방 `win` 3택1. 룬·보석 풀 = `open_cards`. 접두사 롤러는 v2 |

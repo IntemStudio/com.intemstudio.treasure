@@ -77,21 +77,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 24
 
-[node name="LeftColumn" type="Control" parent="Body/PanelHost/SettingsSplit"]
+[node name="LeftColumn" type="PanelContainer" parent="Body/PanelHost/SettingsSplit"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.15
 
 [node name="GameplayPanel" type="VBoxContainer" parent="Body/PanelHost/SettingsSplit/LeftColumn"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
 [node name="UISectionLabel" type="Label" parent="Body/PanelHost/SettingsSplit/LeftColumn/GameplayPanel"]
@@ -107,12 +105,9 @@ theme_override_constants/separation = 8
 [node name="ControlsPanel" type="Control" parent="Body/PanelHost/SettingsSplit/LeftColumn"]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="ControlsPlaceholder" type="Label" parent="Body/PanelHost/SettingsSplit/LeftColumn/ControlsPanel"]
 unique_name_in_owner = true
@@ -124,45 +119,38 @@ text = "Coming soon"
 [node name="DisplayPanel" type="VBoxContainer" parent="Body/PanelHost/SettingsSplit/LeftColumn"]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 12
 
 [node name="AudioPanel" type="VBoxContainer" parent="Body/PanelHost/SettingsSplit/LeftColumn"]
 unique_name_in_owner = true
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="VSeparator" type="ColorRect" parent="Body/PanelHost/SettingsSplit"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-size_flags_vertical = 3
-mouse_filter = 2
-color = Color(0.922, 0.859, 0.698, 0.22)
-
-[node name="RightColumn" type="VBoxContainer" parent="Body/PanelHost/SettingsSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="DetailTitle" type="Label" parent="Body/PanelHost/SettingsSplit/RightColumn"]
+[node name="RightPanel" type="PanelContainer" parent="Body/PanelHost/SettingsSplit"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightColumn" type="VBoxContainer" parent="Body/PanelHost/SettingsSplit/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="DetailTitle" type="Label" parent="Body/PanelHost/SettingsSplit/RightPanel/RightColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
 
-[node name="DetailBody" type="Label" parent="Body/PanelHost/SettingsSplit/RightColumn"]
+[node name="DetailBody" type="Label" parent="Body/PanelHost/SettingsSplit/RightPanel/RightColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -178,54 +166,59 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 24
 
-[node name="ExitList" type="VBoxContainer" parent="Body/PanelHost/ExitPanel"]
+[node name="ExitLeftPanel" type="PanelContainer" parent="Body/PanelHost/ExitPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.15
-theme_override_constants/separation = 12
 
-[node name="ExitVSeparator" type="ColorRect" parent="Body/PanelHost/ExitPanel"]
-custom_minimum_size = Vector2(1, 0)
-layout_mode = 2
-size_flags_vertical = 3
-mouse_filter = 2
-color = Color(0.922, 0.859, 0.698, 0.22)
-
-[node name="ExitDetail" type="VBoxContainer" parent="Body/PanelHost/ExitPanel"]
+[node name="ExitList" type="VBoxContainer" parent="Body/PanelHost/ExitPanel/ExitLeftPanel"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ExitRightPanel" type="PanelContainer" parent="Body/PanelHost/ExitPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ExitDetail" type="VBoxContainer" parent="Body/PanelHost/ExitPanel/ExitRightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="ExitDetailLabel" type="Label" parent="Body/PanelHost/ExitPanel/ExitDetail"]
+[node name="ExitDetailLabel" type="Label" parent="Body/PanelHost/ExitPanel/ExitRightPanel/ExitDetail"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.843, 0.6, 0.129, 1)
 theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
 
-[node name="ExitDetailBody" type="Label" parent="Body/PanelHost/ExitPanel/ExitDetail"]
+[node name="ExitDetailBody" type="Label" parent="Body/PanelHost/ExitPanel/ExitRightPanel/ExitDetail"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
 autowrap_mode = 3
 
-[node name="ExitConfirmRow" type="HBoxContainer" parent="Body/PanelHost/ExitPanel/ExitDetail"]
+[node name="ExitConfirmRow" type="HBoxContainer" parent="Body/PanelHost/ExitPanel/ExitRightPanel/ExitDetail"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="ExitYesButton" type="Button" parent="Body/PanelHost/ExitPanel/ExitDetail/ExitConfirmRow"]
+[node name="ExitYesButton" type="Button" parent="Body/PanelHost/ExitPanel/ExitRightPanel/ExitDetail/ExitConfirmRow"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true
 text = "Yes"
 
-[node name="ExitNoButton" type="Button" parent="Body/PanelHost/ExitPanel/ExitDetail/ExitConfirmRow"]
+[node name="ExitNoButton" type="Button" parent="Body/PanelHost/ExitPanel/ExitRightPanel/ExitDetail/ExitConfirmRow"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true

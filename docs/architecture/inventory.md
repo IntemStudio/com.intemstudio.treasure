@@ -1,8 +1,8 @@
 # 인벤토리 UI
 
-인벤토리 탭 본문 스펙. 모달 크롬(Overlay / TopBar 제목 / Footer / pause, Sheet 1440×800)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다. 팝업 기하: [`ui-colors.md`](ui-colors.md) · `UIPopupLayout`. 인벤·스탯·설정·맵·소문·서가·대장간은 **각각 단독 Sheet** (TopBar 탭 순환 없음).
+인벤토리 탭 본문 스펙. 모달 크롬(Overlay / TopBar 4탭 / Footer / pause)은 [`ui/shell/menu_shell.tscn`](../../ui/shell/menu_shell.tscn)이 소유하고, 이 문서는 **Inventory 콘텐츠 패널**만 다룹니다. 팝업 기하: [`ui-colors.md`](ui-colors.md) · `UIPopupLayout`. 인벤·맵·스탯·설정은 **하나의 풀스크린 플레이어 메뉴** (TopBar 탭). 게시판·제단·서가·대장간은 마을 Sheet 4탭.
 
-소켓·룬·보석·공명·서가 봉인: [`equipment.md`](equipment.md).  
+소켓·룬·보석·공명·제단 봉인: [`equipment.md`](equipment.md).  
 방 클리어 장비 드랍: [`loot.md`](loot.md). 상세 골드: [`shop.md`](shop.md).  
 색·희귀도: [`ui-colors.md`](ui-colors.md) (`UIColors` / `ItemData.color_for_rarity`).
 
@@ -28,7 +28,7 @@
 
 | 영역 | 내용 |
 |------|------|
-| TopBar (셸) | 상단 밴드(72) — 제목만 |
+| TopBar (셸) | 상단 밴드(72) — `[인벤토리] [맵] [스탯] [설정]` + 재화·체력 |
 | Body | 중단 밴드 — expand |
 | Footer (셸) | 하단 밴드(72) — 프롬프트 |
 | Left | 탭별 **5×5 = 25칸** (`GRID_SIZE`, 빈 칸 포함 항상 표시). 칸 80×80 (`SIZE_SHRINK_BEGIN` — FILL이면 테두리 1px가 먹힘). 장비/소모품/재료/도구는 각자 `bags[tab]` 보유. `MOD`는 미소켓 `runes[]`+`gems[]` 합산 최대 25. Body 1/3 |
@@ -63,10 +63,11 @@ InventoryContent (Control, inventory_theme)
 
 ```
 MenuShell (CanvasLayer)
-└── Overlay → Root (margin 40) → Main
-    ├── TopBar
-    ├── BodyHost  ← InventoryContent / MapContent / StatsContent / SettingsContent
-    └── Footer
+└── Overlay → Safe → Center → Sheet (플레이어 메뉴는 뷰포트 크기)
+    └── Main
+        ├── TopBar          # [인벤토리] [맵] [스탯] [설정]
+        ├── BodyHost        # 활성 탭 본문
+        └── Footer
 ```
 
 ---

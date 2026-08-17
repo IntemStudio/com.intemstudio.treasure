@@ -89,6 +89,9 @@ var _focus_zone: String = FOCUS_BAG
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_DISABLED
+	UIPopupLayout.apply_column_panels([$Body/LeftColumn, $Body/CenterColumn, $Body/RightColumn])
+	UIPopupLayout.flatten_inner_panel(detail_panel)
+	UIPopupLayout.flatten_inner_panel(modifier_detail)
 	UIPopupLayout.apply_slot_grid_pad(%ItemGridPad)
 	UIPopupLayout.apply_slot_grid_pad(%EquipmentLayoutPad)
 	_apply_right_scroll_gutter()

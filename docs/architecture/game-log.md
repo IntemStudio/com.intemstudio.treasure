@@ -22,7 +22,7 @@
 Autoload 아님. `CombatSession`은 로그 타입을 모른다. 세이브 JSON에 없음.
 
 메뉴가 열리면 `GameHud`와 함께 숨긴다. **전투 중에는 유지**.  
-마을에서는 HUD가 꺼지고 `VillageShell` 오른쪽이 같은 `game_log`를 붙인다.  
+마을에서는 HUD가 꺼지고 로그 뷰도 없다.  
 `unbind_dungeon` / 마을·타이틀 귀환 시 `clear`.
 
 ---

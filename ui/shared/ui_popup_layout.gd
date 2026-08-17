@@ -9,6 +9,7 @@ const SHEET_SIZE := Vector2(1440, 800)
 const DIALOG_SIZE := Vector2(760, 480)
 const PANEL_INSET := 24
 const PANEL_BORDER := 2
+const COLUMN_PANEL_INSET := 16
 const BAND_HEIGHT := 72
 const BAND_PAD_H := 16
 const MID_PAD_V := 16
@@ -74,6 +75,36 @@ static func apply_sheet_panel(panel: PanelContainer) -> void:
 static func apply_dialog_panel(panel: PanelContainer) -> void:
 	apply_dialog_size(panel)
 	panel.add_theme_stylebox_override("panel", make_sheet_style())
+
+
+static func make_column_panel_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = UIColors.PANEL_BG
+	style.border_color = UIColors.SLOT_BORDER
+	style.set_border_width_all(PANEL_BORDER)
+	style.set_corner_radius_all(0)
+	style.anti_aliasing = false
+	style.set_content_margin_all(COLUMN_PANEL_INSET)
+	return style
+
+
+static func apply_column_panel(panel: PanelContainer) -> void:
+	if panel == null:
+		return
+	panel.add_theme_stylebox_override("panel", make_column_panel_style())
+
+
+static func apply_column_panels(panels: Array) -> void:
+	var style := make_column_panel_style()
+	for panel in panels:
+		if panel is PanelContainer:
+			(panel as PanelContainer).add_theme_stylebox_override("panel", style)
+
+
+static func flatten_inner_panel(panel: PanelContainer) -> void:
+	if panel == null:
+		return
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 
 static func apply_sheet_bands(top_band: Control, mid_band: Control, bottom_band: Control) -> void:

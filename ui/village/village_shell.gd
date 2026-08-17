@@ -2,17 +2,14 @@ class_name VillageShell
 extends Control
 
 const HUB_NAV: Array[Dictionary] = [
-	{"tab": UIManager.Tab.BOARD, "key": "BOARD_LABEL"},
-	{"tab": UIManager.Tab.SHELF, "key": "SHELF_LABEL"},
-	{"tab": UIManager.Tab.SMITHY, "key": "SMITHY_LABEL"},
-	{"tab": UIManager.Tab.INVENTORY, "key": "Inventory"},
-	{"tab": UIManager.Tab.STATS, "key": "Stats"},
-	{"tab": UIManager.Tab.SETTINGS, "key": "Settings"},
+	{"tab": UIManager.Tab.BOARD, "key": "BOARD_LABEL", "shortcut": "Q"},
+	{"tab": UIManager.Tab.ALTAR, "key": "ALTAR_LABEL", "shortcut": "W"},
+	{"tab": UIManager.Tab.SHELF, "key": "SHELF_LABEL", "shortcut": "E"},
+	{"tab": UIManager.Tab.SMITHY, "key": "SMITHY_LABEL", "shortcut": "R"},
 ]
 
 @onready var top_bar: TopBar = %TopBar
 @onready var hub_nav: HBoxContainer = %HubNav
-@onready var game_log_view: GameLogView = %GameLogView
 @onready var content_bg: ColorRect = %ContentBg
 @onready var content_vbox: VBoxContainer = %ContentVBox
 @onready var content_host: Control = %ContentHost
@@ -35,14 +32,15 @@ func _ready() -> void:
 		footer.visible = false
 	if top_bar:
 		top_bar.set_tabs([])
+		top_bar.set_menu_button_visible(true)
+		if not top_bar.menu_open_requested.is_connected(_on_menu_open_requested):
+			top_bar.menu_open_requested.connect(_on_menu_open_requested)
 	_build_hub_nav()
 	LocaleManager.locale_changed.connect(_on_locale_changed)
 
 
 func setup(ui_manager: UIManager) -> void:
 	_ui_manager = ui_manager
-	if game_log_view and _ui_manager and _ui_manager.game_log:
-		game_log_view.bind_log(_ui_manager.game_log)
 	if _ui_manager and not _ui_manager.popup_visibility_changed.is_connected(_on_popup_visibility):
 		_ui_manager.popup_visibility_changed.connect(_on_popup_visibility)
 	_sync_chrome()
@@ -90,8 +88,10 @@ func _build_hub_nav() -> void:
 
 func _refresh_hub_nav_labels() -> void:
 	for i in range(_hub_buttons.size()):
-		var key := str(HUB_NAV[i].get("key", ""))
-		_hub_buttons[i].text = "[%s]" % tr(key)
+		_hub_buttons[i].text = TopBar.labeled(
+			str(HUB_NAV[i].get("key", "")),
+			str(HUB_NAV[i].get("shortcut", ""))
+		)
 
 
 func _sync_hub_nav() -> void:
@@ -114,6 +114,12 @@ func _on_hub_pressed(tab: int) -> void:
 		_ui_manager.close_all()
 		return
 	_ui_manager.open_tab(tab)
+
+
+func _on_menu_open_requested() -> void:
+	if _ui_manager == null:
+		return
+	_ui_manager.open_player_menu()
 
 
 func _on_popup_visibility(_is_open: bool) -> void:

@@ -13,107 +13,136 @@ grow_vertical = 2
 theme = ExtResource("2")
 script = ExtResource("1")
 
-[node name="Split" type="HBoxContainer" parent="."]
+[node name="Main" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="NpcName" type="Label" parent="Main"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.835, 0.769, 0.631, 1)
+text = "Pell"
+
+[node name="NpcLine" type="Label" parent="Main"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.573, 0.514, 0.455, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+text = "The marks were left by those who came back."
+
+[node name="Split" type="HBoxContainer" parent="Main"]
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 40
 
-[node name="Lists" type="VBoxContainer" parent="Split"]
+[node name="Lists" type="PanelContainer" parent="Main/Split"]
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListsInner" type="VBoxContainer" parent="Main/Split/Lists"]
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Compass" type="GridContainer" parent="Split/Lists"]
+[node name="Compass" type="GridContainer" parent="Main/Split/Lists/ListsInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 3
 
-[node name="PadNW" type="Control" parent="Split/Lists/Compass"]
+[node name="PadNW" type="Control" parent="Main/Split/Lists/ListsInner/Compass"]
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 
-[node name="CemeteryButton" type="Button" parent="Split/Lists/Compass"]
+[node name="CemeteryButton" type="Button" parent="Main/Split/Lists/ListsInner/Compass"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 text = "Cemetery"
 
-[node name="PadNE" type="Control" parent="Split/Lists/Compass"]
+[node name="PadNE" type="Control" parent="Main/Split/Lists/ListsInner/Compass"]
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 
-[node name="GroveButton" type="Button" parent="Split/Lists/Compass"]
+[node name="GroveButton" type="Button" parent="Main/Split/Lists/ListsInner/Compass"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 text = "Grove"
 
-[node name="CenterButton" type="Button" parent="Split/Lists/Compass"]
+[node name="CenterButton" type="Button" parent="Main/Split/Lists/ListsInner/Compass"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 text = "Shelter"
 
-[node name="MansionButton" type="Button" parent="Split/Lists/Compass"]
+[node name="MansionButton" type="Button" parent="Main/Split/Lists/ListsInner/Compass"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 text = "Mansion"
 
-[node name="PadSW" type="Control" parent="Split/Lists/Compass"]
+[node name="PadSW" type="Control" parent="Main/Split/Lists/ListsInner/Compass"]
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 
-[node name="BattlefieldButton" type="Button" parent="Split/Lists/Compass"]
+[node name="BattlefieldButton" type="Button" parent="Main/Split/Lists/ListsInner/Compass"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 text = "Battlefield"
 
-[node name="PadSE" type="Control" parent="Split/Lists/Compass"]
+[node name="PadSE" type="Control" parent="Main/Split/Lists/ListsInner/Compass"]
 custom_minimum_size = Vector2(140, 40)
 layout_mode = 2
 
-[node name="ZoneColumn" type="VBoxContainer" parent="Split/Lists"]
+[node name="ZoneColumn" type="VBoxContainer" parent="Main/Split/Lists/ListsInner"]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="ZoneSectionLabel" type="Label" parent="Split/Lists/ZoneColumn"]
+[node name="ZoneSectionLabel" type="Label" parent="Main/Split/Lists/ListsInner/ZoneColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Name-stone"
 
-[node name="ZoneList" type="VBoxContainer" parent="Split/Lists/ZoneColumn"]
+[node name="ZoneList" type="VBoxContainer" parent="Main/Split/Lists/ListsInner/ZoneColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="VSeparator" type="VSeparator" parent="Split"]
+[node name="VSeparator" type="VSeparator" parent="Main/Split"]
 layout_mode = 2
 
-[node name="Detail" type="VBoxContainer" parent="Split"]
+[node name="Detail" type="PanelContainer" parent="Main/Split"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DetailInner" type="VBoxContainer" parent="Main/Split/Detail"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="DetailTitle" type="Label" parent="Split/Detail"]
+[node name="DetailTitle" type="Label" parent="Main/Split/Detail/DetailInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Cemetery"
 
-[node name="DetailBody" type="Label" parent="Split/Detail"]
+[node name="DetailBody" type="Label" parent="Main/Split/Detail/DetailInner"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -121,7 +150,7 @@ theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 text = "Zone details."
 
-[node name="VerseLabel" type="Label" parent="Split/Detail"]
+[node name="VerseLabel" type="Label" parent="Main/Split/Detail/DetailInner"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
