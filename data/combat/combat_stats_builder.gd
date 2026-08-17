@@ -5,10 +5,6 @@ const WEAPON_RANGE_RATIO := 0.85
 const ATTR_BASE := 10
 const SCALE_PER_OVER := 1.0
 
-const OVER_IAS := 0.01
-const OVER_EVASION := 0.005
-const OVER_CRIT_CHANCE := 0.005
-const OVER_COUNTER := 0.005
 const OVER_VAMPIRISM := 0.005
 const OVER_REGEN := 0.1
 const OVER_MAGIC_HP := 1.0
@@ -41,7 +37,6 @@ static func build(character: CharacterStats, inventory: InventoryData = null) ->
 	character.recalculate_derived()
 
 	var over_str := _over(character, "strength")
-	var over_dex := _over(character, "dexterity")
 	var over_int := _over(character, "intelligence")
 	var over_faith := _over(character, "faith")
 
@@ -50,10 +45,10 @@ static func build(character: CharacterStats, inventory: InventoryData = null) ->
 	out.stamina_regen = float(character.general.get("stamina_regen", 15.0))
 	out.crit_damage = BASE_CRIT_DAMAGE
 
-	out.attack_speed = over_dex * OVER_IAS
-	out.evasion = over_dex * OVER_EVASION
-	out.crit_chance = over_dex * OVER_CRIT_CHANCE
-	out.counter_chance = over_dex * OVER_COUNTER
+	out.attack_speed = 0.0
+	out.evasion = 0.0
+	out.crit_chance = 0.0
+	out.counter_chance = 0.0
 	out.vampirism = over_faith * OVER_VAMPIRISM
 	out.regen_per_sec = over_faith * OVER_REGEN
 	out.magic_hp = int(round(over_faith * OVER_MAGIC_HP))

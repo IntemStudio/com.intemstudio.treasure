@@ -2,7 +2,6 @@ extends Control
 
 signal request_close
 signal level_up_pressed
-signal insight_pressed
 
 const ATTRIBUTE_ROW_SCENE := preload("res://ui/stats/components/attribute_row.tscn")
 const STAT_ROW_SCENE := preload("res://ui/stats/components/stat_row.tscn")
@@ -24,7 +23,8 @@ const DEFENSE_BASE: Array[Dictionary] = [
 const COMBAT_STATS: Array[Dictionary] = [
 	{"key": "damage", "label": "Damage"},
 	{"key": "attack_speed", "label": "Attack Speed"},
-	{"key": "crit", "label": "Critical"},
+	{"key": "crit_chance", "label": "Critical Chance"},
+	{"key": "crit_damage", "label": "Critical Damage"},
 	{"key": "magic_damage", "label": "Magic Damage"},
 	{"key": "damage_all", "label": "Damage to All"},
 	{"key": "vampirism", "label": "Vampirism"},
@@ -38,7 +38,6 @@ const COMBAT_STATS: Array[Dictionary] = [
 var stats: CharacterStats
 var inventory: InventoryData
 var _combat_snapshot: CombatStats
-var _insight_open: bool = false
 
 @onready var portrait: TextureRect = %Portrait
 @onready var points_label: Label = %PointsLabel
@@ -70,6 +69,10 @@ var _footer: FooterPrompts
 var _attribute_rows: Array[AttributeRow] = []
 var _selected_attr_index: int = 0
 var _footer_connected: bool = false
+var _stat_cols: Array = []
+var _inspect_stat: bool = false
+var _stat_col: int = 0
+var _stat_row: int = 0
 
 
 func _ready() -> void:
@@ -99,9 +102,13 @@ func activate(character_stats: CharacterStats, inv: InventoryData) -> void:
 	visible = true
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_selected_attr_index = 0
+	_inspect_stat = false
+	_stat_col = 0
+	_stat_row = 0
 	_refresh()
 	_refresh_footer()
 	_update_attribute_selection()
+	_update_stat_selection()
 
 
 func deactivate() -> void:
@@ -132,7 +139,6 @@ func _refresh_footer() -> void:
 	var using_gamepad := _is_using_gamepad()
 	_footer.set_prompts([
 		{"action": "level_up", "button": "A" if using_gamepad else "Enter", "label": tr("LEVEL-UP")},
-		{"action": "insight", "button": "X" if using_gamepad else "X", "label": tr("INSIGHT")},
 		{"action": "close", "button": "B" if using_gamepad else "Esc", "label": tr("BACK")},
 	])
 
@@ -144,16 +150,8 @@ func _on_footer_prompt(action: String) -> void:
 		"level_up":
 			var attr_id := CharacterStats.ATTRIBUTE_IDS[_selected_attr_index]
 			_try_spend_point(attr_id)
-		"insight":
-			_toggle_insight()
 		"close":
 			request_close.emit()
-
-
-func _toggle_insight() -> void:
-	_insight_open = not _insight_open
-	insight_pressed.emit()
-	_refresh_insight_hint()
 
 
 func _setup_portrait_shader() -> void:
@@ -174,23 +172,46 @@ func _build_attribute_rows() -> void:
 			attr_id,
 			CharacterStats.get_attribute_label(attr_id),
 			0,
-			load("res://icon.svg")
+			_attribute_icon(attr_id)
 		)
 		row.selected.connect(_on_attribute_selected)
 		row.increment_requested.connect(_on_attribute_increment)
 		_attribute_rows.append(row)
 
 
+func _attribute_icon(attr_id: String) -> Texture2D:
+	match attr_id:
+		"health":
+			return ItemData.sheet_icon(2, 41)
+		"stamina":
+			return ItemData.sheet_icon(15, 42)
+		"strength":
+			return ItemData.sheet_icon(0, 41)
+		"dexterity":
+			return ItemData.sheet_icon(1, 41)
+		"intelligence":
+			return ItemData.sheet_icon(8, 0)
+		"faith":
+			return ItemData.sheet_icon(13, 41)
+		"focus":
+			return ItemData.sheet_icon(4, 5)
+		"equip_load":
+			return ItemData.sheet_icon(5, 0)
+		_:
+			return ItemData.sheet_icon(5, 0)
+
+
 func _build_stat_columns() -> void:
+	_stat_cols = [[], [], []]
 	_clear_col_rows(general_col, "GeneralTitle")
 	_clear_col_rows(combat_col, "CombatTitle")
 	_clear_col_rows(defense_col, "DefenseTitle")
 	for entry in GENERAL_STATS:
-		_add_stat_row(general_col, "Stat_%s" % entry["key"])
+		_add_stat_row(general_col, "Stat_%s" % entry["key"], entry["key"], 0)
 	for entry in COMBAT_STATS:
-		_add_stat_row(combat_col, "Combat_%s" % entry["key"])
+		_add_stat_row(combat_col, "Combat_%s" % entry["key"], entry["key"], 1)
 	for entry in DEFENSE_BASE:
-		_add_stat_row(defense_col, "Stat_%s" % entry["key"])
+		_add_stat_row(defense_col, "Stat_%s" % entry["key"], entry["key"], 2)
 
 
 func _clear_col_rows(col: VBoxContainer, keep_title: String) -> void:
@@ -204,10 +225,14 @@ func _clear_col_rows(col: VBoxContainer, keep_title: String) -> void:
 		child.free()
 
 
-func _add_stat_row(col: VBoxContainer, row_name: String) -> void:
+func _add_stat_row(col: VBoxContainer, row_name: String, key: String, col_index: int) -> void:
 	var row: StatRow = STAT_ROW_SCENE.instantiate()
 	col.add_child(row)
 	row.name = row_name
+	row.stat_key = key
+	var row_index: int = _stat_cols[col_index].size()
+	row.inspected.connect(func(_key: String) -> void: _on_stat_inspected(col_index, row_index))
+	_stat_cols[col_index].append(row)
 
 
 func _refresh() -> void:
@@ -256,14 +281,14 @@ func _refresh_general_defense() -> void:
 	for entry in GENERAL_STATS:
 		var row: StatRow = general_col.get_node_or_null("Stat_%s" % entry["key"])
 		if row:
-			row.setup(tr(entry["label"]), stats.general.get(entry["key"], 0))
+			row.setup(entry["key"], tr(entry["label"]), stats.general.get(entry["key"], 0))
 	for entry in DEFENSE_BASE:
 		var row: StatRow = defense_col.get_node_or_null("Stat_%s" % entry["key"])
 		if row:
 			var value: Variant = stats.defense.get(entry["key"], 0)
 			if entry["key"] == "defense" and _combat_snapshot:
 				value = _combat_snapshot.defense
-			row.setup(tr(entry["label"]), _format_stat(value))
+			row.setup(entry["key"], tr(entry["label"]), _format_stat(value))
 
 
 func _refresh_combat() -> void:
@@ -273,7 +298,8 @@ func _refresh_combat() -> void:
 	var values := {
 		"damage": "%d-%d" % [c.damage_min, c.damage_max],
 		"attack_speed": c.attack_speed,
-		"crit": "%.0f%% / ×%.2f" % [c.crit_chance * 100.0, c.crit_damage],
+		"crit_chance": c.crit_chance,
+		"crit_damage": "×%.2f" % c.crit_damage,
 		"magic_damage": c.magic_damage,
 		"damage_all": c.damage_all,
 		"vampirism": c.vampirism,
@@ -288,14 +314,14 @@ func _refresh_combat() -> void:
 		if row == null:
 			continue
 		var raw: Variant = values.get(entry["key"], 0)
-		row.setup(tr(entry["label"]), _format_combat_value(entry["key"], raw))
+		row.setup(entry["key"], tr(entry["label"]), _format_combat_value(entry["key"], raw))
 
 
 func _format_combat_value(key: String, raw: Variant) -> Variant:
 	match key:
-		"damage", "crit", "magic_hp":
+		"damage", "crit_damage", "magic_hp":
 			return raw
-		"vampirism", "evasion", "counter_chance", "attack_speed":
+		"vampirism", "evasion", "counter_chance", "crit_chance", "attack_speed":
 			if raw is float or raw is int:
 				return "%.1f%%" % (float(raw) * 100.0) if key != "attack_speed" else "+%.0f%%" % (float(raw) * 100.0)
 	return _format_stat(raw)
@@ -325,12 +351,25 @@ func _update_attribute_selection() -> void:
 	_refresh_insight_hint()
 
 
+func _update_stat_selection() -> void:
+	for col_index in range(_stat_cols.size()):
+		var rows: Array = _stat_cols[col_index]
+		for row_index in range(rows.size()):
+			var row: StatRow = rows[row_index]
+			row.set_selected(_inspect_stat and col_index == _stat_col and row_index == _stat_row)
+	_refresh_insight_hint()
+
+
 func _refresh_insight_hint() -> void:
 	if not insight_hint:
 		return
-	insight_hint.visible = _insight_open
-	if not _insight_open:
-		insight_hint.text = ""
+	if _inspect_stat:
+		var entry := _stat_entry_at(_stat_col, _stat_row)
+		if entry.is_empty():
+			insight_hint.text = ""
+			return
+		var key := str(entry["key"])
+		insight_hint.text = "%s — %s" % [tr(str(entry["label"])), tr("STAT_DESC_%s" % key)]
 		return
 	if _selected_attr_index < 0 or _selected_attr_index >= CharacterStats.ATTRIBUTE_IDS.size():
 		insight_hint.text = ""
@@ -340,9 +379,50 @@ func _refresh_insight_hint() -> void:
 	insight_hint.text = "%s — %s" % [label, tr("ATTR_DESC_%s" % attr_id)]
 
 
+func _stat_entry_at(col_index: int, row_index: int) -> Dictionary:
+	var groups: Array = [GENERAL_STATS, COMBAT_STATS, DEFENSE_BASE]
+	if col_index < 0 or col_index >= groups.size():
+		return {}
+	var entries: Array = groups[col_index]
+	if row_index < 0 or row_index >= entries.size():
+		return {}
+	return entries[row_index]
+
+
+func _clamp_stat_row() -> void:
+	if _stat_col < 0 or _stat_col >= _stat_cols.size():
+		_stat_row = 0
+		return
+	var size: int = _stat_cols[_stat_col].size()
+	_stat_row = clampi(_stat_row, 0, maxi(0, size - 1))
+
+
+func _move_stat_col(delta: int) -> void:
+	_stat_col = clampi(_stat_col + delta, 0, _stat_cols.size() - 1)
+	_clamp_stat_row()
+	_update_stat_selection()
+
+
+func _move_stat_row(delta: int) -> void:
+	if _stat_col < 0 or _stat_col >= _stat_cols.size():
+		return
+	var size: int = _stat_cols[_stat_col].size()
+	_stat_row = clampi(_stat_row + delta, 0, maxi(0, size - 1))
+	_update_stat_selection()
+
+
+func _on_stat_inspected(col_index: int, row_index: int) -> void:
+	_inspect_stat = true
+	_stat_col = col_index
+	_stat_row = row_index
+	_update_stat_selection()
+
+
 func _on_attribute_selected(attr_id: String) -> void:
 	_selected_attr_index = CharacterStats.ATTRIBUTE_IDS.find(attr_id)
+	_inspect_stat = false
 	_update_attribute_selection()
+	_update_stat_selection()
 	_preview_selected_attribute()
 
 
@@ -389,16 +469,37 @@ func _unhandled_input(event: InputEvent) -> void:
 		var attr_id := CharacterStats.ATTRIBUTE_IDS[_selected_attr_index]
 		_try_spend_point(attr_id)
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("stats_insight"):
-		_toggle_insight()
-		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_up"):
-		_selected_attr_index = maxi(_selected_attr_index - 1, 0)
-		_update_attribute_selection()
-		_preview_selected_attribute()
+		if _inspect_stat:
+			_move_stat_row(-1)
+		else:
+			_selected_attr_index = maxi(_selected_attr_index - 1, 0)
+			_update_attribute_selection()
+			_preview_selected_attribute()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_down"):
-		_selected_attr_index = mini(_selected_attr_index + 1, _attribute_rows.size() - 1)
-		_update_attribute_selection()
-		_preview_selected_attribute()
+		if _inspect_stat:
+			_move_stat_row(1)
+		else:
+			_selected_attr_index = mini(_selected_attr_index + 1, _attribute_rows.size() - 1)
+			_update_attribute_selection()
+			_preview_selected_attribute()
 		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_right"):
+		if _inspect_stat:
+			_move_stat_col(1)
+		else:
+			_inspect_stat = true
+			_stat_col = 0
+			_stat_row = 0
+			_update_stat_selection()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_left"):
+		if _inspect_stat:
+			if _stat_col <= 0:
+				_inspect_stat = false
+				_update_stat_selection()
+				_refresh_insight_hint()
+			else:
+				_move_stat_col(-1)
+			get_viewport().set_input_as_handled()
