@@ -178,4 +178,5 @@ func _make(
 	r.mana_cost = mana
 	r.button = button
 	r.resonance_tags = reso
+	r.icon = RuneData.icon_for_kind(kind)
 	return r

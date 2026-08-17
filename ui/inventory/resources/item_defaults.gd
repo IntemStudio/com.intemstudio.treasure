@@ -1,8 +1,6 @@
 class_name ItemDefaults
 extends RefCounted
 
-const ICON := preload("res://icon.svg")
-
 
 static func factories() -> Array[Callable]:
 	return [
@@ -337,7 +335,6 @@ static func _armor(
 	item.item_type = item_type
 	item.category = ItemData.ItemCategory.ARMOR
 	item.rarity = rarity
-	item.icon = ICON
 	item.tier = 1
 	item.defense = defense
 	item.weight = weight
@@ -345,6 +342,7 @@ static func _armor(
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
 	item.socket_layout = SocketLayout.for_slot(equip_slot)
+	item.icon = icon_for(item)
 	return item
 
 
@@ -370,7 +368,6 @@ static func _weapon(
 	item.item_type = item_type
 	item.category = ItemData.ItemCategory.WEAPON
 	item.rarity = rarity
-	item.icon = ICON
 	item.tier = 1
 	item.attack = attack
 	item.attack_bonus = attack_bonus
@@ -384,6 +381,7 @@ static func _weapon(
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
 	item.socket_layout = SocketLayout.for_slot(equip_slot)
+	item.icon = icon_for(item)
 	return item
 
 
@@ -401,13 +399,13 @@ static func _ring(
 	item.item_type = "Ring"
 	item.category = ItemData.ItemCategory.ARMOR
 	item.rarity = rarity
-	item.icon = ICON
 	item.tier = 1
 	item.weight = 0.4
 	item.equip_slot = equip_slot
 	item.compatible_gem_tags = gem_tags
 	item.affixes = _to_affixes(affixes)
 	item.socket_layout = SocketLayout.for_slot(equip_slot)
+	item.icon = icon_for(item)
 	return item
 
 
@@ -425,10 +423,82 @@ static func _tool(
 	item.item_type = "Tool"
 	item.category = ItemData.ItemCategory.TOOL
 	item.rarity = rarity
-	item.icon = ICON
 	item.tier = 1
 	item.weight = weight
 	item.equip_slot = equip_slot
 	item.compatible_gem_tags = gem_tags
 	item.socket_layout = SocketLayout.for_slot(equip_slot)
+	item.icon = icon_for(item)
 	return item
+
+
+static func icon_for(item: ItemData) -> Texture2D:
+	var t := item.item_type.to_lower()
+	var n := item.display_name.to_lower()
+	if item.category == ItemData.ItemCategory.CONSUMABLE:
+		if t.contains("food") or n.contains("fish"):
+			return ItemData.sheet_icon(15, 34)
+		return ItemData.sheet_icon(8, 16)
+	if item.category == ItemData.ItemCategory.MATERIAL:
+		return ItemData.sheet_icon(0, 12)
+	if t.contains("shield") or t.contains("buckler"):
+		return ItemData.sheet_icon(3, 40)
+	if t.contains("staff"):
+		return ItemData.sheet_icon(6, 96)
+	if t.contains("polearm") or t.contains("pike"):
+		return ItemData.sheet_icon(15, 96)
+	if t.contains("dagger"):
+		return ItemData.sheet_icon(8, 104)
+	if item.two_handed or t.contains("great"):
+		return ItemData.sheet_icon(0, 112)
+	if t.contains("sword"):
+		return ItemData.sheet_icon(3, 104)
+	if t.contains("tome") or t.contains("codex") or t.contains("book"):
+		return ItemData.sheet_icon(12, 12)
+	if t.contains("lantern"):
+		return ItemData.sheet_icon(4, 5)
+	if t.contains("ring"):
+		return ItemData.sheet_icon(12, 128)
+	match item.equip_slot:
+		"head":
+			return ItemData.sheet_icon(4, 0)
+		"chest":
+			return ItemData.sheet_icon(0, 120)
+		"legs":
+			return ItemData.sheet_icon(1, 128)
+	if n.contains("spade"):
+		return ItemData.sheet_icon(2, 96)
+	if n.contains("rod") or t.contains("fishing"):
+		return ItemData.sheet_icon(9, 56)
+	if n.contains("torch"):
+		return ItemData.sheet_icon(0, 5)
+	if n.contains("key"):
+		return ItemData.sheet_icon(6, 4)
+	if n.contains("pouch"):
+		return ItemData.sheet_icon(3, 32)
+	if item.category == ItemData.ItemCategory.TOOL:
+		return ItemData.sheet_icon(1, 96)
+	if item.category == ItemData.ItemCategory.WEAPON:
+		return ItemData.sheet_icon(3, 0)
+	return ItemData.sheet_icon(5, 0)
+
+
+## Empty equipment silhouettes. Same cells as icon_for for that slot.
+static func icon_for_equip_slot(slot_id: String) -> Texture2D:
+	match slot_id:
+		"head":
+			return ItemData.sheet_icon(4, 0)
+		"chest":
+			return ItemData.sheet_icon(0, 120)
+		"legs":
+			return ItemData.sheet_icon(1, 128)
+		"main_hand":
+			return ItemData.sheet_icon(3, 0)
+		"off_hand":
+			return ItemData.sheet_icon(3, 40)
+		"ring_1", "ring_2":
+			return ItemData.sheet_icon(12, 128)
+		"tool_1", "tool_2":
+			return ItemData.sheet_icon(1, 96)
+		_:
+			return ItemData.sheet_icon(5, 0)

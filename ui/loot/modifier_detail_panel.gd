@@ -8,6 +8,7 @@ extends PanelContainer
 @onready var rarity_label: Label = %RarityLabel
 @onready var blurb_label: Label = %BlurbLabel
 @onready var body_label: RichTextLabel = %BodyLabel
+@onready var icon_rect: TextureRect = %ItemIcon
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func clear() -> void:
 		blurb_label.text = ""
 	if body_label:
 		body_label.text = ""
+	_set_icon(null)
 
 
 func show_message(message: String) -> void:
@@ -62,6 +64,7 @@ func set_rune(rune: RuneData) -> void:
 		lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
 	lines.append(_row(tr("Resonance"), _format_reso_tags(rune.resonance_tags)))
 	body_label.text = "\n".join(lines)
+	_set_icon(rune.icon)
 
 
 func set_gem(gem: GemData) -> void:
@@ -91,6 +94,15 @@ func set_gem(gem: GemData) -> void:
 	lines.append("")
 	lines.append(_row(tr("Resonance"), _format_reso_tags(gem.resonance_tags)))
 	body_label.text = "\n".join(lines)
+	_set_icon(gem.icon)
+
+
+func _set_icon(texture: Texture2D) -> void:
+	if icon_rect == null:
+		return
+	icon_rect.texture = texture
+	icon_rect.visible = texture != null
+	icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 
 
 func _row(label: String, value: String) -> String:

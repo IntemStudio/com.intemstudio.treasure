@@ -13,6 +13,7 @@ var _rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
 
 @onready var kind_label: Label = %KindLabel
 @onready var value_label: Label = %ValueLabel
+@onready var icon_rect: TextureRect = %Icon
 
 
 func _ready() -> void:
@@ -20,6 +21,8 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	if icon_rect:
+		icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 	_apply_visual_state()
 
 
@@ -27,7 +30,8 @@ func setup(
 	kind: String,
 	index: int,
 	display_name: String = "",
-	rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
+	rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON,
+	icon: Texture2D = null
 ) -> void:
 	socket_kind = kind
 	socket_index = index
@@ -42,6 +46,9 @@ func setup(
 		else:
 			value_label.text = tr("Empty")
 			value_label.add_theme_color_override("font_color", UIColors.TEXT_MUTED)
+	if icon_rect:
+		icon_rect.texture = icon
+		icon_rect.visible = icon != null
 	_apply_visual_state()
 
 

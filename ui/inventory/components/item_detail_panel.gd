@@ -10,6 +10,7 @@ const SOCKET_SCENE := preload("res://ui/inventory/components/socket_row.tscn")
 enum GoldPrice { HIDDEN, BUY, SELL }
 
 @onready var item_name_label: Label = %ItemName
+@onready var item_icon: TextureRect = %ItemIcon
 @onready var rarity_label: Label = %RarityLabel
 @onready var item_type_label: Label = %ItemType
 @onready var attack_label: Label = %AttackLabel
@@ -107,6 +108,9 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 	if not item:
 		item_name_label.text = ""
 		item_name_label.remove_theme_color_override("font_color")
+		if item_icon:
+			item_icon.texture = null
+			item_icon.visible = false
 		if rarity_label:
 			rarity_label.text = ""
 		item_type_label.text = tr("Select an item")
@@ -129,6 +133,10 @@ func set_item(item: ItemData, compare_with: ItemData = null) -> void:
 		return
 
 	item_name_label.text = tr(item.display_name).to_upper()
+	if item_icon:
+		item_icon.texture = item.icon
+		item_icon.visible = item.icon != null
+		item_icon.texture_filter = TEXTURE_FILTER_NEAREST
 	var rarity_color := _rarity_text_color(item)
 	item_name_label.add_theme_color_override("font_color", rarity_color)
 	if rarity_label:
@@ -189,6 +197,7 @@ func _populate_sockets(item: ItemData) -> void:
 		var uid := str(row_data.get("instance_uid", ""))
 		var display := ""
 		var rarity := ItemData.ItemRarity.COMMON
+		var icon: Texture2D = null
 		if not uid.is_empty() and _inventory:
 			if kind == "rune":
 				var ri := _inventory.find_rune(uid)
@@ -196,15 +205,17 @@ func _populate_sockets(item: ItemData) -> void:
 					var rd := _rune_catalog.get_rune(ri.rune_id)
 					if rd:
 						display = tr(rd.display_name)
+						icon = rd.icon
 			else:
 				var gi := _inventory.find_gem(uid)
 				if gi and _gem_catalog:
 					var gd := _gem_catalog.get_gem(gi.gem_id)
 					if gd:
 						display = tr(gd.display_name)
+						icon = gd.icon
 		var row: SocketRow = SOCKET_SCENE.instantiate()
 		socket_list.add_child(row)
-		row.setup(kind, index, display, rarity)
+		row.setup(kind, index, display, rarity, icon)
 		row.row_pressed.connect(_on_socket_row_pressed)
 		row.row_activated.connect(_on_socket_row_activated)
 		row.set_selected(kind == _selected_socket_kind and index == _selected_socket_index)

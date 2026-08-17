@@ -12,6 +12,7 @@ var _selected: bool = false
 var _hovered: bool = false
 var _blocked: bool = false
 var _item: ItemData
+var _empty_icon: Texture2D
 
 
 func _ready() -> void:
@@ -20,6 +21,7 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
+	slot_icon.texture_filter = TEXTURE_FILTER_NEAREST
 
 
 func _on_locale_changed(_locale: String) -> void:
@@ -28,15 +30,35 @@ func _on_locale_changed(_locale: String) -> void:
 
 func setup(id: String, slot_texture: Texture2D = null) -> void:
 	slot_id = id
-	if slot_texture:
-		slot_icon.texture = slot_texture
+	_empty_icon = slot_texture if slot_texture else ItemDefaults.icon_for_equip_slot(id)
+	_refresh_slot_icon()
 	_refresh_labels()
 
 
 func set_item(item: ItemData) -> void:
 	_item = item
+	_refresh_slot_icon()
 	_refresh_labels()
 	_apply_visual_state()
+
+
+func _refresh_slot_icon() -> void:
+	if slot_icon == null:
+		return
+	if _item and _item.icon:
+		slot_icon.texture = _item.icon
+		slot_icon.modulate = Color.WHITE
+		slot_icon.visible = true
+	elif _empty_icon:
+		slot_icon.texture = _empty_icon
+		slot_icon.modulate = Color(1, 1, 1, 0.35)
+		slot_icon.visible = true
+	else:
+		slot_icon.texture = null
+		slot_icon.modulate = Color.WHITE
+		slot_icon.visible = false
+	if name_label:
+		name_label.offset_top = 40.0 if slot_icon.visible else 6.0
 
 
 func set_blocked(blocked: bool) -> void:

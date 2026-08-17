@@ -14,6 +14,7 @@ var _hovered: bool = false
 @onready var name_label: Label = $Content/Name
 @onready var quantity_label: Label = $Content/Quantity
 @onready var badge_label: Label = %Badge
+@onready var icon_rect: TextureRect = $Content/Icon
 
 
 func _ready() -> void:
@@ -21,6 +22,8 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	if icon_rect:
+		icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 
 
 func setup(index: int) -> void:
@@ -36,11 +39,13 @@ func set_item(item: ItemData) -> void:
 		name_label.visible = true
 		quantity_label.visible = item.stackable and item.quantity > 1
 		quantity_label.text = str(item.quantity)
+		_set_icon(item.icon)
 	else:
 		name_label.visible = false
 		name_label.text = ""
 		quantity_label.visible = false
 		_entry_rarity = ItemData.ItemRarity.COMMON
+		_set_icon(null)
 	_set_badge(false)
 	_apply_visual_state()
 
@@ -48,7 +53,8 @@ func set_item(item: ItemData) -> void:
 func set_modifier_entry(
 	display_name: String,
 	rarity: ItemData.ItemRarity,
-	socketed: bool = false
+	socketed: bool = false,
+	icon: Texture2D = null
 ) -> void:
 	_item = null
 	_has_entry = true
@@ -57,6 +63,7 @@ func set_modifier_entry(
 	name_label.visible = true
 	quantity_label.visible = false
 	_set_badge(socketed)
+	_set_icon(icon)
 	_apply_visual_state()
 
 
@@ -68,7 +75,16 @@ func clear_entry() -> void:
 	name_label.text = ""
 	quantity_label.visible = false
 	_set_badge(false)
+	_set_icon(null)
 	_apply_visual_state()
+
+
+func _set_icon(texture: Texture2D) -> void:
+	if icon_rect == null:
+		return
+	icon_rect.texture = texture
+	icon_rect.visible = texture != null
+	name_label.offset_top = 42.0 if texture else 4.0
 
 
 func _set_badge(socketed: bool) -> void:

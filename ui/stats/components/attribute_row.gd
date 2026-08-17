@@ -20,6 +20,7 @@ func _ready() -> void:
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	focus_mode = Control.FOCUS_ALL
+	icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 
 
 func setup(id: String, display_name: String, value: int, icon: Texture2D = null) -> void:

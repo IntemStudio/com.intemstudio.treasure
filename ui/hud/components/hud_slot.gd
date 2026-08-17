@@ -5,6 +5,7 @@ extends PanelContainer
 @onready var quantity_label: Label = %QuantityLabel
 @onready var name_label: Label = %NameLabel
 @onready var charge_bar: ProgressBar = %ChargeBar
+@onready var icon_rect: TextureRect = %Icon
 
 
 func _ready() -> void:
@@ -14,6 +15,8 @@ func _ready() -> void:
 	if charge_bar:
 		charge_bar.visible = false
 		charge_bar.value = 0.0
+	if icon_rect:
+		icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 	if LocaleManager:
 		LocaleManager.locale_changed.connect(_on_locale_changed)
 
@@ -37,9 +40,12 @@ func set_item(item: ItemData) -> void:
 		quantity_label.visible = true
 	else:
 		quantity_label.visible = false
+	_set_icon(item.icon)
+	if name_label:
+		name_label.offset_bottom = -2.0
 
 
-func set_skill(skill_name: String, _icon: Texture2D = null) -> void:
+func set_skill(skill_name: String, icon: Texture2D = null) -> void:
 	var trimmed := skill_name.strip_edges()
 	if trimmed.is_empty():
 		clear()
@@ -48,6 +54,9 @@ func set_skill(skill_name: String, _icon: Texture2D = null) -> void:
 	name_label.text = tr(trimmed)
 	name_label.visible = true
 	quantity_label.visible = false
+	_set_icon(icon)
+	if name_label:
+		name_label.offset_bottom = -10.0
 	if charge_bar:
 		charge_bar.visible = true
 		charge_bar.value = 0.0
@@ -71,7 +80,19 @@ func clear() -> void:
 	quantity_label.visible = false
 	name_label.visible = false
 	name_label.text = ""
+	_set_icon(null)
+	if name_label:
+		name_label.offset_bottom = -2.0
 	if charge_bar:
 		charge_bar.visible = false
 		charge_bar.value = 0.0
 		charge_bar.modulate = Color.WHITE
+
+
+func _set_icon(texture: Texture2D) -> void:
+	if icon_rect == null:
+		return
+	icon_rect.texture = texture
+	icon_rect.visible = texture != null
+	if name_label:
+		name_label.offset_top = 28.0 if texture else 2.0

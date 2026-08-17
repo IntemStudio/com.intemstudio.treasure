@@ -54,8 +54,17 @@ func _set_skills(skills: Array) -> void:
 		var skill: Dictionary = entry
 		var slot: HudSlot = HUD_SLOT_SCENE.instantiate()
 		skill_row.add_child(slot)
-		slot.set_skill(str(skill.get("name", "")))
+		slot.set_skill(str(skill.get("name", "")), _skill_icon(skill))
 		_skill_slots.append(slot)
+
+
+func _skill_icon(skill: Dictionary) -> Texture2D:
+	var rune_id := str(skill.get("rune_id", ""))
+	if not rune_id.is_empty() and _rune_catalog.has_id(rune_id):
+		var rune := _rune_catalog.get_rune(rune_id)
+		if rune and rune.icon:
+			return rune.icon
+	return RuneData.icon_for_kind(str(skill.get("kind", "strike")))
 
 
 func set_skill_charge(ratio: float, active_index: int = -1) -> void:

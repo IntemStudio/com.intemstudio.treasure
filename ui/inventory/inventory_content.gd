@@ -23,11 +23,31 @@ const CATEGORY_DEFS: Array[Dictionary] = [
 		"id": TAB_EQUIPMENT,
 		"categories": [ItemData.ItemCategory.WEAPON, ItemData.ItemCategory.ARMOR],
 		"label": "Equipment",
+		"icon_col": 3,
+		"icon_row": 0,
 	},
-	{"id": "consumable", "categories": [ItemData.ItemCategory.CONSUMABLE], "label": "CON"},
-	{"id": "material", "categories": [ItemData.ItemCategory.MATERIAL], "label": "MAT"},
-	{"id": "tool", "categories": [ItemData.ItemCategory.TOOL], "label": "TOL"},
-	{"id": TAB_MODIFIERS, "label": "MOD"},
+	{
+		"id": "consumable",
+		"categories": [ItemData.ItemCategory.CONSUMABLE],
+		"label": "CON",
+		"icon_col": 8,
+		"icon_row": 16,
+	},
+	{
+		"id": "material",
+		"categories": [ItemData.ItemCategory.MATERIAL],
+		"label": "MAT",
+		"icon_col": 0,
+		"icon_row": 12,
+	},
+	{
+		"id": "tool",
+		"categories": [ItemData.ItemCategory.TOOL],
+		"label": "TOL",
+		"icon_col": 1,
+		"icon_row": 96,
+	},
+	{"id": TAB_MODIFIERS, "label": "MOD", "icon_col": 13, "icon_row": 0},
 ]
 
 const SORT_MODES: Array[String] = ["time", "name", "weight", "rarity"]
@@ -215,7 +235,11 @@ func _build_category_tabs() -> void:
 	for def in CATEGORY_DEFS:
 		var tab: CategoryTab = CATEGORY_TAB_SCENE.instantiate()
 		category_tabs.add_child(tab)
-		tab.setup(str(def["id"]), tr(str(def["label"])))
+		tab.setup(
+			str(def["id"]),
+			tr(str(def["label"])),
+			ItemData.sheet_icon(int(def.get("icon_col", 5)), int(def.get("icon_row", 0)))
+		)
 		tab.tab_selected.connect(_on_tab_selected)
 		_category_tab_nodes.append(tab)
 
@@ -294,6 +318,7 @@ func _refresh_attributes() -> void:
 			continue
 		var row: StatRow = attribute_list.get_node("Attr_%s" % attr_id)
 		row.setup(
+			attr_id,
 			CharacterStats.get_attribute_label(attr_id),
 			character_stats.attributes.get(attr_id, 0)
 		)
@@ -401,6 +426,14 @@ func _modifier_entries() -> Array[Dictionary]:
 	return out
 
 
+func _modifier_icon(entry: Dictionary) -> Texture2D:
+	if str(entry.get("kind", "")) == "rune":
+		var rune: RuneData = entry.get("rune") as RuneData
+		return rune.icon if rune else null
+	var gem: GemData = entry.get("gem") as GemData
+	return gem.icon if gem else null
+
+
 func _refresh_grid() -> void:
 	inventory.ensure_grid_size()
 	if _is_modifier_tab():
@@ -441,7 +474,8 @@ func _refresh_modifier_grid() -> void:
 			slot.set_modifier_entry(
 				str(entry.get("display_name", "")),
 				entry.get("rarity", ItemData.ItemRarity.COMMON) as ItemData.ItemRarity,
-				inventory.is_uid_socketed(uid)
+				inventory.is_uid_socketed(uid),
+				_modifier_icon(entry)
 			)
 			var dim := false
 			if _mode == MODE_PICK_MODIFIER:

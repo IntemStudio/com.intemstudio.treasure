@@ -152,6 +152,22 @@ func _templates_on_shelf(shelf_id: StringName) -> Array[Dictionary]:
 	return out
 
 
+func _entry_icon(entry: Dictionary) -> Texture2D:
+	var temps: Array = entry.get("templates", []) as Array
+	if temps.is_empty():
+		return null
+	var t: Dictionary = temps[0] as Dictionary
+	var kind := str(t.get("kind", ""))
+	var id := str(t.get("id", ""))
+	if kind == "rune":
+		var rune := _rune_catalog.get_rune(id)
+		return rune.icon if rune else null
+	if kind == "gem":
+		var gem := _gem_catalog.get_gem(id)
+		return gem.icon if gem else null
+	return null
+
+
 func _rebuild_grid() -> void:
 	_slots.clear()
 	_entries.clear()
@@ -226,7 +242,8 @@ func _rebuild_grid() -> void:
 		slot.set_shelf_cell(
 			int(e.get("state", CardRegistrationService.CellState.EMPTY)),
 			str(e.get("display", "")),
-			ItemData.ItemRarity.COMMON
+			ItemData.ItemRarity.COMMON,
+			_entry_icon(e)
 		)
 		slot.slot_pressed.connect(_on_entry_pressed)
 		slot.slot_activated.connect(_on_entry_activated)

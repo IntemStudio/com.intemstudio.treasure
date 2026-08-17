@@ -283,4 +283,5 @@ func _make(
 	g.resonance_tags = reso
 	g.slot_effects = slot_effects
 	g.skill_name_suffix = suffix
+	g.icon = GemData.icon_for(g)
 	return g

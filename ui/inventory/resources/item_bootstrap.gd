@@ -1,8 +1,6 @@
 class_name ItemBootstrap
 extends RefCounted
 
-const ICON := preload("res://icon.svg")
-
 
 static func create_claymore() -> ItemData:
 	var item := ItemData.new()
@@ -11,7 +9,6 @@ static func create_claymore() -> ItemData:
 	item.item_type = "Two Handed Great Sword"
 	item.category = ItemData.ItemCategory.WEAPON
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.tier = 1
 	item.attack = 13
 	item.attack_bonus = 8
@@ -39,7 +36,7 @@ static func create_claymore() -> ItemData:
 	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
 	item.compatible_gem_tags = [&"weapon", &"element", &"condition"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_blood_rusted_sword() -> ItemData:
@@ -49,7 +46,6 @@ static func create_blood_rusted_sword() -> ItemData:
 	item.item_type = "One Handed Sword"
 	item.category = ItemData.ItemCategory.WEAPON
 	item.rarity = ItemData.ItemRarity.UNCOMMON
-	item.icon = ICON
 	item.attack = 18
 	item.attack_bonus = 4
 	item.scales_with = "dexterity"
@@ -58,7 +54,7 @@ static func create_blood_rusted_sword() -> ItemData:
 	item.compatible_rune_tags = [&"weapon", &"sword", &"melee"]
 	item.compatible_gem_tags = [&"weapon", &"element"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_iron_helm() -> ItemData:
@@ -68,13 +64,12 @@ static func create_iron_helm() -> ItemData:
 	item.item_type = "Head Armor"
 	item.category = ItemData.ItemCategory.ARMOR
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.defense = 8
 	item.weight = 5.2
 	item.equip_slot = "head"
 	item.compatible_gem_tags = [&"armor", &"defense"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_chain_chest() -> ItemData:
@@ -84,13 +79,12 @@ static func create_chain_chest() -> ItemData:
 	item.item_type = "Chest Armor"
 	item.category = ItemData.ItemCategory.ARMOR
 	item.rarity = ItemData.ItemRarity.UNCOMMON
-	item.icon = ICON
 	item.defense = 14
 	item.weight = 11.0
 	item.equip_slot = "chest"
 	item.compatible_gem_tags = [&"armor", &"defense"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_health_potion() -> ItemData:
@@ -100,12 +94,11 @@ static func create_health_potion() -> ItemData:
 	item.item_type = "Consumable"
 	item.category = ItemData.ItemCategory.CONSUMABLE
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.stackable = true
 	item.max_stack = 99
 	item.quantity = 5
 	item.weight = 0.5
-	return item
+	return _with_icon(item)
 
 
 static func create_dried_fish() -> ItemData:
@@ -115,12 +108,11 @@ static func create_dried_fish() -> ItemData:
 	item.item_type = "Food"
 	item.category = ItemData.ItemCategory.CONSUMABLE
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.stackable = true
 	item.max_stack = 99
 	item.quantity = 3
 	item.weight = 0.3
-	return item
+	return _with_icon(item)
 
 
 static func create_iron_ore() -> ItemData:
@@ -130,11 +122,10 @@ static func create_iron_ore() -> ItemData:
 	item.item_type = "Material"
 	item.category = ItemData.ItemCategory.MATERIAL
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.stackable = true
 	item.quantity = 12
 	item.weight = 1.0
-	return item
+	return _with_icon(item)
 
 
 static func create_fishing_rod() -> ItemData:
@@ -144,12 +135,11 @@ static func create_fishing_rod() -> ItemData:
 	item.item_type = "Tool"
 	item.category = ItemData.ItemCategory.TOOL
 	item.rarity = ItemData.ItemRarity.COMMON
-	item.icon = ICON
 	item.weight = 3.5
 	item.equip_slot = "tool_1"
 	item.compatible_gem_tags = [&"tool", &"explore"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_rare_dagger() -> ItemData:
@@ -159,7 +149,6 @@ static func create_rare_dagger() -> ItemData:
 	item.item_type = "Dagger"
 	item.category = ItemData.ItemCategory.WEAPON
 	item.rarity = ItemData.ItemRarity.RARE
-	item.icon = ICON
 	item.attack = 9
 	item.attack_bonus = 6
 	item.scales_with = "dexterity"
@@ -170,7 +159,7 @@ static func create_rare_dagger() -> ItemData:
 	item.equip_slot = "off_hand"
 	item.compatible_gem_tags = [&"weapon", &"off_hand", &"element"]
 	item.socket_layout = SocketLayout.for_slot(item.equip_slot)
-	return item
+	return _with_icon(item)
 
 
 static func create_sample_inventory() -> InventoryData:
@@ -181,3 +170,8 @@ static func create_sample_inventory() -> InventoryData:
 	inventory.equipped["main_hand"] = sword
 	inventory.equipped["off_hand"] = shield
 	return inventory
+
+
+static func _with_icon(item: ItemData) -> ItemData:
+	item.icon = ItemDefaults.icon_for(item)
+	return item

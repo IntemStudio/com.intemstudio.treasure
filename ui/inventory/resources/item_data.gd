@@ -4,6 +4,10 @@ extends Resource
 enum ItemCategory { WEAPON, ARMOR, CONSUMABLE, MATERIAL, TOOL }
 enum ItemRarity { COMMON, UNCOMMON, RARE, LEGENDARY }
 
+const ICON_SHEET := preload("res://assets/icons/32x32.png")
+const ICON_SIZE := 32
+const ICON_COLS := 16
+
 @export var id: String = ""
 @export var display_name: String = ""
 @export var item_type: String = ""
@@ -11,7 +15,6 @@ enum ItemRarity { COMMON, UNCOMMON, RARE, LEGENDARY }
 @export var rarity: ItemRarity = ItemRarity.COMMON
 @export var icon: Texture2D
 @export var tier: int = 1
-
 @export var attack: int = 0
 @export var attack_bonus: int = 0
 @export var defense: int = 0
@@ -92,6 +95,25 @@ func is_two_handed() -> bool:
 		return true
 	var t := item_type.to_lower()
 	return t.contains("two handed") or t.contains("two-handed")
+
+
+## 32px cells, 16 columns. ponytail: type-based cells, not a per-id atlas map.
+static func sheet_icon(col: int, row: int) -> AtlasTexture:
+	var tex := AtlasTexture.new()
+	tex.atlas = ICON_SHEET
+	var cols := ICON_COLS
+	var rows := 1
+	if ICON_SHEET:
+		cols = maxi(1, ICON_SHEET.get_width() / ICON_SIZE)
+		rows = maxi(1, ICON_SHEET.get_height() / ICON_SIZE)
+	tex.region = Rect2(
+		clampi(col, 0, cols - 1) * ICON_SIZE,
+		clampi(row, 0, rows - 1) * ICON_SIZE,
+		ICON_SIZE,
+		ICON_SIZE
+	)
+	tex.filter_clip = true
+	return tex
 
 
 static func color_for_rarity(r: ItemRarity) -> Color:

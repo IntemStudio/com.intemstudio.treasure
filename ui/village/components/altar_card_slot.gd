@@ -16,6 +16,7 @@ var _shelf_state: int = -1  # CardRegistrationService.CellState or -1 for altar 
 @onready var kind_label: Label = %KindLabel
 @onready var name_label: Label = %NameLabel
 @onready var equipped_label: Label = %EquippedLabel
+@onready var icon_rect: TextureRect = %Icon
 
 
 func _ready() -> void:
@@ -23,6 +24,8 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	if icon_rect:
+		icon_rect.texture_filter = TEXTURE_FILTER_NEAREST
 	clear()
 
 
@@ -43,6 +46,7 @@ func clear() -> void:
 		name_label.visible = false
 	if equipped_label:
 		equipped_label.visible = false
+	_set_icon(null)
 	_apply_visual_state()
 
 
@@ -51,7 +55,8 @@ func set_card(
 	rarity: ItemData.ItemRarity,
 	equipped: bool,
 	registered: bool = false,
-	owned: bool = true
+	owned: bool = true,
+	icon: Texture2D = null
 ) -> void:
 	_has_entry = true
 	_shelf_state = -1
@@ -72,13 +77,15 @@ func set_card(
 			equipped_label.text = tr("Equipped")
 		else:
 			equipped_label.visible = false
+	_set_icon(icon)
 	_apply_visual_state()
 
 
 func set_shelf_cell(
 	state: int,
 	display_name: String = "",
-	rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON
+	rarity: ItemData.ItemRarity = ItemData.ItemRarity.COMMON,
+	icon: Texture2D = null
 ) -> void:
 	_shelf_state = state
 	_rarity = rarity
@@ -123,12 +130,26 @@ func set_shelf_cell(
 				equipped_label.text = tr("Registered")
 	if kind_label:
 		kind_label.visible = false
+	var show_icon := (
+		state == CardRegistrationService.CellState.OPEN
+		or state == CardRegistrationService.CellState.REGISTERED
+	)
+	_set_icon(icon if show_icon else null)
 	_apply_visual_state()
 
 
 func set_selected(is_selected: bool) -> void:
 	_selected = is_selected
 	_apply_visual_state()
+
+
+func _set_icon(texture: Texture2D) -> void:
+	if icon_rect == null:
+		return
+	icon_rect.texture = texture
+	icon_rect.visible = texture != null
+	if name_label:
+		name_label.offset_top = 40.0 if texture else 8.0
 
 
 func _apply_visual_state() -> void:
