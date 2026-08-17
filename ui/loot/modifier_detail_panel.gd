@@ -62,7 +62,8 @@ func set_rune(rune: RuneData) -> void:
 	lines.append("")
 	if active:
 		lines.append(_row(tr("Applies To"), _format_equip_tags(rune.required_equipment_tags)))
-	lines.append(_row(tr("Resonance"), _format_reso_tags(rune.resonance_tags)))
+	lines.append(_row(tr("RESO_TAGS"), _format_reso_tags(rune.resonance_tags)))
+	lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), tr("RESO_RULE_RUNE")])
 	body_label.text = "\n".join(lines)
 	_set_icon(rune.icon)
 
@@ -92,7 +93,8 @@ func set_gem(gem: GemData) -> void:
 			if not desc.is_empty():
 				lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), desc])
 	lines.append("")
-	lines.append(_row(tr("Resonance"), _format_reso_tags(gem.resonance_tags)))
+	lines.append(_row(tr("RESO_TAGS"), _format_reso_tags(gem.resonance_tags)))
+	lines.append("[color=%s]  %s[/color]" % [UIColors.html(UIColors.TEXT_MUTED), tr("RESO_RULE_GEM")])
 	body_label.text = "\n".join(lines)
 	_set_icon(gem.icon)
 
