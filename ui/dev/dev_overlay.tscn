@@ -1,7 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://dev_overlay"]
+[gd_scene load_steps=6 format=3 uid="uid://dev_overlay"]
 
 [ext_resource type="Script" path="res://ui/dev/dev_overlay.gd" id="1"]
 [ext_resource type="Theme" path="res://ui/shared/themes/ui_theme.tres" id="2"]
+[ext_resource type="PackedScene" uid="uid://item_detail_panel" path="res://ui/inventory/components/item_detail_panel.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://ui/loot/modifier_detail_panel.tscn" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dev_panel"]
 bg_color = Color(0.157, 0.157, 0.157, 1)
@@ -161,76 +163,88 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
-
-[node name="EquipRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
-layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="EquipLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="ItemSubTabRow" type="HFlowContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
-text = "Equipment"
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 4
 
-[node name="EquipSlotOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="ItemBody" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ItemGridScroll" type="ScrollContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(108, 0)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.15
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
 
-[node name="EquipOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="ItemGridPad" type="MarginContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemGridScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ItemGrid" type="GridContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemGridScroll/ItemGridPad"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="ItemDetailColumn" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ItemDetailScroll" type="ScrollContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 4
+
+[node name="ItemDetailHost" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn/ItemDetailScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="ItemDetailPanel" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn/ItemDetailScroll/ItemDetailHost" instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="EquipRarityOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
+[node name="ModifierDetailPanel" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn/ItemDetailScroll/ItemDetailHost" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GrantRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EquipRarityOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn/GrantRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="EquipGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/EquipRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Grant"
-
-[node name="GemRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="GemLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-text = "Gem"
-
-[node name="GemOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
+[node name="EquipGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/ItemBody/ItemDetailColumn/GrantRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="GemGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/GemRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Grant"
-
-[node name="RuneRow" type="HBoxContainer" parent="Safe/Center/Panel/Margin/VBox/ItemPanel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="RuneLabel" type="Label" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-text = "Rune"
-
-[node name="RuneOption" type="OptionButton" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="RuneGrantButton" type="Button" parent="Safe/Center/Panel/Margin/VBox/ItemPanel/RuneRow"]
-unique_name_in_owner = true
-layout_mode = 2
 text = "Grant"
 
 [node name="ShelfPanel" type="VBoxContainer" parent="Safe/Center/Panel/Margin/VBox"]

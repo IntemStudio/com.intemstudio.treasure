@@ -2,29 +2,24 @@ extends CanvasLayer
 
 enum Tab { CHARACTER = 0, ITEM = 1, SHELF = 2, SAVE = 3 }
 
+const SLOT_SCENE := preload("res://ui/inventory/components/inventory_slot.tscn")
+const GRID_COLUMNS := 3
 const _RARITY_KEYS: Array[String] = [
 	"COMMON",
 	"UNCOMMON",
 	"RARE",
 	"LEGENDARY",
 ]
-const _SLOT_GROUPS: Array[String] = [
-	"head",
-	"chest",
-	"legs",
-	"main_hand",
-	"off_hand",
-	"ring",
-	"tool",
-]
-const _SLOT_KEYS: Array[String] = [
-	"SLOT_HELMETS",
-	"SLOT_BODY",
-	"SLOT_PANTS",
-	"SLOT_WEAPONS",
-	"SLOT_OFF_HANDS",
-	"SLOT_RINGS",
-	"SLOT_TOOLS",
+const _ITEM_SUBTABS: Array[Dictionary] = [
+	{"id": "main_hand", "key": "SLOT_WEAPONS"},
+	{"id": "off_hand", "key": "SLOT_OFF_HANDS"},
+	{"id": "head", "key": "SLOT_HELMETS"},
+	{"id": "chest", "key": "SLOT_BODY"},
+	{"id": "legs", "key": "SLOT_PANTS"},
+	{"id": "ring", "key": "SLOT_RINGS"},
+	{"id": "tool", "key": "SLOT_TOOLS"},
+	{"id": "gem", "key": "Gem"},
+	{"id": "rune", "key": "Rune"},
 ]
 
 
@@ -62,17 +57,14 @@ const _SLOT_KEYS: Array[String] = [
 @onready var force_win_button: Button = %ForceWinButton
 @onready var force_lose_button: Button = %ForceLoseButton
 @onready var force_retreat_button: Button = %ForceRetreatButton
-@onready var equip_label: Label = %EquipLabel
-@onready var equip_slot_option: OptionButton = %EquipSlotOption
-@onready var equip_option: OptionButton = %EquipOption
+@onready var item_sub_tab_row: HFlowContainer = %ItemSubTabRow
+@onready var item_grid_scroll: ScrollContainer = %ItemGridScroll
+@onready var item_grid_pad: MarginContainer = %ItemGridPad
+@onready var item_grid: GridContainer = %ItemGrid
+@onready var item_detail_panel: ItemDetailPanel = %ItemDetailPanel
+@onready var modifier_detail_panel: ModifierDetailPanel = %ModifierDetailPanel
 @onready var equip_rarity_option: OptionButton = %EquipRarityOption
 @onready var equip_grant_button: Button = %EquipGrantButton
-@onready var gem_label: Label = %GemLabel
-@onready var gem_option: OptionButton = %GemOption
-@onready var gem_grant_button: Button = %GemGrantButton
-@onready var rune_label: Label = %RuneLabel
-@onready var rune_option: OptionButton = %RuneOption
-@onready var rune_grant_button: Button = %RuneGrantButton
 @onready var unlock_all_runes_button: Button = %UnlockAllRunesButton
 @onready var unlock_all_gems_button: Button = %UnlockAllGemsButton
 @onready var status_label: Label = %StatusLabel
@@ -84,9 +76,11 @@ var _empty_style: StyleBoxEmpty
 var _item_catalog: ItemCatalog
 var _gem_catalog: GemCatalog
 var _rune_catalog: RuneCatalog
-var _equip_ids: Array[String] = []
-var _gem_ids: Array[String] = []
-var _rune_ids: Array[String] = []
+var _item_subtab_buttons: Array[Button] = []
+var _item_slots: Array[InventorySlot] = []
+var _item_ids: Array[String] = []
+var _active_item_subtab: String = "main_hand"
+var _selected_item_index: int = 0
 
 
 func _ready() -> void:
@@ -127,17 +121,16 @@ func _ready() -> void:
 	force_lose_button.pressed.connect(_on_force_lose_pressed)
 	force_retreat_button.pressed.connect(_on_force_retreat_pressed)
 	equip_grant_button.pressed.connect(_on_equip_grant_pressed)
-	gem_grant_button.pressed.connect(_on_gem_grant_pressed)
-	rune_grant_button.pressed.connect(_on_rune_grant_pressed)
 	unlock_all_runes_button.pressed.connect(_on_unlock_all_runes_pressed)
 	unlock_all_gems_button.pressed.connect(_on_unlock_all_gems_pressed)
-	equip_slot_option.item_selected.connect(_on_equip_slot_selected)
-	equip_option.item_selected.connect(_on_equip_option_selected)
+	equip_rarity_option.item_selected.connect(_on_equip_rarity_selected)
 	LocaleManager.locale_changed.connect(_on_locale_changed)
+	item_grid.columns = GRID_COLUMNS
+	UIPopupLayout.apply_slot_grid_pad(item_grid_pad)
+	item_detail_panel.set_gold_price(ItemDetailPanel.GoldPrice.HIDDEN)
 	_setup_rarity_option()
-	_setup_slot_option()
-	_populate_item_options()
-	_sync_equip_rarity_from_selection()
+	_build_item_subtabs()
+	_refresh_item_browser()
 	_apply_chrome()
 	_refresh_texts()
 	_apply_tab()
@@ -172,10 +165,9 @@ func is_open() -> bool:
 
 func _on_locale_changed(_locale: String) -> void:
 	_refresh_texts()
-	_populate_item_options()
 	_refresh_rarity_option_texts()
-	_refresh_slot_option_texts()
 	_refresh_save_slot_option()
+	_refresh_item_browser()
 	if visible:
 		_apply_tab()
 
@@ -208,15 +200,11 @@ func _refresh_texts() -> void:
 	force_win_button.text = tr("DEV_FORCE_WIN")
 	force_lose_button.text = tr("DEV_FORCE_LOSE")
 	force_retreat_button.text = tr("DEV_FORCE_RETREAT")
-	equip_label.text = tr("Equipment")
-	gem_label.text = tr("Gem")
-	rune_label.text = tr("Rune")
 	equip_grant_button.text = tr("DEV_GRANT")
-	gem_grant_button.text = tr("DEV_GRANT")
-	rune_grant_button.text = tr("DEV_GRANT")
 	unlock_all_runes_button.text = tr("DEV_UNLOCK_ALL_RUNES")
 	unlock_all_gems_button.text = tr("DEV_UNLOCK_ALL_GEMS")
 	close_hint_label.text = tr("` / Esc: Close")
+	_refresh_item_subtab_texts()
 	_refresh_tab_colors()
 
 
@@ -259,7 +247,7 @@ func _apply_tab() -> void:
 		Tab.CHARACTER:
 			_refresh_level()
 		Tab.ITEM:
-			pass
+			_refresh_item_browser()
 		Tab.SHELF:
 			pass
 		Tab.SAVE:
@@ -354,41 +342,73 @@ func _inventory() -> InventoryData:
 	return _ui_manager.inventory_data
 
 
-func _populate_item_options() -> void:
-	_populate_equip_options(true)
-	var prev_gem := _selected_id(gem_option, _gem_ids)
-	var prev_rune := _selected_id(rune_option, _rune_ids)
-	_gem_ids.clear()
-	for gem_id in _gem_catalog.all_ids():
-		_gem_ids.append(str(gem_id))
-	_gem_ids.sort()
-	_rune_ids.clear()
-	for rune_id in _rune_catalog.all_ids():
-		_rune_ids.append(str(rune_id))
-	_rune_ids.sort()
-	_fill_option(gem_option, _gem_ids, func(id: String) -> String:
-		var gem := _gem_catalog.get_gem(id)
-		return tr(gem.display_name) if gem else id
-	, prev_gem)
-	_fill_option(rune_option, _rune_ids, func(id: String) -> String:
-		var rune := _rune_catalog.get_rune(id)
-		return tr(rune.display_name) if rune else id
-	, prev_rune)
+func _build_item_subtabs() -> void:
+	for child in item_sub_tab_row.get_children():
+		child.queue_free()
+	_item_subtab_buttons.clear()
+	for def in _ITEM_SUBTABS:
+		var button := Button.new()
+		button.flat = true
+		button.text = tr(str(def["key"]))
+		_style_tab_button(button)
+		button.add_theme_font_size_override("font_size", 16)
+		button.pressed.connect(_on_item_subtab_pressed.bind(str(def["id"])))
+		item_sub_tab_row.add_child(button)
+		_item_subtab_buttons.append(button)
+	_refresh_item_subtab_colors()
 
 
-func _populate_equip_options(keep_item: bool) -> void:
-	var keep_id := _selected_id(equip_option, _equip_ids) if keep_item else ""
-	_equip_ids = _equip_ids_for_selected_slot()
-	_fill_option(equip_option, _equip_ids, func(id: String) -> String:
-		var item := _item_catalog.get_item(id)
-		return tr(item.display_name) if item else id
-	, keep_id)
-	equip_grant_button.disabled = _equip_ids.is_empty()
+func _on_item_subtab_pressed(subtab: String) -> void:
+	if _active_item_subtab == subtab:
+		return
+	_active_item_subtab = subtab
+	_selected_item_index = 0
+	status_label.text = ""
+	_refresh_item_browser()
 
 
-func _equip_ids_for_selected_slot() -> Array[String]:
-	var group := _selected_slot_group()
+func _refresh_item_subtab_texts() -> void:
+	for i in _item_subtab_buttons.size():
+		if i < _ITEM_SUBTABS.size():
+			_item_subtab_buttons[i].text = tr(str(_ITEM_SUBTABS[i]["key"]))
+	_refresh_item_subtab_colors()
+
+
+func _refresh_item_subtab_colors() -> void:
+	for i in _item_subtab_buttons.size():
+		var id := str(_ITEM_SUBTABS[i]["id"]) if i < _ITEM_SUBTABS.size() else ""
+		_set_tab_color(_item_subtab_buttons[i], id == _active_item_subtab)
+
+
+func _is_modifier_subtab() -> bool:
+	return _active_item_subtab == "gem" or _active_item_subtab == "rune"
+
+
+func _refresh_item_browser() -> void:
+	_item_ids = _ids_for_item_subtab()
+	if _selected_item_index >= _item_ids.size():
+		_selected_item_index = 0
+	_rebuild_item_grid()
+	item_grid_scroll.scroll_vertical = 0
+	if not _is_modifier_subtab():
+		_sync_equip_rarity_from_selection()
+	equip_rarity_option.visible = not _is_modifier_subtab()
+	_refresh_item_detail()
+	_refresh_item_subtab_colors()
+
+
+func _ids_for_item_subtab() -> Array[String]:
 	var out: Array[String] = []
+	if _active_item_subtab == "gem":
+		for gem_id in _gem_catalog.all_ids():
+			out.append(str(gem_id))
+		out.sort()
+		return out
+	if _active_item_subtab == "rune":
+		for rune_id in _rune_catalog.all_ids():
+			out.append(str(rune_id))
+		out.sort()
+		return out
 	var all_ids := _item_catalog.ids_for_categories([
 		ItemData.ItemCategory.WEAPON,
 		ItemData.ItemCategory.ARMOR,
@@ -396,7 +416,7 @@ func _equip_ids_for_selected_slot() -> Array[String]:
 	])
 	for item_id in all_ids:
 		var item := _item_catalog.get_item(item_id)
-		if item and _item_matches_slot_group(item, group):
+		if item and _item_matches_slot_group(item, _active_item_subtab):
 			out.append(item_id)
 	return out
 
@@ -411,38 +431,86 @@ func _item_matches_slot_group(item: ItemData, group: String) -> bool:
 			return item.equip_slot == group
 
 
-func _selected_slot_group() -> String:
-	var idx := equip_slot_option.selected
-	if idx < 0 or idx >= _SLOT_GROUPS.size():
-		return _SLOT_GROUPS[0]
-	return _SLOT_GROUPS[idx]
+func _rebuild_item_grid() -> void:
+	for child in item_grid.get_children():
+		item_grid.remove_child(child)
+		child.queue_free()
+	_item_slots.clear()
+	for i in _item_ids.size():
+		var slot: InventorySlot = SLOT_SCENE.instantiate()
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		slot.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		item_grid.add_child(slot)
+		slot.setup(i)
+		slot.slot_pressed.connect(_on_item_slot_pressed)
+		_fill_item_slot(slot, i)
+		slot.set_selected(i == _selected_item_index)
+		_item_slots.append(slot)
 
 
-func _selected_id(option: OptionButton, ids: Array[String]) -> String:
-	var idx := option.selected
-	if idx < 0 or idx >= ids.size():
-		return ""
-	return ids[idx]
-
-
-func _fill_option(
-	option: OptionButton,
-	ids: Array[String],
-	label_fn: Callable,
-	keep_id: String = ""
-) -> void:
-	option.clear()
-	for i in ids.size():
-		option.add_item(str(label_fn.call(ids[i])), i)
-	if ids.is_empty():
-		option.disabled = true
+func _fill_item_slot(slot: InventorySlot, index: int) -> void:
+	var id := _item_ids[index]
+	if _active_item_subtab == "gem":
+		var gem := _gem_catalog.get_gem(id)
+		if gem:
+			slot.set_modifier_entry(
+				tr(gem.display_name), ItemData.ItemRarity.COMMON, false, gem.icon
+			)
+		else:
+			slot.clear_entry()
 		return
-	option.disabled = false
-	var keep_idx := ids.find(keep_id)
-	if keep_idx >= 0:
-		option.select(keep_idx)
-	else:
-		option.select(0)
+	if _active_item_subtab == "rune":
+		var rune := _rune_catalog.get_rune(id)
+		if rune:
+			slot.set_modifier_entry(
+				tr(rune.display_name), ItemData.ItemRarity.COMMON, false, rune.icon
+			)
+		else:
+			slot.clear_entry()
+		return
+	slot.set_item(_item_catalog.get_item(id))
+
+
+func _on_item_slot_pressed(index: int) -> void:
+	if index < 0 or index >= _item_ids.size():
+		return
+	_selected_item_index = index
+	for i in _item_slots.size():
+		_item_slots[i].set_selected(i == index)
+	if not _is_modifier_subtab():
+		_sync_equip_rarity_from_selection()
+	_refresh_item_detail()
+
+
+func _refresh_item_detail() -> void:
+	if _item_ids.is_empty() or _selected_item_index < 0 or _selected_item_index >= _item_ids.size():
+		item_detail_panel.visible = true
+		item_detail_panel.set_item(null)
+		modifier_detail_panel.visible = false
+		modifier_detail_panel.clear()
+		equip_grant_button.disabled = true
+		return
+	equip_grant_button.disabled = false
+	var id := _item_ids[_selected_item_index]
+	if _active_item_subtab == "gem":
+		item_detail_panel.visible = false
+		item_detail_panel.set_item(null)
+		modifier_detail_panel.visible = true
+		modifier_detail_panel.set_gem(_gem_catalog.get_gem(id))
+		return
+	if _active_item_subtab == "rune":
+		item_detail_panel.visible = false
+		item_detail_panel.set_item(null)
+		modifier_detail_panel.visible = true
+		modifier_detail_panel.set_rune(_rune_catalog.get_rune(id))
+		return
+	item_detail_panel.visible = true
+	modifier_detail_panel.visible = false
+	modifier_detail_panel.clear()
+	var item := _item_catalog.get_item(id)
+	if item:
+		item.apply_rarity(_selected_equip_rarity())
+	item_detail_panel.set_item(item)
 
 
 func _setup_rarity_option() -> void:
@@ -451,23 +519,8 @@ func _setup_rarity_option() -> void:
 		equip_rarity_option.add_item(tr(_RARITY_KEYS[i]), i)
 
 
-func _setup_slot_option() -> void:
-	equip_slot_option.clear()
-	for i in _SLOT_KEYS.size():
-		equip_slot_option.add_item(tr(_SLOT_KEYS[i]), i)
-	if _SLOT_KEYS.is_empty():
-		equip_slot_option.disabled = true
-		return
-	equip_slot_option.disabled = false
-	equip_slot_option.select(0)
-
-
 func _refresh_rarity_option_texts() -> void:
 	_refresh_option_texts(equip_rarity_option, _RARITY_KEYS)
-
-
-func _refresh_slot_option_texts() -> void:
-	_refresh_option_texts(equip_slot_option, _SLOT_KEYS)
 
 
 func _refresh_option_texts(option: OptionButton, keys: Array[String]) -> void:
@@ -477,20 +530,14 @@ func _refresh_option_texts(option: OptionButton, keys: Array[String]) -> void:
 			option.set_item_text(i, tr(keys[id]))
 
 
-func _on_equip_slot_selected(_index: int) -> void:
-	_populate_equip_options(false)
-	_sync_equip_rarity_from_selection()
-
-
-func _on_equip_option_selected(_index: int) -> void:
-	_sync_equip_rarity_from_selection()
+func _on_equip_rarity_selected(_index: int) -> void:
+	_refresh_item_detail()
 
 
 func _sync_equip_rarity_from_selection() -> void:
-	var idx := equip_option.selected
-	if idx < 0 or idx >= _equip_ids.size():
+	if _selected_item_index < 0 or _selected_item_index >= _item_ids.size():
 		return
-	var item := _item_catalog.get_item(_equip_ids[idx])
+	var item := _item_catalog.get_item(_item_ids[_selected_item_index])
 	if item == null:
 		return
 	var rarity_idx := int(item.rarity)
@@ -511,11 +558,30 @@ func _on_equip_grant_pressed() -> void:
 	if inventory == null:
 		status_label.text = tr("No character")
 		return
-	var idx := equip_option.selected
-	if idx < 0 or idx >= _equip_ids.size():
+	if _selected_item_index < 0 or _selected_item_index >= _item_ids.size():
 		return
-	var item_id := _equip_ids[idx]
-	var item := _item_catalog.get_item(item_id)
+	var selected_id := _item_ids[_selected_item_index]
+	if _active_item_subtab == "gem":
+		var gem := _gem_catalog.get_gem(selected_id)
+		if gem == null:
+			return
+		if not inventory.try_add_gem(GemInstance.create(selected_id)):
+			status_label.text = tr("LOOT_INVENTORY_FULL")
+			return
+		_ui_manager.refresh_character_views()
+		status_label.text = tr("LOOT_GOT") % tr(gem.display_name)
+		return
+	if _active_item_subtab == "rune":
+		var rune := _rune_catalog.get_rune(selected_id)
+		if rune == null:
+			return
+		if not inventory.try_add_rune(RuneInstance.create(selected_id)):
+			status_label.text = tr("LOOT_INVENTORY_FULL")
+			return
+		_ui_manager.refresh_character_views()
+		status_label.text = tr("LOOT_GOT") % tr(rune.display_name)
+		return
+	var item := _item_catalog.get_item(selected_id)
 	if item == null:
 		return
 	item.apply_rarity(_selected_equip_rarity())
@@ -524,44 +590,6 @@ func _on_equip_grant_pressed() -> void:
 		return
 	_ui_manager.refresh_character_views()
 	status_label.text = tr("LOOT_GOT") % tr(item.display_name)
-
-
-func _on_gem_grant_pressed() -> void:
-	var inventory := _inventory()
-	if inventory == null:
-		status_label.text = tr("No character")
-		return
-	var idx := gem_option.selected
-	if idx < 0 or idx >= _gem_ids.size():
-		return
-	var gem_id := _gem_ids[idx]
-	var gem := _gem_catalog.get_gem(gem_id)
-	if gem == null:
-		return
-	if not inventory.try_add_gem(GemInstance.create(gem_id)):
-		status_label.text = tr("LOOT_INVENTORY_FULL")
-		return
-	_ui_manager.refresh_character_views()
-	status_label.text = tr("LOOT_GOT") % tr(gem.display_name)
-
-
-func _on_rune_grant_pressed() -> void:
-	var inventory := _inventory()
-	if inventory == null:
-		status_label.text = tr("No character")
-		return
-	var idx := rune_option.selected
-	if idx < 0 or idx >= _rune_ids.size():
-		return
-	var rune_id := _rune_ids[idx]
-	var rune := _rune_catalog.get_rune(rune_id)
-	if rune == null:
-		return
-	if not inventory.try_add_rune(RuneInstance.create(rune_id)):
-		status_label.text = tr("LOOT_INVENTORY_FULL")
-		return
-	_ui_manager.refresh_character_views()
-	status_label.text = tr("LOOT_GOT") % tr(rune.display_name)
 
 
 func _on_unlock_all_runes_pressed() -> void:
